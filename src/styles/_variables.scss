@@ -1,0 +1,41 @@
+$ui-control-font-family: Verdana;
+$ui-control-background-color: #0b2e6b;
+$ui-control-foreground-color: lighten($ui-control-background-color,5%);
+$ui-control-font-color: white;
+$ui-control-text-size:1.0em;
+$ui-control-heading-size:1.5em;
+$ui-control-shadow-color:#030e20;
+
+$ui-control-padding: 10px;
+$ui-control-border-color: rgb(0, 39, 0);//#505050;
+$ui-control-border-radius: 15px;
+$ui-control-background-primary: #b1a91a;//#rgb(207, 0, 197);
+$ui-control-background-secondary: #8f1323;//hsl(46, 100%, 41%);
+
+$paddings: 1 2 3 5 10 15 20 25;
+$gaps: $paddings;
+// Padding
+@each $padding in $paddings {
+    .pad-#{$padding} {
+        padding: #{$padding}px;
+    }
+}
+@each $gap in $gaps {
+    .gap-#{$gap} {
+        gap: #{$gap}px;
+    }
+}
+
+@mixin ui-control-rounded{
+    border-radius:$ui-control-border-radius;
+    border:1px solid $ui-control-border-color;
+}
+
+::-webkit-scrollbar{
+    width:8px;
+    background-color:$ui-control-shadow-color;
+  }   
+  ::-webkit-scrollbar-thumb{
+    background-color:$ui-control-foreground-color;
+    
+  }

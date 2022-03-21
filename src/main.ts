@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import App from './App.vue'
-import store from './store'
-
-createApp(App).use(store).mount('#app')
+import GameClient from './GameClient.vue'
+import { store, key } from './store'
+import "./styles/styles.scss";
+createApp(GameClient).use(store,key).mount('#game-client')

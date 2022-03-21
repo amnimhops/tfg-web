@@ -1,0 +1,116 @@
+<template>
+<UIPane v-if="selection!=null">
+    <UIFlex gap="5" v-if="selection!=null" class="pane-content">
+      <!--Title-->
+      <UIFlex direction="row" gap="10" padding="10" alignItems="center">
+          <UIButton description="Cerrar el panel" @onClick="close" borderless>
+            <UIIcon :src="closeIcon" size="medium"/>
+          </UIButton>
+          <span class="ui-heading">{{selection.title}}</span>
+      </UIFlex>
+      <!--Large image-->
+      <img :src="selection.image" style="max-width:100%;"/>
+        <!--Structure dropdown-->
+      <UIFlex v-if="false">
+        <UIDropdown :data="data" @change="select">
+          <template v-slot="item">
+            <UIFlex direction="row" align-items="center" gap="15" padding="10">
+              <!--<UIIcon :src="item.icon" size="large" />-->
+              <img :src="item.image" style="width:150px;height:150px;" />
+              <UILabel>{{item.title}}</UILabel>
+            </UIFlex>
+          </template>
+        </UIDropdown>
+      </UIFlex>
+      <!--Breadcrumb / Global taxonomy-->
+      <UIFlex direction="row" gap="10" padding="10" v-if="selection.breadcrumb!=null">
+        <template v-for="(link,index) in selection.breadcrumb" :key="index">
+          <UILabel @onClick="navigateTo(link.href)" :link="index < selection.breadcrumb.length-1">{{link.label}}</UILabel>
+          <span v-if="index<selection.breadcrumb.length-1"> / </span>
+        </template>
+      </UIFlex>
+      <!--Description-->
+      <UIFlex padding="10">
+      <p>{{selection.description}}</p>
+      </UIFlex>
+      <!--Activities-->
+      <UIFlex padding="10" direction="column" align-items="flex-end" justify-content="space-between" gap="10" v-if="selection.activities">
+        <UIButton v-for="(activity,index) in selection.activities" :key="index" @onClick="activity.callback">
+          <UIIcon :src="activity.icon" size="large"/>
+          <UILabel>{{activity.label}}</UILabel>
+        </UIButton>
+      </UIFlex>
+    </UIFlex>
+</UIPane>
+
+</template>
+
+<script lang="ts">
+
+import UIPane from '../ui/UIPane.vue'
+import UIIcon from '../ui/UIIcon.vue'
+import UIFlex from '../ui/UIFlex.vue'
+import UIButton from '../ui/UIButton.vue'
+import UILabel from '../ui/UILabel.vue'
+import UIDropdown from '../ui/UIDropdown.vue'
+import {closeIcon} from '@/components/ui/icons';
+import { defineComponent } from 'vue'
+import { useStore } from '@/store';
+
+const store = useStore();
+
+export default defineComponent({
+  components:{
+    UIPane,UIIcon,UIFlex,UIButton,UILabel,UIDropdown
+  },
+  data(){
+    return{
+      closeIcon,
+      selectedIndex:0,
+      opened:false
+    }
+  },
+  methods:{
+    select(index:number){
+      this.selectedIndex = index;
+    },
+    close(){
+      store.commit('panelSelection',null)
+    },
+    navigateTo(){
+      console.log('nothign')
+    }
+  },
+  computed:{
+    selection(){
+      return store.state.panelSelection;
+    }
+  }
+});
+</script>
+
+<style lang="scss" scoped>
+   .ui-pane{
+      position:absolute;
+      top:0;
+      z-index:998; // Siempre encima
+      width:100%;
+      right:0px;
+      height:100vh;
+      overflow-x: hidden;
+      overflow-y:auto; // Importante que sea auto, o SIEMPRE se queda la barra, ocultando la imagen!
+      scrollbar-width: 5px;
+      scrollbar-color: $ui-control-border-color;
+   }    
+   @media(min-width:768px){
+     .ui-pane{
+       width:400px;
+       box-shadow: -5px 0px 5px $ui-control-shadow-color;
+     }
+   }
+
+  p{
+    text-align: justify;
+    margin-top:0px;
+  }
+</style>

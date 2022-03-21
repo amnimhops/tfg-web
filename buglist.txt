@@ -1,0 +1,11 @@
+BUGS
+* Al entrar en modo pantalla completa, mouseinputcontroller no lanza evento select() y no se puede elegir celda
+* Por algún motivo, bajo alguna circunstancia, se multiplican los stockpiles de ResourcePanel, ver si es que se monta y desmonta
+o si es que alguien añade a store
+* Al arrastrar el mapa y salir del foco del canvas, cuando se vuelve el mapa se vuelve loco por los cambios. Habría que ver el uso
+de mouseleave para cancelar la acción
+
+MEJORAS
+* Meter una colección de HexCells en MapController que sustituya a las celdas del jugador. Cada HexCell contendrá solo los datos
+de pintado y la info de estado (selección, etc). Así evitamos los tiempos de acceso absurdos a los proxies de vue
+* Modificar la funcion de pintado para que las celdas tenga una elevación en la base, esto dará mayor riqueza gráfica
