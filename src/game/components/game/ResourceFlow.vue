@@ -1,0 +1,93 @@
+<template>
+    <UIFlex class="resource-flow" :class="flowType" direction="row" gap="5" alignItems="center">
+        <UIIcon :src="icon" :title="resource" size="medium" />
+        <span class="production-speed">{{productionSpeed}}</span>
+    </UIFlex>
+</template>
+
+<script lang="ts">
+import { useGameAPI } from '@/game/services/gameApi';
+import { computed, defineComponent } from '@vue/runtime-core';
+import { FlowPeriodicity, ResourceFlow } from 'shared/monolyth';
+import UIIcon from '../ui/UIIcon.vue'
+import UIFlex from '../ui/UIFlex.vue'
+
+function getProductionSpeed(flow:ResourceFlow):string {
+    let unit = '';
+    switch(flow.periodicity){
+        case FlowPeriodicity.Once:
+            unit = 'unidades';
+            break;
+        case FlowPeriodicity.PerSecond:
+            unit = '/ segundo';
+            break;
+        case FlowPeriodicity.PerMinute:
+            unit = '/ minuto';
+            break;
+        case FlowPeriodicity.PerHour:
+            unit = '/ hora';
+            break;
+        case FlowPeriodicity.PerDay:
+            unit = '/ día';
+            break;
+        case FlowPeriodicity.PerWeek:
+            unit = '/ semana';
+            break;
+    }
+    return Math.abs(flow.amount)+ ' '+unit;
+}
+
+export default defineComponent({
+    props:["flow","packed"],
+    components:{UIIcon,UIFlex},
+    setup(props){
+        const gameDef = useGameAPI().getGameData();
+        const amount = computed<string>( ()=> {
+            let amountStr = null;
+            if(props.packed){
+                amountStr = ''+Math.abs(props.flow.amount);
+            }else{
+                if(props.flow.amount > 0){
+                     amountStr = 'Proporciona +'+props.flow.amount;
+                }else{
+                    amountStr ='Cuesta '+ (-props.flow.amount);
+                }
+            }
+            return amountStr;
+        });
+
+        const flowType = computed<string>( ()=> props.flow.amount >= 0 ? 'income': 'expense');
+        const productionSpeed = computed<string>( ()=> getProductionSpeed(props.flow) ); 
+        const resource = computed<string>( ()=> gameDef.resources[props.flow.resourceId].media.name );
+        const icon = computed<string>( ()=> gameDef.resources[props.flow.resourceId].media.icon.url );
+       // mounted(){
+        return {icon,flowType,productionSpeed,resource};
+    }/*,
+    computed:{
+        icon(){
+            return gameDef.resources[this.flow.resourceId].media.icon.url;
+        },
+        label(){
+            return getFlowText(this.flow);
+        },
+        flowType(){
+            return this.flow.amount >0 ? 'income':'expense';
+        }
+
+
+    }*/
+});
+</script>
+
+<style lang="scss" scoped>
+    .resource-flow{
+        
+    }
+
+    .income{
+        color:#aaffaa;
+    }
+    .expense{
+        color:#ffaaaa;
+    }
+</style>

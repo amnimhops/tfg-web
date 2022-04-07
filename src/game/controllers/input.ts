@@ -1,5 +1,5 @@
-import {Vector} from '../models/vector'
-import { EventEmitter } from './events';
+import {Vector} from '../classes/vector'
+import { EventEmitter } from '../classes/events';
 
 const STATE_NONE = 'none';
 const STATE_PANNING = 'panning';

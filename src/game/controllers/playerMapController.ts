@@ -1,8 +1,10 @@
-import {Vector} from '../models/vector';
-import { CellInstance } from '../models/cells';
-import { EventEmitter } from './events';
+import { Cell, CellInstance, EnqueuedActivity } from 'shared/monolyth';
+import {Vector} from '@/game/classes/vector';
+import { EventEmitter } from '../classes/events';
 import { InputController, MotionEvents, MouseController, TouchController } from './input';
-import { AssetManager } from '../models/assets';
+import { AssetManager, ConstantAssets } from '../classes/assetManager';
+import { GameEvents, IGameAPI, useGameAPI } from '../services/gameApi';
+import { faBlackboard } from '@fortawesome/free-solid-svg-icons';
 
 const CELL_WIDTH = 101;
 const CELL_HEIGHT = 61;
@@ -10,15 +12,12 @@ const H_DISPLACEMENT = 70;
 const V_DISPLACEMENT = 31;
 
 class HexCell{
-    cell:CellInstance;
+    cellInstance:CellInstance;
     pos:Vector;
     drawPos:Vector = new Vector();
-    texture:HTMLImageElement;
-
-    constructor(cell:CellInstance){
-        this.cell = cell;
-        this.pos = cell.getPosition();
-        this.texture = cell.getCell().getTexture().getData();
+    constructor(cellInstance:CellInstance){
+        this.cellInstance = cellInstance;
+        this.pos = cellInstance.position;
     }
 }
 
@@ -38,31 +37,55 @@ export class PlayerMapController extends EventEmitter{
     private inputHandlers:InputController[] = [];
     private cells:HexCell[]
     private selected:HexCell|null;
-
-    constructor(canvas:HTMLCanvasElement, cells:CellInstance[]){
-        super();
+    private api:IGameAPI;
+    
+    constructor(canvas:HTMLCanvasElement,api:IGameAPI){
+        super();console.log(canvas);
         this.canvas = canvas;
-        this.cells = cells.map( cell => new HexCell(cell));
-        this.selected = null;
-        
         this.context = this.canvas.getContext("2d");
-        // Configurar la entrada de ratón y pantalla táctil.
-        // No hay problema en usar los mismos bindings para
-        // ambos ya que no va a haber dos entradas en el mismo
-        // dispositivo
+        this.cells = [];
+        this.selected = null;
+        this.api = api;
+
+        this.api.getCells().then(this.onCellsReceived.bind(this));
+    }
+
+    /**
+     * Callback invocado al recibir las celdas del servidor.
+     * @param playerMap Objeto IPlayerMap que controla la gestión de cambios remotos
+     */
+    onCellsReceived(cells:CellInstance[]){
+        console.log('Map controller connected to server');
         this.inputHandlers = [
             new TouchController(this.canvas),
             new MouseController(this.canvas)
         ]
-
+        // Configurar la entrada de ratón y pantalla táctil.
+        // No hay problema en usar los mismos bindings para
+        // ambos ya que no va a haber dos entradas en el mismo
+        // dispositivo
         this.inputHandlers.forEach( handler => {
             handler.on(MotionEvents.SELECT,this.select.bind(this));
             handler.on(MotionEvents.PANNING,this.panning.bind(this));
             handler.on(MotionEvents.PAN_START,this.panStart.bind(this));
             handler.on(MotionEvents.PAN_END,this.panEnd.bind(this));
-        })
+        });
+
+        const gameData = this.api.getGameData();
+        this.cells = cells.map( cell => new HexCell(cell));
+        this.selected = null;
         
         this.paint();
+
+        this.centerTo(this.cells[0].drawPos);
+
+        this.api.on(GameEvents.CellInstanceUpdated,(ci:CellInstance)=>{
+            this.cells.forEach( hexcell => {
+                if(hexcell.cellInstance.id == ci.id){
+                    hexcell.cellInstance = ci;
+                }
+            })
+        });
 
         console.warn('Atención! Este controlador accede directamente al estado maestro de vuex');
         console.warn('con la consiguiente sobrecarga de rendimiento. Antes o después hay que sacar')
@@ -71,6 +94,10 @@ export class PlayerMapController extends EventEmitter{
     destroy(){
         super.destroy()
         this.inputHandlers.forEach( handler => handler.destroy());
+    }
+    private centerTo(pos:Vector):void{
+        this.position = new Vector(-pos.x + this.canvas.width/2,-pos.y+this.canvas.height/2);
+        console.log(pos)
     }
     private getPos(){
         return new Vector(this.position.x+this.pan.x,this.position.y+this.pan.y);
@@ -90,7 +117,7 @@ export class PlayerMapController extends EventEmitter{
             }
         }
         
-        this.raise(PlayerMapEvents.CELL_SELECTED,this.selected!.cell);
+        this.raise(PlayerMapEvents.CELL_SELECTED,this.selected?.cellInstance);
     }
     private panStart(){
         console.log('pan start')    
@@ -102,18 +129,39 @@ export class PlayerMapController extends EventEmitter{
     private panning(delta:Vector){
         this.pan = delta;
     }
+    private getTerrainTexture(cell:HexCell):HTMLImageElement{
+        const cellDef = this.api.getCell(cell.cellInstance.cellId);
+        return AssetManager.get(cellDef.texture.id).data;
+    }
+    private getBuildingTexture(cell:HexCell):HTMLImageElement|undefined{
+        const cellDef = this.api.getCell(cell.cellInstance.cellId).media.image.data;
+        const numBuildings = cell.cellInstance.placeableIds.length;
+        
+        if(numBuildings == 0){
+            return;
+        }else{
+            // Usamos la textura del primer edificio que encontremos
+            const placeableTextureId = this.api.getPlaceable(cell.cellInstance.placeableIds[0]).texture.id;
+            return AssetManager.get(placeableTextureId).data;
+        }
+    }
+
     private drawHexMap(){
-        /**
-         * @type {PlayerData}
-         */
         const pos = this.getPos();
-        this.context!.fillStyle = 'green';
         const [canvasW,canvasH] = [this.canvas.width,this.canvas.height];
 
         let [x,y] = [0,0]; 
 
+        // Propiedades para pintar el texto
+        this.context!.font = "20px Arial black";
+        this.context!.fill
+        this.context!.textAlign = "center";
+        this.context!.fillStyle = 'white';
         for(let i=0;i<this.cells.length;i++){
             const hex = this.cells[i];
+            const terrainTexture = this.getTerrainTexture(hex);
+            const buildingTexture = this.getBuildingTexture(hex);
+
             const vDisplace = hex.pos.x % 2 == 1 ? V_DISPLACEMENT : 0;
             
             hex.drawPos.x = pos.x + H_DISPLACEMENT * (hex.pos.x)
@@ -122,7 +170,7 @@ export class PlayerMapController extends EventEmitter{
              * tengan sensación de altura. Para esto, a la coordenada normal de dibujado hay
              * que restar la diferencia entre la altura real de la imagen y la esperada
              */
-            const heightDiff = hex.texture.height - CELL_HEIGHT
+            const terrainHeightDiff = terrainTexture.height - CELL_HEIGHT
             hex.drawPos.y = pos.y + CELL_HEIGHT * (hex.pos.y) + vDisplace;
         
             x = hex.drawPos.x;
@@ -130,19 +178,27 @@ export class PlayerMapController extends EventEmitter{
 
             if(x > -CELL_WIDTH && y > -CELL_HEIGHT && x < canvasW && y < canvasH){
                 this.context!.drawImage(
-                    hex.texture,
+                    terrainTexture,
                     hex.drawPos.x,
-                    hex.drawPos.y - heightDiff
+                    hex.drawPos.y - terrainHeightDiff
                 );
                 // A continuación se pintan los emplazables
-               /* cell.placeables.forEach( placeable => {
-                    //this.context.drawImage(this.assets.get('struct-texture-shop1').data,100,100,101,);
-
-                });*/
+                if(buildingTexture){
+                    const buildingHeightDiff = buildingTexture.height - CELL_HEIGHT
+                    this.context!.drawImage(
+                        buildingTexture,
+                        hex.drawPos.x,
+                        hex.drawPos.y - buildingHeightDiff
+                    );
+                }
+                // Pintar el badge con el número de edificios
+                if(hex.cellInstance.placeableIds.length  > 1){
+                    this.context!.fillText(hex.cellInstance.placeableIds.length+'',hex.drawPos.x+CELL_WIDTH/2,hex.drawPos.y + CELL_HEIGHT / 2);
+                }
             }
         }
         if(this.selected){
-            const texture = AssetManager.get('cell-highlight').getData();
+            const texture = AssetManager.get(ConstantAssets.HEX_SELECTED).data;
             const heightDiff = texture.height - CELL_HEIGHT
             this.context!.drawImage(
                 texture,
