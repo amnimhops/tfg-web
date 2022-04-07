@@ -1,26 +1,14 @@
 <template >
-  <div class="player-map" ref="mapHolder">
-    <canvas ref="canvasRef" id="player-map"></canvas>
-    <div class="fullscreen"></div>
+  <div class="tech-map" ref="mapHolder">
+    <canvas ref="canvasRef" id="tech-map"></canvas>
   </div>
-  <span v-if="picker">fuuu</span>
-  <BuildingPicker
-    v-if="picker"
-    @onClose="showStructurePicker(false)"
-    :structures="availableStructures"
-    @onSelect="buildStructure"
-  />
 </template>
 
 <script lang="ts">
-/*import {
-  PlayerMapController,
-  PlayerMapEvents,
-} from "@/game/controllers/playerMapController";*/
 import {
   PlayerMapController,
   PlayerMapEvents,
-} from "@/game/controllers/refactoredmap";
+} from "@/game/controllers/playerMapController";
 import { CellInstance, Activity, ActivityType, Placeable } from "shared/monolyth";
 import {
   defineComponent,
