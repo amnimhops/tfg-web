@@ -1,6 +1,6 @@
-import { Asset, Game, GameInstance, Media, Player, Vector } from "shared/monolyth";
+import { Asset, Game, GameInstance, Media, Player, Technology, Vector } from "shared/monolyth";
 import {players, games, gameInstances, randomName, MAP_SIZE} from "shared/mocks/";
-import { randomInt, randomItem } from "shared/functions";
+import { randomInt, randomItem, range } from "shared/functions";
 import { ConstantAssets } from "../classes/assetManager";
 import { CellIPTarget } from "../classes/info";
 
@@ -40,11 +40,21 @@ const diamond = require("@/assets/images/diamond.jpeg");
 const photo1 = require("@/assets/images/pexels-photo-440731.jpeg");
 const photo2 = require("@/assets/images/pexels-photo-459728.jpeg");
 const photo3 = require("@/assets/images/solar-panel-array-power-sun-electricity-159397.jpeg");
+const techBackground = require("@/assets/images/tech-background.webp");
+const tech1 = require("@/assets/images/tech-texture-1.svg");
+const tech2 = require("@/assets/images/tech-texture-2.svg");
+const tech3 = require("@/assets/images/tech-texture-3.svg");
+const tech4 = require("@/assets/images/tech-texture-4.svg");
+const tech5 = require("@/assets/images/tech-texture-5.svg");
+const tech6 = require("@/assets/images/tech-texture-6.svg");
+const tech7 = require("@/assets/images/tech-texture-7.svg");
+//const gameConfigJson = require("@/assets/data/gamedata.json");
+
 
 const assets:Asset[] = [];
 let game:Game;
 
-function createAsset(id:string,type:'image'|'sound'|'text',url:string,data:any = null):Asset{
+function createAsset(id:string,type:'image'|'sound'|'text'|'json',url:string,data:any = null):Asset{
     return {id,type,url,data}
 }
 
@@ -66,7 +76,7 @@ function defineAssets(){
         createAsset('icon-building','image',iconbuilding),
         createAsset('icon-cell','image',iconcell),
         createAsset(ConstantAssets.ICON_BUILD,'image',iconbuild),
-    
+        createAsset(ConstantAssets.TECH_BACKGROUND,'image',techBackground),
         createAsset('structure-texture-shop1','image',texturestructureshop1),
     
         createAsset('placeable-texture-1','image',btex1),
@@ -77,6 +87,15 @@ function defineAssets(){
         createAsset('structure-image-struct4','image',structure4),
         createAsset('structure-image-struct5','image',structure5),
        
+        createAsset('tech-texture-1','image',tech1),
+        createAsset('tech-texture-2','image',tech2),
+        createAsset('tech-texture-3','image',tech3),
+        createAsset('tech-texture-4','image',tech4),
+        createAsset('tech-texture-5','image',tech5),
+        createAsset('tech-texture-6','image',tech6),
+        createAsset('tech-texture-7','image',tech7),
+
+
         createAsset('resource-icon-energy','image',iconenergy),
         createAsset('resource-icon-silver','image',iconsilver),
         createAsset('resource-icon-ore','image',iconore),
@@ -111,7 +130,16 @@ export function randomizeGameAssets(game:Game){
         randomizeMediaAssets(placeable.media)
         placeable.texture = randomItem(assets.filter( asset => asset.id.startsWith('placeable-texture')));
     });
-    game.technologies.forEach( tech => randomizeMediaAssets(tech.media));
+    game.technologies.forEach( tech => {
+        /* Rellena de forma recursiva todo este arbol tecnológico */
+        function techMediaFiller(tech:Technology){
+            tech.texture = randomItem(assets.filter( asset => asset.id.startsWith('tech-texture')));
+            randomizeMediaAssets(tech.media)
+            tech.unlocks.forEach(techMediaFiller);
+        }
+
+        techMediaFiller(tech);
+    });
     game.resources.forEach( res => randomizeMediaAssets(res.media));
     game.activities.forEach( activity => randomizeMediaAssets(activity.media));
     
@@ -147,11 +175,12 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
     instance.players.push({
         playerId:player.id!,
         stockpiles:game.resources.map( resource => ({resourceId:resource.id,amount:100}) ),
-        queue:[]
+        queue:[],
+        technologies:range(5).map( i => randomItem(game.technologies).id )
     });
     // Asignar unas celdas
     const areaSize = 50;
-    const startPos:Vector = new Vector(areaSize+randomInt(MAP_SIZE - areaSize),areaSize+randomInt(MAP_SIZE - areaSize));
+    const startPos:Vector = new Vector(0,0);//new Vector(areaSize+randomInt(MAP_SIZE - areaSize),areaSize+randomInt(MAP_SIZE - areaSize));
     for(let x = 0; x< areaSize; x++){
         for(let y = 0; y<areaSize; y++){
             instance.cells[ (y+startPos.y)*MAP_SIZE + (x+startPos.x)].playerId = player.id;

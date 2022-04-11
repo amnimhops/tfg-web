@@ -1,10 +1,22 @@
 import { randomInt, toMap } from 'shared/functions';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, Game, GameInstance, InstancePlayer, Media, Placeable, Player, Resource, ResourceAmount, ResourceFlow, Stockpile, Technology } from 'shared/monolyth';
-import { BuildingActivityTarget } from '../classes/activities';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, Game, GameInstance, InstancePlayer, Media, Placeable, Player, Resource, ResourceAmount, ResourceFlow, Stockpile, Technology, UIConfig } from 'shared/monolyth';
+import { ActivityAvailability, BuildingActivityTarget, ResearchActivityTarget } from '../classes/activities';
+import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { EventEmitter, IEventEmitter } from '../classes/events';
 import { GameData } from '../classes/gameIndex';
 
 import { createGameList, createPlayer, createSinglePlayerMatch, getAssets} from './fakeServer';
+
+function techFlatMap(tree:Technology):Technology[]{
+    const techsFound:Technology[] = [tree];
+    if(tree.unlocks != null){
+        for(const childTech of tree.unlocks){
+            techsFound.push(...techFlatMap(childTech));
+        }
+    }
+
+    return techsFound;
+}
 
 function unknownMedia(text:string):Media{
     return {
@@ -23,8 +35,8 @@ export interface IGameAPI extends IEventEmitter{
     getGameData():GameData;
     getInstancePlayer():InstancePlayer;
     startActivity(type:ActivityType,target:ActivityTarget):Promise<string>
-    canStartActivity(type:ActivityType,target:ActivityTarget):boolean
-
+    checkActivityAvailability(type:ActivityType,target:ActivityTarget):ActivityAvailability;
+    getResearchedTechnologies():Technology[];
     /**
      * Métodos de obtención de información sobre elementos de juego
      */
@@ -33,6 +45,7 @@ export interface IGameAPI extends IEventEmitter{
     getTechnology(id:string):Technology;
     getPlaceable(id:string):Placeable;
     getActivity(type:ActivityType):Activity;
+    getUIConfig(): UIConfig
 }
 
 export const GameEvents = {
@@ -164,23 +177,67 @@ class MockAPI extends EventEmitter implements IGameAPI {
     }
     getTechnology(id:string):Technology{
         if(!this.currentGame) throw new Error('No se ha cargado el juego');
-        return {} as Technology;
+
+        const map = toMap(this.currentGame.technologies.map(techFlatMap).flat(),tech => tech.id);
+        return map[id];
     }
+    
     getPlaceable(id:string):Placeable{
         if(!this.currentGame) throw new Error('No se ha cargado el juego');
         return this.currentGame.placeables[id];
+    }
+    getUIConfig(): UIConfig {
+        return {
+            "uiControlFontFamily":"Verdana",
+            "uiControlBackgroundColor":"#0b2e6b",
+            "uiControlForegroundColor":"#194898",
+            "uiControlFontColor":"white",
+            "uiControlFontColorDanger":"#dd0a0a",
+            "uiControlFontColorDisabled":"#a0a0a0",
+            "uiControlTextSize":"1.0em",
+            "uiControlTextHeadingSize":"1.5em",
+            "uiControlBorderColor":"#293e61",
+            "uiControlBorderRadius":"1px",
+            "uiControlShadowColor":"#030e20",
+            "uiControlBackgroundPrimary":"#b1a91a",
+            "uiControlBackgroundSecondary":"#8f1323"
+        }
+    }
+    getResearchedTechnologies():Technology[]{
+        if(!this.currentInstancePlayer) throw new Error('No se ha cargado la información del jugador');
+        const map = toMap(this.currentGame!.technologies.map(techFlatMap).flat(),tech => tech.id);
+        
+        return this.currentInstancePlayer.technologies.map( id => map[id]);
     }
     getActivity(type:ActivityType):Activity{
         if(!this.currentGame) throw new Error('No se ha cargado el juego');
         return this.currentGame.activities.get(type) || {type,media:unknownMedia('unknown activity'),flows:[],duration:0} ;
     }
-    canStartActivity(type:ActivityType,target:any):boolean{
+
+    checkActivityAvailability(type:ActivityType,target:ActivityTarget):ActivityAvailability{
+        const failedPreconditions:string[] = [];
         const activity = this.getActivity(type);
         // Comprobamos que hay suficiente para empezar
         const stockPiles = toMap(this.getInstancePlayer().stockpiles, sp => sp.resourceId);
         // No se puede construir si al menos un almacen tiene menos stock que lo que el flujo requiere
-        return !activity.flows.some( flow => flow.amount >= stockPiles[flow.resourceId].amount)
+        activity.flows.forEach( flow => {
+            if(flow.amount >= stockPiles[flow.resourceId].amount){
+                const resource = this.currentGame?.resources[flow.resourceId];
+                failedPreconditions.push('Faltan '+ (stockPiles[flow.resourceId].amount-flow.amount)+' de '+resource?.media.name);
+            }
+        });
+
+        // Si es una tecnología, esta debe estar sin investigar
+        if(type == ActivityType.Research){
+            const tech = (target as ResearchActivityTarget).tech;
+            if(this.currentInstancePlayer?.technologies.some( t => t == tech.id)){
+                failedPreconditions.push('Esta tecnología ya está investigada')
+            }
+        }
+
+        return new ActivityAvailability(failedPreconditions.length == 0,type,target,failedPreconditions);
     }
+  
     startActivity(type:ActivityType,target:ActivityTarget):Promise<string>{
         const activity = this.getActivity(type);
         const item:EnqueuedActivity = {
@@ -194,7 +251,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
         // Descontar el coste de la actividad
         const stockPiles = toMap(this.getInstancePlayer().stockpiles, sp => sp.resourceId);
         activity.flows.forEach(flow => {
-            stockPiles[flow.resourceId].amount-=flow.amount
+            stockPiles[flow.resourceId].amount-=Math.abs(flow.amount);
             this.raise<Stockpile>(GameEvents.StockpileChanged,stockPiles[flow.resourceId]);
         });
 

@@ -34,8 +34,8 @@
     </template>
     <template v-slot:footer>
       <UIFlex direction="row" justify-content="space-around" align-items="center">
-        <UIButton :disabled="cannotBuildSelection" @onClick="emit('onSelect',selectedItem)"><UIIcon :src="acceptIcon" size="medium" /><span>Seleccionar</span></UIButton>
-        <div v-if="cannotBuildSelection">
+        <UIButton :disabled="disabled" @onClick="emit('onSelect',selectedItem)"><UIIcon :src="acceptIcon" size="medium" /><span>Seleccionar</span></UIButton>
+        <div v-if="disabled">
           <UILabel class="danger" >No tienes recursos suficientes</UILabel>
         </div>
       </UIFlex>
@@ -54,30 +54,45 @@ import UILabel from '@/game/components/ui/UILabel.vue'
 import ResourceFlow from '@/game/components/game/ResourceFlow.vue'
 import {acceptIcon} from '@/game/components/ui/icons'
 import { useGameAPI } from '@/game/services/gameApi'
-import { ActivityType, Placeable } from 'shared/monolyth'
+import { ActivityType, CellInstance, Placeable } from 'shared/monolyth'
 import {computed, defineComponent, ref} from 'vue';
+import { ActivityAvailability, BuildingActivityTarget } from '@/game/classes/activities'
 
 export default defineComponent({
   components:{UIModal,UIFlex,UIButton,UIIcon,UIList,ResourceFlow,UILabel},
   emits:['onClose','onSelect','update:modelValue'],
-  props:['structures','modelValue'],
+  props:['structures','cell','modelValue'],
   setup(props,{emit}) {
     const api = useGameAPI();
     const selectedItem = ref<Placeable|null>(null);
     const activity = api.getActivity(ActivityType.Build);
-    const cannotBuildSelection = computed<boolean>( ():boolean => {
+    const reasons = ref<string[]>([]);
+    
+    const changeReasons = (newReasons:string[]) => {
+      reasons.value = newReasons;
+    }
+    const disabled = computed<boolean>( ():boolean => {
       if(selectedItem.value != null){
-        console.log(api.canStartActivity(ActivityType.Build,selectedItem.value));
-        return !api.canStartActivity(ActivityType.Build,selectedItem.value)
+        const availability = api.checkActivityAvailability(
+          ActivityType.Build,
+          new BuildingActivityTarget((props.cell as CellInstance).id,selectedItem.value.id)
+        );
+        if(availability.available){
+          return false;
+        }else{
+          changeReasons(availability.info);
+          return true;
+        }
       }else{
         return true;
       }
+      
     });
 
     const select: () => void = () => {
       emit("update:modelValue", selectedItem);
     }
-    return {acceptIcon,select,selectedItem,activity, cannotBuildSelection, emit}
+    return {acceptIcon,select,selectedItem,activity, disabled, emit, reasons}
   }
 });
 /*export default {

@@ -12,7 +12,7 @@
       <img :src="selection.media.image.url" style="max-width:100%;"/>
         <!--Structure dropdown-->
       <UIFlex v-if="dropdownData.length > 0" padding="10">
-        <UIDropdown :data="dropdownData" @change="select" :index="selectedIndex">
+        <UIDropdown :data="dropdownData" @change="select" :index="selectedIndex" v-if="dropdownData.length > 1">
           <template v-slot="item">
             <UIFlex direction="row" align-items="center" gap="15" padding="10">
               <!--<UIIcon :src="item.icon" size="large" />-->
@@ -39,9 +39,9 @@
       </UIFlex>
       <!--Activities-->
       <UIFlex padding="10" direction="column" align-items="flex-end" justify-content="space-between" gap="10" v-if="selection.activities">
-        <UIButton v-for="(activity,index) in selection.activities" :key="index" @onClick="performActivity(activity)" :grow="true" justify="flex-start">
-          <UIIcon :src="activity.media.icon.url" size="large"/>
-          <UILabel>{{activity.media.name}}</UILabel>
+        <UIButton v-for="(activity,index) in selection.activities" :key="index" @onClick="performActivity(activity.activity)" :grow="true" justify="flex-start" :disabled="!activity.enabled">
+          <UIIcon :src="activity.activity.media.icon.url" size="large"/>
+          <UILabel>{{activity.activity.media.name}}</UILabel>
         </UIButton>
       </UIFlex>
     </UIFlex>
@@ -79,11 +79,16 @@ export default defineComponent({
     return{
       closeIcon,
       selectedIndex:0,
+      selectedTarget:null,
+      selectedActivities:null,
     }
   },
   methods:{
     select(index:number){
       this.selectedIndex = index;
+      this.selectedTarget = this.panelTarget[index];
+      this.selectedActivities = (this.selectedTarget! as any).activities[0];
+      console.log(this.selectedActivities)
     },
     close(){
       store.commit('panelSelection',[])
@@ -114,9 +119,18 @@ export default defineComponent({
       if(ip.length <= this.selectedIndex){
         this.select(0); // Esto ocurre cuando se viene de visualizar un elemento con más subelementos que el actual
       }
-      
+      console.log(this.selectedTarget);
       const fu= this.panelTarget[this.selectedIndex];
       return fu;
+    },
+  },
+  watch:{
+    'selectedTarget':{
+      handler(newValue,oldValue){
+        console.log("ofu",newValue,oldValue);
+        console.log((newValue).activities[0].enabled,(this.selectedTarget as any).activities[0].enabled);
+      },
+      deep:true
     }
   }
 });

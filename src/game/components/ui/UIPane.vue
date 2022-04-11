@@ -50,4 +50,14 @@ export default {
             background-color:$ui-control-foreground-color;
         }
     }
+
+    .small{
+        font-size:0.8em;
+    }
+    .large{
+        font-size:1.2em;
+    }
+    .extra-large{
+        font-size:2em;
+    }
 </style>

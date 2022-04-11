@@ -18,7 +18,13 @@ export default {
         title:{
             type:String,
             default:''
+        },
+        size:{
+            // small,large,extra-large
+            type:String,
+            default:''
         }
+
     }
 }
 </script>
@@ -28,4 +34,5 @@ export default {
         font-weight:bold;
         color:$ui-control-font-color-danger;
     }
+    
 </style>

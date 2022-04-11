@@ -26,6 +26,10 @@ export default {
         grow:{
             type:Boolean,
             default:false
+        },
+        rounded:{
+            type:Boolean,
+            default:true
         }
     },
     data(){
@@ -38,8 +42,10 @@ export default {
             const classes = [];
             if(this.borderless) classes.push('borderless');
             if(this.disabled) classes.push('disabled');
+            if(this.rounded) classes.push('rounded');
             if(this.grow) classes.push('grow');
             if(this.justify) classes.push(this.justify);
+            
 
             return classes;
         }
@@ -73,13 +79,16 @@ export default {
         &.space-between{
             justify-content: space-between;
         }
+        
+        &.rounded{
+            @include ui-control-rounded();
+        }
         &.borderless{
             border:0px none;
         }
     }
 
     .ui-button{
-        @include ui-control-rounded();
         @include ui-control-layout();    
 
         background-color:$ui-control-foreground-color;
@@ -115,4 +124,5 @@ export default {
             filter:opacity(0.5);
         }
     }
+
 </style>

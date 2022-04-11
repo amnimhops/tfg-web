@@ -8,6 +8,7 @@
     v-if="picker"
     @onClose="showStructurePicker(false)"
     :structures="availableStructures"
+    :cell="cellSelected"
     @onSelect="buildStructure"
   />
 </template>
@@ -20,7 +21,7 @@
 import {
   PlayerMapController,
   PlayerMapEvents,
-} from "@/game/controllers/refactoredmap";
+} from "@/game/controllers/playerMapController";
 import { CellInstance, Activity, ActivityType, Placeable } from "shared/monolyth";
 import {
   defineComponent,
@@ -110,6 +111,7 @@ export default defineComponent({
       availableStructures,
       showStructurePicker,
       buildStructure,
+      cellSelected
     };
   },
 });

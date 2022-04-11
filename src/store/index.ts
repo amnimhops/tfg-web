@@ -35,7 +35,10 @@ export const store = createStore<GameStore>({
       console.log("valor", selection);
       store.panelSelection = selection;
     },
-
+    updatePanelSelectionTarget(store:GameStore,target:InfopanelTarget){
+      console.log('fus')
+      store.panelSelection = [target]
+    },
     setStockpiles(store:GameStore, stockpiles:Stockpile[]) {
       store.stockpiles = stockpiles;
     },

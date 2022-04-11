@@ -17,5 +17,6 @@ export const ConstantAssets = {
     UI_CANCEL:'icon-cancel',
     ICON_BUILD:'icon-build',
     HEX_SELECTED:'hex-selected',
-    HEX_UNKNOWN:'hex-unknown'
+    HEX_UNKNOWN:'hex-unknown',
+    TECH_BACKGROUND: 'tech-background',
 }

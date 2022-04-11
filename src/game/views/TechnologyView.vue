@@ -6,69 +6,29 @@
 
 <script lang="ts">
 import {
-  PlayerMapController,
-  PlayerMapEvents,
-} from "@/game/controllers/playerMapController";
-import { CellInstance, Activity, ActivityType, Placeable } from "shared/monolyth";
-import {
   defineComponent,
   onMounted,
+  onUnmounted,
   ref,
 } from "vue";
+import { TechTreeController, TechTreeEvents } from '@/game/controllers/techTreeController';
+import { CellInstance, Activity, ActivityType, Placeable, Technology } from "shared/monolyth";
+
 import { useGameAPI } from "../services/gameApi";
-import BuildingPicker from "../components/game/BuildingPicker.vue";
 import { useStore } from "@/store";
-import { buildCellInstanceTarget, CellIPTarget, InfopanelTarget, IPActionCallback } from "../classes/info";
+import { buildCellInstanceTarget, CellIPTarget, InfopanelTarget, IPActionCallback, TechIPTarget } from "../classes/info";
 import { AssetManager, ConstantAssets } from "../classes/assetManager";
 import { showInfoPanel } from '../controllers/ui';
-import { BuildingActivityTarget } from "../classes/activities";
+import { BuildingActivityTarget, ResearchActivityTarget } from "../classes/activities";
 
 export default defineComponent({
-  components: { BuildingPicker },
+  /*components: { BuildingPicker },*/
   setup(props) {
     const mapHolder = ref<HTMLElement | null>(null);
-    const picker = ref(false);
     const canvasRef = ref<HTMLCanvasElement | null>(null); // brujería!?
-    const cellSelected = ref<CellInstance|null>(null);
 
     const api = useGameAPI();
-    const store = useStore();
-
-    /**
-     * Al final todo se reduce a construir esto
-     */
-    const buildStructure: (placeable:Placeable) => void = async (placeable:Placeable) => {
-      showStructurePicker(false);
-      const id = await api.startActivity(ActivityType.Build,new BuildingActivityTarget(cellSelected.value!.id,placeable.id));
-      console.log('Queue activity id is',id);
-    };
-
-    const availableStructures = ref<Placeable[]>([]);
-
-    const showStructurePicker: (value:boolean) => void = (value:boolean)=> {
-      console.log('Mostrando selector de estructuras',value);
-      store.commit('panelSelection',[]); // Cierra el panel
-      picker.value = value;
-    }
-
-    const activityHandler:IPActionCallback = (activity:Activity,target:InfopanelTarget) =>{
-      console.log(activity,target);
-      if(activity.type == ActivityType.Build){
-        const api = useGameAPI();
-        const cellTarget = target as CellIPTarget;
-        const cellDef = api.getCell(cellTarget.cellInstance.cellId);
-
-        availableStructures.value = cellDef.allowedPlaceableIds.map( id => api.getPlaceable(id));
-        showStructurePicker(true);
-      }
-    }
-
-    
-
-    const onCellSelected: (cell: CellInstance) => void = (cell) => {
-      cellSelected.value = cell;
-      showInfoPanel(buildCellInstanceTarget(cell,activityHandler));
-    };
+    const store = useStore();   
 
     const onResizeCanvas: () => void = () => {
       console.log(canvasRef.value);
@@ -78,26 +38,35 @@ export default defineComponent({
       }
     };
 
+    const activityHandler:IPActionCallback = (activity:Activity,target:InfopanelTarget) =>{
+      api.startActivity(ActivityType.Research,new ResearchActivityTarget( (target as TechIPTarget).tech));
+    }
+    const onTechSelected: (tech: Technology) => void = (tech) => {
+      showInfoPanel([new TechIPTarget(tech,activityHandler)]);
+    };
+
     onMounted(() => {
+      console.log('abriend')
       const canvas: HTMLCanvasElement = document.getElementById(
-        "player-map"
+        "tech-map"
       ) as HTMLCanvasElement;
 
-      const pmc = new PlayerMapController(canvas, api);
+      const pmc = new TechTreeController(canvas, api);
 
-      pmc.on(PlayerMapEvents.CELL_SELECTED, onCellSelected);
+      pmc.on(TechTreeEvents.TECH_SELECTED, onTechSelected);
       window.addEventListener("resize", onResizeCanvas);
 
       onResizeCanvas();
     });
 
+    onUnmounted( () => {
+      console.log('chapando')
+    });
+
     return {
-      picker,
       canvasRef,
       mapHolder,
-      availableStructures,
-      showStructurePicker,
-      buildStructure,
+
     };
   },
 });
@@ -106,7 +75,7 @@ export default defineComponent({
 
 
 <style lang="scss" scoped>
-.player-map {
+.tech-map {
   position: fixed;
   top: 0;
   width: 100%;

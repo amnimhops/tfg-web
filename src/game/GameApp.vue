@@ -1,9 +1,12 @@
 <template>
   <template v-if="resourcesLoaded">
-    <NavigationPanel />
-    <ResourcePanel />
+    <div class="header">
+      <NavigationPanel :tab="tab" />
+      <ResourcePanel />
+    </div>
+
     <div id="current-view" class="current-view" ref="playerMap">
-      <PlayerAreaView />
+      <router-view></router-view>
     </div>
     <InfoPanel v-if="panelTarget.length > 0" :panelTarget="panelTarget"/>
   </template>
@@ -12,7 +15,6 @@
 <script lang="ts">
 
 import InfoPanel from "@/game/components/infopanel/InfoPanel.vue";
-import PlayerAreaView from "@/game/views/PlayerAreaView.vue";
 import ResourcePanel from "@/game/components/game/ResourcePanel.vue";
 import NavigationPanel from "@/game/components/game/NavigationPanel.vue";
 import {AssetManager} from "@/game/classes/assetManager";
@@ -26,19 +28,21 @@ import { Stockpile } from "shared/monolyth";
 import { computed } from "vue";
 
 export default defineComponent({
-  components:{ResourcePanel,PlayerAreaView,InfoPanel,NavigationPanel},
+  components:{ResourcePanel,InfoPanel,NavigationPanel},
   setup() {
     const store = useStore();
     const resourcesLoaded = ref(false);
     const api = useGameAPI();
+    const tab = ref<string>('home');
 
     const panelTarget = computed<InfopanelTarget[]>( ()=>{
         return store.state.panelSelection;
     });
+
     onMounted( async () => {
       const player = await api.authenticate("fu","bar");
       const assets = await api.joinGame("TODO_GAMEID_HERE");
-    
+      
       
       // Agregar el asset al manager, con el contenido inicialmente vacio
       assets.forEach((asset) => AssetManager.add(asset));
@@ -70,7 +74,7 @@ export default defineComponent({
         
     });
     
-    return {resourcesLoaded,panelTarget}
+    return {resourcesLoaded,panelTarget,tab}
   },
 })
 </script>
@@ -88,7 +92,12 @@ body{
   padding:0px;
   
 }
-
+.header{
+  position:fixed;
+  z-index:1;
+  top:0px;
+  width:100%;
+}
 .current-view {
   background-color:yellow;
   position:fixed;

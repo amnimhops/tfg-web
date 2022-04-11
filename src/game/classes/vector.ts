@@ -11,6 +11,11 @@ export class Vector{
 
         return this;
     }
+    multiply(scalar:number):Vector{
+        this.x*=scalar;
+        this.y*=scalar;
+        return this;
+    }
     zero():Vector{
         this.x = 0;
         this.y = 0;

@@ -60,6 +60,7 @@ export const MotionEvents = {
     ZOOMING : 'zooming',
     ZOOM_END : 'zoom_end'
 }
+
 export class TouchController extends InputController{
     private touches:Touch[];
     
@@ -159,6 +160,10 @@ export class TouchController extends InputController{
     }
 }
 
+export const MouseEvents = {
+    MOUSE_MOVE : 'mouse_move'
+}
+
 export class MouseController extends InputController{
     private dragStart:Vector|null;
     private mousedown:boolean;
@@ -168,6 +173,8 @@ export class MouseController extends InputController{
         this.addEventBinding('mousedown',this.onPress.bind(this));
         this.addEventBinding('mouseup',this.onRelease.bind(this));
         this.addEventBinding('mousemove',this.onMove.bind(this));
+        this.addEventBinding('wheel',this.onWheel.bind(this));
+        
         this.dragStart = null;
         this.mousedown = false;
     }
@@ -176,6 +183,11 @@ export class MouseController extends InputController{
         this.setCurrentState(STATE_NONE);
         this.mousedown = true;
         this.dragStart = null;
+    }
+
+    private onWheel(event:WheelEvent|Event){
+        console.log(event);
+        this.raise(MotionEvents.ZOOM_END,(event as WheelEvent).deltaY);
     }
 
     private onRelease(event:Event){
@@ -204,6 +216,8 @@ export class MouseController extends InputController{
                 //console.log(pos);
                 this.raise(MotionEvents.PANNING,pos)
             }
+        }else{
+            this.raise(MouseEvents.MOUSE_MOVE,new Vector(mouseEvent.clientX,mouseEvent.clientY));
         }
     }
 }
