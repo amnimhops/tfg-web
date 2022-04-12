@@ -81,8 +81,8 @@ export default {
                 flex-grow:1;
             }
             .chevron{
-                width:64px;
-                height:64px;
+                width:32px;
+                height:32px;
                 margin:5px;
                 background-image: url('../../../assets/ui/icon-chevron-down.svg');
             }

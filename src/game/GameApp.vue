@@ -8,7 +8,7 @@
     <div id="current-view" class="current-view" ref="playerMap">
       <router-view></router-view>
     </div>
-    <InfoPanel v-if="panelTarget.length > 0" :panelTarget="panelTarget"/>
+    <InfoPanel />
   </template>
 </template>
 
@@ -34,10 +34,6 @@ export default defineComponent({
     const resourcesLoaded = ref(false);
     const api = useGameAPI();
     const tab = ref<string>('home');
-
-    const panelTarget = computed<InfopanelTarget[]>( ()=>{
-        return store.state.panelSelection;
-    });
 
     onMounted( async () => {
       const player = await api.authenticate("fu","bar");
@@ -74,7 +70,7 @@ export default defineComponent({
         
     });
     
-    return {resourcesLoaded,panelTarget,tab}
+    return {resourcesLoaded,tab}
   },
 })
 </script>

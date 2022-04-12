@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 26.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 700 700" style="enable-background:new 0 0 700 700;" xml:space="preserve">
+	 viewBox="0 0 256 256" style="enable-background:new 0 0 256 256;" xml:space="preserve">
 <style type="text/css">
 	.st0{fill:#FFFFFF;}
+	.st1{fill:none;stroke:#FFFFFF;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
 </style>
-<g>
-	<path class="st0" d="M175,330.9L0,155.9l65.7-65.7l284.8,284.8L634.8,90.7l65.2,65.2l-350,350L175,330.9L175,330.9z"/>
-</g>
+<path class="st0" d="M127.8,256c70.5,0,128-57.5,128-128S198.3,0,127.8,0s-128,57.5-128,128S57.3,256,127.8,256z M127.8,17.7
+	c60.9,0,110.4,49.5,110.4,110.4s-49.5,110.3-110.4,110.3S17.4,188.9,17.4,128S66.9,17.7,127.8,17.7L127.8,17.7z"/>
+<polyline class="st1" points="59.3,95.3 128,164 196.2,95.8 "/>
 </svg>

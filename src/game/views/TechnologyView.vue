@@ -40,6 +40,7 @@ export default defineComponent({
 
     const activityHandler:IPActionCallback = (activity:Activity,target:InfopanelTarget) =>{
       api.startActivity(ActivityType.Research,new ResearchActivityTarget( (target as TechIPTarget).tech));
+      showInfoPanel([target]);
     }
     const onTechSelected: (tech: Technology) => void = (tech) => {
       showInfoPanel([new TechIPTarget(tech,activityHandler)]);

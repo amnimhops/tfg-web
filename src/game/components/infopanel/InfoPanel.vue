@@ -1,5 +1,6 @@
 <template>
-<UIPane>
+<UIPane v-if="selection">
+  {{selectionType}}
     <UIFlex gap="5" v-if="selection!=null" class="pane-content">
       <!--Title-->
       <UIFlex direction="row" gap="10" padding="10" alignItems="center">
@@ -37,12 +38,28 @@
       <UIFlex padding="10" gap="10">
         <ResourceFlow v-for="(flow,index) in selection.flows" :key="index" :flow="flow"/>
       </UIFlex>
-      <!--Activities-->
-      <UIFlex padding="10" direction="column" align-items="flex-end" justify-content="space-between" gap="10" v-if="selection.activities">
-        <UIButton v-for="(activity,index) in selection.activities" :key="index" @onClick="performActivity(activity.activity)" :grow="true" justify="flex-start" :disabled="!activity.enabled">
+      <!--Executable activities-->
+      <UIFlex padding="10" direction="column" align-items="flex-end" justify-content="space-between" gap="10" v-if="availableActivities.length > 0">
+        <UIButton v-for="(activity,index) in availableActivities" :key="index" @onClick="performActivity(activity.activity)" :grow="true" justify="flex-start" :disabled="!activity.enabled">
           <UIIcon :src="activity.activity.media.icon.url" size="large"/>
           <UILabel>{{activity.activity.media.name}}</UILabel>
         </UIButton>
+      </UIFlex>
+      <!--Running activities-->
+      <UIFlex padding="10" direction="row" align-items="center" justify-content="space-between" gap="10" v-if="runningActivities.length > 0">
+        <!--<UIButton v-for="(activity,index) in runningActivities" :key="index" @onClick="performActivity(activity.activity)" :grow="true" justify="flex-start">
+          <UIIcon :src="activity.media.icon.url" size="large"/>
+          <UILabel>{{activity.media.name}}</UILabel>
+        </UIButton>-->
+        <span v-for="(activity,index) in runningActivities" :key="index">
+        {{activity.media.name}} queda {{countdowns[activity.activity.id]}}
+        </span>
+      </UIFlex>
+      <UIFlex padding="10" direction="column" align-items="center" justify-content="flex-start" gap="10" v-if="selection.warnings.length > 0">
+        <UIFlex v-for="(warning,index) in selection.warnings" :key="index" direction = "row" gap="10">
+          <UIIcon :src="warning.icon.url" size="medium"/>
+          <UILabel>{{warning.label}}</UILabel>
+        </UIFlex>
       </UIFlex>
     </UIFlex>
 </UIPane>
@@ -59,10 +76,11 @@ import UILabel from '../ui/UILabel.vue'
 import UIDropdown from '../ui/UIDropdown.vue'
 import ResourceFlow from '../game/ResourceFlow.vue'
 import {closeIcon} from '@/game/components/ui/icons';
-import { defineComponent } from 'vue'
+import { computed, defineComponent, onMounted, onUnmounted, ref } from 'vue'
 import { useStore } from '@/store';
-import { CellIPTarget, InfopanelTarget } from '@/game/classes/info'
+import { CellIPTarget, InfoPanelActivity, InfoPanelRunningActivity, InfopanelTarget, InfoPanelWarning } from '@/game/classes/info'
 import {Activity} from 'shared/monolyth';
+import { showInfoPanel } from '@/game/controllers/ui'
 const store = useStore();
 
 interface InfoPanelDropdownItem{
@@ -74,64 +92,106 @@ export default defineComponent({
   components:{
     UIPane,UIIcon,UIFlex,UIButton,UILabel,UIDropdown,ResourceFlow
   },
-  props:["panelTarget"],
-  data(){
-    return{
-      closeIcon,
-      selectedIndex:0,
-      selectedTarget:null,
-      selectedActivities:null,
-    }
-  },
-  methods:{
-    select(index:number){
-      this.selectedIndex = index;
-      this.selectedTarget = this.panelTarget[index];
-      this.selectedActivities = (this.selectedTarget! as any).activities[0];
-      console.log(this.selectedActivities)
-    },
-    close(){
-      store.commit('panelSelection',[])
-    },
-    navigateTo(){
-      console.log('nothign')
-    },
-    performActivity(activity:Activity){
-      this.panelTarget[this.selectedIndex].callback(
-        activity,
-        this.panelTarget[this.selectedIndex],
-      );
-    }
-  },
-  unmounted(){
-    console.log('dismounted');
-  },
-  computed:{
-    dropdownData(){
-      console.log("dro");
-      this.select(0);
-      const targets =  (this.panelTarget as InfopanelTarget[]).map( item => ({image:item.media?.image.url||'',title:item.media?.name||''}))
-      console.log(targets,'dro');
-      return targets;
-    },
-    selection():InfopanelTarget{
-      const ip = this.panelTarget as InfopanelTarget[];
-      if(ip.length <= this.selectedIndex){
-        this.select(0); // Esto ocurre cuando se viene de visualizar un elemento con más subelementos que el actual
+  
+  setup(){
+    
+    const countdowns = ref<Record<string,number>>({});
+    const lastTimerExecution = ref<number>(0);
+    const setupCountdowns = (runningTasks:InfoPanelRunningActivity[]) => {
+      countdowns.value = {};
+      runningTasks.forEach( task => countdowns.value[task.activity.id] = task.activity.remaining||0 );
+    };
+
+    const processCountdowns = ()=>{
+      const now = Date.now();
+      const elapsed = now - lastTimerExecution.value;
+      console.log('descontando, hay',countdowns.value);
+      if(countdowns.value){
+        for(const id in countdowns.value){
+          countdowns.value[id] = Math.max(0,countdowns.value[id]-elapsed) ;
+          // Si algún contador llega a cero, recargamos el target de infopanel y vuelta a empezar
+          console.log("now,",countdowns.value[id])
+          if(countdowns.value[id] == 0){
+            setTimeout(()=>showInfoPanel(store.state.panelTargets),0);
+          }
+        }
       }
-      console.log(this.selectedTarget);
-      const fu= this.panelTarget[this.selectedIndex];
-      return fu;
-    },
-  },
-  watch:{
-    'selectedTarget':{
-      handler(newValue,oldValue){
-        console.log("ofu",newValue,oldValue);
-        console.log((newValue).activities[0].enabled,(this.selectedTarget as any).activities[0].enabled);
-      },
-      deep:true
+      lastTimerExecution.value = now;
+    };
+
+    const timer = ref<number|null>(null);
+
+    onMounted(()=>{
+      timer.value = setInterval(processCountdowns,1000);
+    });
+
+    onUnmounted(()=>{
+      console.log('Dismounting infopanel intervals')
+      if(timer.value){
+        clearInterval(timer.value);
+      }
+    });
+
+    const selection = computed<InfopanelTarget|null>( () =>{
+     
+      if(store.state.panelTargets && store.state.panelSelectedIndex != null){
+        console.log('now is ',store.state.panelTargets[store.state.panelSelectedIndex])
+        return store.state.panelTargets[store.state.panelSelectedIndex];
+      }else{
+        console.log('fuuu');
+        return null;
+      }
+      
+    });
+    const dropdownData = computed<InfoPanelDropdownItem[]>( () => {
+      const targets = store.state.panelTargets;
+      if(targets) {
+        return targets.map( target => ({image:target.media?.icon.url||'',title:target.media?.name||''}));
+      } else {
+        return [];
+      }
+    });
+    const availableActivities = computed<InfoPanelActivity[]>(()=>{
+      return selection.value?.getAvailableActivities() || [];
+    });
+    const runningActivities = computed<InfoPanelRunningActivity[]>(()=>{
+      const running = selection.value?.getRunningActivities() || [];
+      setupCountdowns(running);
+      return running;
+    });
+    const select = (index:number) => {
+      showInfoPanel(store.state.panelTargets,index);
     }
+    const selectedIndex = computed<number | null>( () => {
+      return store.state.panelSelectedIndex;
+    });
+
+    const selectionType = computed<string>( () => {
+      if(store.state.panelSelectedIndex != null){
+        return (store.state.panelTargets[store.state.panelSelectedIndex] as any).constructor.name;
+      }else{
+        return null;
+      }
+    });
+
+    const performActivity = (activity:Activity)=>{
+      if(selection.value){
+        selection.value.callback(activity,selection.value);
+      }
+    }
+
+    return {
+      selectedIndex,
+      select,
+      selectionType,
+      dropdownData,
+      selection,
+      closeIcon,
+      performActivity,
+      availableActivities,
+      runningActivities,
+      countdowns
+    };
   }
 });
 </script>

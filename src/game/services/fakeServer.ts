@@ -10,6 +10,7 @@ const hexUnknwon = require("@/assets/resources/hex-unknown.png");
 
 const ui_ok = require("@/assets/ui/icon-accept.svg");
 const ui_cancel = require("@/assets/ui/icon-close.svg");
+const ui_warning = require("@/assets/ui/icon-warning.svg");
 
 const water1 = require("@/assets/resources/water-1.png");
 const dirt1 = require("@/assets/resources/dirt-1.png");
@@ -64,6 +65,7 @@ function defineAssets(){
         createAsset(ConstantAssets.HEX_UNKNOWN,'image',hexUnknwon),
         createAsset(ConstantAssets.UI_OK,'image',ui_ok),
         createAsset(ConstantAssets.UI_CANCEL,'image',ui_cancel),
+        createAsset(ConstantAssets.UI_WARNING,'image',ui_warning),
         createAsset('cell-texture-water','image',water1),
         createAsset('cell-texture-dirt1','image',dirt1),
         createAsset('cell-texture-dirt2','image',dirt2),
@@ -124,21 +126,15 @@ export function randomizeGameAssets(game:Game){
     game.cells.forEach( cell => {
         randomizeMediaAssets(cell.media)
         cell.texture = randomItem(assets.filter( asset => asset.id.startsWith('cell-texture')));
-        console.log(cell.texture);
+
     });
     game.placeables.forEach( placeable => {
         randomizeMediaAssets(placeable.media)
         placeable.texture = randomItem(assets.filter( asset => asset.id.startsWith('placeable-texture')));
     });
     game.technologies.forEach( tech => {
-        /* Rellena de forma recursiva todo este arbol tecnológico */
-        function techMediaFiller(tech:Technology){
-            tech.texture = randomItem(assets.filter( asset => asset.id.startsWith('tech-texture')));
-            randomizeMediaAssets(tech.media)
-            tech.unlocks.forEach(techMediaFiller);
-        }
-
-        techMediaFiller(tech);
+        tech.texture = randomItem(assets.filter( asset => asset.id.startsWith('tech-texture')));
+        randomizeMediaAssets(tech.media)
     });
     game.resources.forEach( res => randomizeMediaAssets(res.media));
     game.activities.forEach( activity => randomizeMediaAssets(activity.media));
@@ -176,7 +172,7 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
         playerId:player.id!,
         stockpiles:game.resources.map( resource => ({resourceId:resource.id,amount:100}) ),
         queue:[],
-        technologies:range(5).map( i => randomItem(game.technologies).id )
+        technologies:game.technologies.filter(tech => tech.parent == null).map(tech=>tech.id)
     });
     // Asignar unas celdas
     const areaSize = 50;

@@ -7,17 +7,6 @@ import { GameData } from '../classes/gameIndex';
 
 import { createGameList, createPlayer, createSinglePlayerMatch, getAssets} from './fakeServer';
 
-function techFlatMap(tree:Technology):Technology[]{
-    const techsFound:Technology[] = [tree];
-    if(tree.unlocks != null){
-        for(const childTech of tree.unlocks){
-            techsFound.push(...techFlatMap(childTech));
-        }
-    }
-
-    return techsFound;
-}
-
 function unknownMedia(text:string):Media{
     return {
         description:'Desconocido',
@@ -37,12 +26,13 @@ export interface IGameAPI extends IEventEmitter{
     startActivity(type:ActivityType,target:ActivityTarget):Promise<string>
     checkActivityAvailability(type:ActivityType,target:ActivityTarget):ActivityAvailability;
     getResearchedTechnologies():Technology[];
+    getQueue():EnqueuedActivity[];
     /**
      * Métodos de obtención de información sobre elementos de juego
      */
+    getTechnologyList():Technology[];
     getCell(id:string):Cell;
     getResource(id:string):Resource;
-    getTechnology(id:string):Technology;
     getPlaceable(id:string):Placeable;
     getActivity(type:ActivityType):Activity;
     getUIConfig(): UIConfig
@@ -51,7 +41,8 @@ export interface IGameAPI extends IEventEmitter{
 export const GameEvents = {
     StockpileChanged:'stockpiles_changed',
     ActivityFinished:'activity_finished',
-    CellInstanceUpdated:'cell_instance_updated'
+    CellInstanceUpdated:'cell_instance_updated',
+    TechnologyResearched:'technology_researched'
 }
 
 class MockAPI extends EventEmitter implements IGameAPI {
@@ -59,6 +50,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
     private currentPlayer?:Player;
     private currentInstancePlayer?:InstancePlayer;
     private currentGame?:GameData;
+    private internalGame?:Game;
     private currentInstance?:GameInstance;
     private activityQueue:EnqueuedActivity[] = [];
     private queueInterval:number;
@@ -101,6 +93,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
                 this.handleCompletedActivity(deleted[0]);
             }else{
                 item.elapsed += now - this.lastQueueCheck;
+                item.remaining = activity.duration - item.elapsed;
                 console.log('Actividad',activity.type,'quedan',activity.duration-item.elapsed);
             }
 
@@ -113,9 +106,15 @@ class MockAPI extends EventEmitter implements IGameAPI {
     private handleCompletedActivity(item:EnqueuedActivity):void{
         if(item.type == ActivityType.Build){
             this.buildPlaceable(item.target as BuildingActivityTarget);
+        }else if(item.type == ActivityType.Research){
+            this.finishResearch(item.target as ResearchActivityTarget);
         }
     }
 
+    private finishResearch(target:ResearchActivityTarget){
+        this.currentInstancePlayer?.technologies.push(target.tech.id);
+        this.raise(GameEvents.TechnologyResearched,target.tech);
+    }
     private buildPlaceable(target:BuildingActivityTarget){
         const cellInstance = this.currentInstance!.cells[target.cellInstanceId];
         cellInstance.placeableIds.push(target.placeableId);
@@ -138,6 +137,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
             this.currentInstance = instance;
             this.currentInstancePlayer = instance.players.filter( player => player.playerId == this.currentPlayer!.id)[0];
             this.currentGame = new GameData(game);
+            this.internalGame = game;
             resolve(getAssets());
         });
     }
@@ -175,16 +175,13 @@ class MockAPI extends EventEmitter implements IGameAPI {
         if(!this.currentGame) throw new Error('No se ha cargado el juego');
         return this.currentGame.resources[id];
     }
-    getTechnology(id:string):Technology{
-        if(!this.currentGame) throw new Error('No se ha cargado el juego');
-
-        const map = toMap(this.currentGame.technologies.map(techFlatMap).flat(),tech => tech.id);
-        return map[id];
-    }
     
     getPlaceable(id:string):Placeable{
         if(!this.currentGame) throw new Error('No se ha cargado el juego');
         return this.currentGame.placeables[id];
+    }
+    getTechnologyList():Technology[]{
+        return this.internalGame?.technologies || [];
     }
     getUIConfig(): UIConfig {
         return {
@@ -205,13 +202,24 @@ class MockAPI extends EventEmitter implements IGameAPI {
     }
     getResearchedTechnologies():Technology[]{
         if(!this.currentInstancePlayer) throw new Error('No se ha cargado la información del jugador');
-        const map = toMap(this.currentGame!.technologies.map(techFlatMap).flat(),tech => tech.id);
-        
-        return this.currentInstancePlayer.technologies.map( id => map[id]);
+        return this.currentInstancePlayer.technologies.map( id => this.currentGame!.technologies[id]);
     }
     getActivity(type:ActivityType):Activity{
         if(!this.currentGame) throw new Error('No se ha cargado el juego');
         return this.currentGame.activities.get(type) || {type,media:unknownMedia('unknown activity'),flows:[],duration:0} ;
+    }
+
+    getTechnologyDependencies(tech:Technology):Technology[]{
+        const deps:Technology[] = [];
+        let parentId = tech.parent;
+
+        while(parentId != null){
+            const parent = this.currentGame!.technologies[parentId];
+            deps.push(parent);
+            parentId = parent?.parent;
+        }
+
+        return deps.reverse();
     }
 
     checkActivityAvailability(type:ActivityType,target:ActivityTarget):ActivityAvailability{
@@ -227,24 +235,41 @@ class MockAPI extends EventEmitter implements IGameAPI {
             }
         });
 
-        // Si es una tecnología, esta debe estar sin investigar
+        // Si es una tecnología:
         if(type == ActivityType.Research){
+
+            // Debe estar sin investigar
             const tech = (target as ResearchActivityTarget).tech;
             if(this.currentInstancePlayer?.technologies.some( t => t == tech.id)){
                 failedPreconditions.push('Esta tecnología ya está investigada')
             }
+            // No debe estar en cola
+            if(this.activityQueue.some( ea => ea.type == ActivityType.Research && (ea.target as ResearchActivityTarget).tech.id == tech.id)){
+                failedPreconditions.push('Esta tecnología ya está en cola de investigación');
+            }
+            // Todo el arbol tecnologico previo debe estar desbloqueado
+            const depTree = this.getTechnologyDependencies(tech);
+            if(depTree.some( dep => this.currentInstancePlayer?.technologies.indexOf(dep.id) == -1)){
+                failedPreconditions.push('Es necesario investigar una tecnología previa');
+            }
         }
 
+
         return new ActivityAvailability(failedPreconditions.length == 0,type,target,failedPreconditions);
+    }
+
+    getQueue():EnqueuedActivity[]{
+        return this.activityQueue;
     }
   
     startActivity(type:ActivityType,target:ActivityTarget):Promise<string>{
         const activity = this.getActivity(type);
         const item:EnqueuedActivity = {
-            id:''+randomInt(1000),
+            id:Date.now().toString(),
             target,
             type,
-            elapsed:0
+            elapsed:0,
+            remaining:activity.duration
         };
         
         this.activityQueue.push(item);

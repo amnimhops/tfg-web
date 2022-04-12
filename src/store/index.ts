@@ -1,6 +1,6 @@
 import { createStore, Store } from 'vuex'
 import { InjectionKey } from 'vue'
-import {  InfopanelTarget } from '@/game/classes/info';
+import {  InfoPanelActivity, InfopanelTarget } from '@/game/classes/info';
 import {  Stockpile } from 'shared/monolyth';
 
 /**
@@ -17,27 +17,28 @@ import {  Stockpile } from 'shared/monolyth';
  */
 export interface GameStore {
   stockpiles?: Stockpile[];
-  panelSelection: InfopanelTarget[];
+  panelTargets:InfopanelTarget[],
+  panelSelectedIndex:number|null,
   gameLoaded:boolean;
 }
 
 export const store = createStore<GameStore>({
   state: {
-    panelSelection:[],
+    panelTargets:[],
+    panelSelectedIndex:null,
     stockpiles:[],
     gameLoaded:false
   },
-  getters: {
-    
-  },
   mutations: {
-    panelSelection(store:GameStore, selection:InfopanelTarget[]=[]) {
+    setPanelTargets(store:GameStore, selection:InfopanelTarget[]=[]) {
       console.log("valor", selection);
-      store.panelSelection = selection;
+      store.panelTargets = [...selection];
+      store.panelSelectedIndex = 0;
     },
-    updatePanelSelectionTarget(store:GameStore,target:InfopanelTarget){
-      console.log('fus')
-      store.panelSelection = [target]
+    changeSelectionIndex(store:GameStore,index:number){
+      if(store.panelTargets.length > index){
+        store.panelSelectedIndex = index;
+      }
     },
     setStockpiles(store:GameStore, stockpiles:Stockpile[]) {
       store.stockpiles = stockpiles;

@@ -14,6 +14,7 @@ export class AssetManager {
 
 export const ConstantAssets = {
     UI_OK:'icon-ok',
+    UI_WARNING:'icon-warning',
     UI_CANCEL:'icon-cancel',
     ICON_BUILD:'icon-build',
     HEX_SELECTED:'hex-selected',

@@ -1,10 +1,21 @@
-import { CellInstance, Technology, UIConfig } from 'shared/monolyth';
+import { Activity, ActivityTarget, ActivityType, CellInstance, Technology, UIConfig } from 'shared/monolyth';
 import {Vector} from '@/game/classes/vector';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { GameEvents, IGameAPI, useGameAPI } from '../services/gameApi';
 import { MapController } from './canvasController';
 import { toMap } from 'shared/functions';
+import { ResearchActivityTarget } from '../classes/activities';
 
+interface TechTreeNode{
+    tech:Technology;
+    parent?:TechTreeNode;
+    children:TechTreeNode[]
+}
+function findHierarchy(root:TechTreeNode, nodes:Technology[]){
+    const children = nodes.filter( node => node.parent == root.tech.id)
+    root.children = children.map( tech => ({parent:root,tech,children:[]}));
+    root.children.forEach( child => findHierarchy(child,nodes));
+}
 const ORB_RADIUS = 100;
 
 function rgba(r:number,g:number,b:number,a=1):string{
@@ -13,7 +24,8 @@ function rgba(r:number,g:number,b:number,a=1):string{
 function degrees(rads:number):number{
     return rads * 360 / (Math.PI * 2)
 }
-function buildTechOrb(tech:Technology[],arcRange?:[number,number],parent:TechOrb|null=null,outerLevel=1):TechOrb[]{
+
+function buildTechOrb(tech:TechTreeNode[],arcRange?:[number,number],parent:TechOrb|null=null,outerLevel=1):TechOrb[]{
     
     arcRange = arcRange || [0,2*Math.PI];
     const radians = (arcRange[1] - arcRange[0]);
@@ -29,19 +41,19 @@ function buildTechOrb(tech:Technology[],arcRange?:[number,number],parent:TechOrb
         
         
 
-        const vector = new Vector(Math.cos( angle), Math.sin( angle));
-        const newOrb = new TechOrb(tech[i],outerLevel,vector.multiply(200*2*outerLevel),parent);
+        const vector = new Vector(Math.cos( angle), Math.sin( angle));console.log('parent',parent)
+        const newOrb = new TechOrb(tech[i].tech,outerLevel,vector.multiply(200*8*outerLevel),parent);
         orbs.push(newOrb);
         
         // TODO Arreglar la distribución de los orbes hijos, no estan centrados
         const newArcRange:[number,number] = [
-            arcRange[0]+i*radians/tech[i].unlocks.length,
-            arcRange[0]+(i+1)*radians/tech[i].unlocks.length,
+            arcRange[0]+i*radians/tech[i].children.length,
+            arcRange[0]+(i+1)*radians/tech[i].children.length,
         ]
         
 
         
-        const children = buildTechOrb(tech[i].unlocks,newArcRange,newOrb,outerLevel+1);
+        const children = buildTechOrb(tech[i].children,newArcRange,newOrb,outerLevel+1);
         newOrb.children = children;
         orbs.push(...children);
     }
@@ -74,8 +86,12 @@ export class TechTreeController extends MapController{
     uiConfig:UIConfig;
     constructor(canvas:HTMLCanvasElement,api:IGameAPI){
         super(canvas,api);
-        this.orbs = buildTechOrb(api.getGameData().technologies);
-        
+        const techs = api.getTechnologyList();
+        const roots = techs.filter( tech => tech.parent == null).map( tech => ({children:[],tech} as TechTreeNode));
+        roots.forEach( root => findHierarchy(root,techs));
+        console.log(roots);
+
+        this.orbs = buildTechOrb(roots);
         // Se marcan los orbes correspondientes a tecnologías investigadas
         const researched = toMap(api.getResearchedTechnologies(), tech => tech.id);
         this.orbs.forEach( orb => {
@@ -87,7 +103,13 @@ export class TechTreeController extends MapController{
         this.readyToPaint = true;
         this.uiConfig = api.getUIConfig();
         this.onPaint();
-        //this.centerTo(new Vector(-200,-200));
+
+        this.api.on(GameEvents.TechnologyResearched, (tech:Technology)=>{
+            this.orbs.forEach(orb => {
+                if(orb.tech.id == tech.id) orb.researched = true;
+            });
+        });
+        
     }
 
     protected onSelect(pos: Vector): void {
@@ -102,6 +124,7 @@ export class TechTreeController extends MapController{
         }
         if(selection) {
             selection.selected = true;
+            console.log(selection);
             this.raise(TechTreeEvents.TECH_SELECTED,selection.tech);
         }
     }
@@ -120,9 +143,11 @@ export class TechTreeController extends MapController{
             // forman los orbes entre sí.
             this.drawOrbRelations(orb);
         }
+        ctx.save();
         for(const orb of this.orbs){
             const hover = orb.pos.distance(mousePos) < ORB_RADIUS;
             // Pinta el orbe con el color apropiado
+            ctx.globalAlpha = 1;
             ctx.beginPath();
             ctx.arc(orb.pos.x,orb.pos.y, ORB_RADIUS, 0,  2* Math.PI);
             if(orb.selected){
@@ -133,15 +158,20 @@ export class TechTreeController extends MapController{
                 if(orb.researched){
                     ctx.fillStyle = '#005eff';
                 }else{
-                    ctx.fillStyle = this.uiConfig.uiControlBackgroundColor;
+                    ctx.fillStyle = this.uiConfig.uiControlBackgroundColor;       
                 }
             }
             ctx.fill();
             // Finalmente pinta la textura
-            
+            if(orb.parent != null && orb.parent.researched == false){
+                ctx.globalAlpha = 0.2;
+            }else{
+                ctx.globalAlpha = 1;
+            }
             ctx.drawImage(this.getTechTexture(orb),orb.pos.x-ORB_RADIUS/2,orb.pos.y-ORB_RADIUS/2,ORB_RADIUS,ORB_RADIUS);
-            
+            ctx.globalAlpha = 1;
         }
+        ctx.restore();
 
         //console.log(this.orbs.length)
     }

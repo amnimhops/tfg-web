@@ -8,7 +8,7 @@ export class GameData{
     cells:Record<string,Cell>
     placeables:Record<string,Placeable>;
     resources:Record<string,Resource>;   
-    technologies:Technology[];
+    technologies:Record<string,Technology>;
     activities:Map<ActivityType,Activity>;
     
     
@@ -17,7 +17,7 @@ export class GameData{
         this.placeables = toMap(game.placeables, (placeable) => placeable.id);
         this.resources = toMap(game.resources, (resource) => resource.id);
         this.activities = new Map( game.activities.map( activity => [activity.type,activity]) );
-        this.technologies = game.technologies;
+        this.technologies = toMap(game.technologies, (tech) => tech.id);
     }
 
    

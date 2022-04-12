@@ -26,6 +26,7 @@ import { CellInstance, Activity, ActivityType, Placeable } from "shared/monolyth
 import {
   defineComponent,
   onMounted,
+  onUnmounted,
   ref,
 } from "vue";
 import { useGameAPI } from "../services/gameApi";
@@ -33,7 +34,7 @@ import BuildingPicker from "../components/game/BuildingPicker.vue";
 import { useStore } from "@/store";
 import { buildCellInstanceTarget, CellIPTarget, InfopanelTarget, IPActionCallback } from "../classes/info";
 import { AssetManager, ConstantAssets } from "../classes/assetManager";
-import { showInfoPanel } from '../controllers/ui';
+import { closeInfoPanel, showInfoPanel } from '../controllers/ui';
 import { BuildingActivityTarget } from "../classes/activities";
 
 export default defineComponent({
@@ -47,20 +48,23 @@ export default defineComponent({
     const api = useGameAPI();
     const store = useStore();
 
+    let pmc:PlayerMapController;
+
     /**
      * Al final todo se reduce a construir esto
      */
     const buildStructure: (placeable:Placeable) => void = async (placeable:Placeable) => {
       showStructurePicker(false);
       const id = await api.startActivity(ActivityType.Build,new BuildingActivityTarget(cellSelected.value!.id,placeable.id));
-      console.log('Queue activity id is',id);
+
+      showInfoPanel(buildCellInstanceTarget(cellSelected.value!,activityHandler));
     };
 
     const availableStructures = ref<Placeable[]>([]);
 
     const showStructurePicker: (value:boolean) => void = (value:boolean)=> {
       console.log('Mostrando selector de estructuras',value);
-      store.commit('panelSelection',[]); // Cierra el panel
+      closeInfoPanel();
       picker.value = value;
     }
 
@@ -96,13 +100,20 @@ export default defineComponent({
         "player-map"
       ) as HTMLCanvasElement;
 
-      const pmc = new PlayerMapController(canvas, api);
+      pmc = new PlayerMapController(canvas, api);
 
       pmc.on(PlayerMapEvents.CELL_SELECTED, onCellSelected);
       window.addEventListener("resize", onResizeCanvas);
 
       onResizeCanvas();
     });
+
+    onUnmounted(() => {
+      closeInfoPanel();
+      console.log('Destruyendo vista de área del jugador');
+      pmc.destroy();
+      window.removeEventListener("resize",onResizeCanvas);
+    })
 
     return {
       picker,
