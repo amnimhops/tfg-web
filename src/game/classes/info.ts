@@ -141,7 +141,10 @@ export class TechIPTarget extends InfopanelTarget{
         const api = useGameAPI();
         const store = useStore();
         this.media = tech.media;
-        this.path = [];
+        this.path = [
+            {href:'investigación',label:'Investigación'},
+            {href:tech.id,label:tech.media.name}
+        ];
         this.flows = []
     }
 

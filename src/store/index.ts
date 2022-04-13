@@ -16,6 +16,7 @@ import {  Stockpile } from 'shared/monolyth';
  * vue.
  */
 export interface GameStore {
+  target:InfopanelTarget|null;
   stockpiles?: Stockpile[];
   panelTargets:InfopanelTarget[],
   panelSelectedIndex:number|null,
@@ -24,12 +25,16 @@ export interface GameStore {
 
 export const store = createStore<GameStore>({
   state: {
+    target:null,
     panelTargets:[],
     panelSelectedIndex:null,
     stockpiles:[],
     gameLoaded:false
   },
   mutations: {
+    setTarget(store:GameStore,selection:InfopanelTarget|null){
+      store.target = selection;
+    },
     setPanelTargets(store:GameStore, selection:InfopanelTarget[]=[]) {
       console.log("valor", selection);
       store.panelTargets = [...selection];

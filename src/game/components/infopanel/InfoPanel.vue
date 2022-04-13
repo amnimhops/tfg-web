@@ -11,25 +11,22 @@
       </UIFlex>
       <!--Large image-->
       <img :src="selection.media.image.url" style="max-width:100%;"/>
-        <!--Structure dropdown-->
+      
+      <!--Structure dropdown-->
+      <!--
       <UIFlex v-if="dropdownData.length > 0" padding="10">
         <UIDropdown :data="dropdownData" @change="select" :index="selectedIndex" v-if="dropdownData.length > 1">
           <template v-slot="item">
             <UIFlex direction="row" align-items="center" gap="15" padding="10">
-              <!--<UIIcon :src="item.icon" size="large" />-->
               <img :src="item.image" style="width:50px;height:50px;" />
               <UILabel>{{item.title}}</UILabel>
             </UIFlex>
           </template>
         </UIDropdown>
-      </UIFlex>
+      </UIFlex>-->
       <!--Breadcrumb / Global taxonomy-->
-      <UIFlex direction="row" gap="10" padding="10" v-if="selection.path!=null">
-        <template v-for="(link,index) in selection.path" :key="index">
-          <UILabel @onClick="navigateTo(link.href)" :link="index < selection.path.length-1">{{link.label}}</UILabel>
-          <span v-if="index<selection.path.length-1"> / </span>
-        </template>
-      </UIFlex>
+      <InfoPanelBreadcrumb :links="selection.path" />
+      
       <!--Description-->
       <UIFlex padding="10">
       <p>{{selection.media.description}}</p>
@@ -38,6 +35,8 @@
       <UIFlex padding="10" gap="10">
         <ResourceFlow v-for="(flow,index) in selection.flows" :key="index" :flow="flow"/>
       </UIFlex>
+      
+      <CellInfoPanel v-if="selectionType=='CellIPTarget'" :target="selection"/>
       <!--Executable activities-->
       <UIFlex padding="10" direction="column" align-items="flex-end" justify-content="space-between" gap="10" v-if="availableActivities.length > 0">
         <UIButton v-for="(activity,index) in availableActivities" :key="index" @onClick="performActivity(activity.activity)" :grow="true" justify="flex-start" :disabled="!activity.enabled">
@@ -73,7 +72,7 @@ import UIIcon from '../ui/UIIcon.vue'
 import UIFlex from '../ui/UIFlex.vue'
 import UIButton from '../ui/UIButton.vue'
 import UILabel from '../ui/UILabel.vue'
-import UIDropdown from '../ui/UIDropdown.vue'
+//import UIDropdown from '../ui/UIDropdown.vue'
 import ResourceFlow from '../game/ResourceFlow.vue'
 import {closeIcon} from '@/game/components/ui/icons';
 import { computed, defineComponent, onMounted, onUnmounted, ref } from 'vue'
@@ -81,6 +80,8 @@ import { useStore } from '@/store';
 import { CellIPTarget, InfoPanelActivity, InfoPanelRunningActivity, InfopanelTarget, InfoPanelWarning } from '@/game/classes/info'
 import {Activity} from 'shared/monolyth';
 import { showInfoPanel } from '@/game/controllers/ui'
+import InfoPanelBreadcrumb from './InfoPanelBreadcrumb.vue';
+import CellInfoPanel from './CellInfoPanel.vue';
 const store = useStore();
 
 interface InfoPanelDropdownItem{
@@ -90,7 +91,8 @@ interface InfoPanelDropdownItem{
 
 export default defineComponent({
   components:{
-    UIPane,UIIcon,UIFlex,UIButton,UILabel,UIDropdown,ResourceFlow
+    UIPane,UIIcon,UIFlex,UIButton,UILabel,/*UIDropdown,*/ResourceFlow,
+    InfoPanelBreadcrumb,CellInfoPanel
   },
   
   setup(){
