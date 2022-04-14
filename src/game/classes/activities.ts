@@ -6,7 +6,6 @@ export class ActivityAvailability{
     }
 }
 
-
 export class BuildingActivityTarget implements ActivityTarget{
     constructor(public cellInstanceId:number, public placeableId:string){}
 }
@@ -14,3 +13,4 @@ export class BuildingActivityTarget implements ActivityTarget{
 export class ResearchActivityTarget implements ActivityTarget{
     constructor(public tech:Technology){}
 }
+

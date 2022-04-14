@@ -1,11 +1,81 @@
 import { randomInt, toMap } from 'shared/functions';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, Game, GameInstance, InstancePlayer, Media, Placeable, Player, Resource, ResourceAmount, ResourceFlow, Stockpile, Technology, UIConfig } from 'shared/monolyth';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, FlowPeriodicity, Game, GameInstance, InstancePlayer, Media, Placeable, Player, Resource, ResourceAmount, ResourceFlow, Stockpile, Technology, UIConfig } from 'shared/monolyth';
 import { ActivityAvailability, BuildingActivityTarget, ResearchActivityTarget } from '../classes/activities';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { EventEmitter, IEventEmitter } from '../classes/events';
 import { GameData } from '../classes/gameIndex';
-
 import { createGameList, createPlayer, createSinglePlayerMatch, getAssets} from './fakeServer';
+
+export class ResourceStat{
+
+    constructor(public resource:Resource,public stockpile:Stockpile,public placeables:Placeable[]){
+    }
+
+    get available():number{
+        return this.stockpile.amount;
+    }
+
+    get totalIncome():number{
+        if(this.placeables.length == 0 ) {
+            return 0;
+        }else {
+            return this.placeables
+                .map( p => p.flows)
+                .flat()
+                .filter( flow => flow.resourceId == this.resource.id && flow.amount >= 0)
+                .map( flow => flow.amount)
+                .reduce( (prev,current) => prev+current , 0);
+        }
+    }
+    get totalExpense():number{
+        if(this.placeables.length == 0 ) {
+            return 0;
+        }else {
+            return this.placeables
+                .map( p => p.flows)
+                .flat()
+                .filter( flow => flow.resourceId == this.resource.id && flow.amount < 0)
+                .map( flow => flow.amount)
+                .reduce( (prev,current) => prev+current , 0);
+        }
+    }
+
+}
+
+const flowPeriodRanges = new Map<FlowPeriodicity,number>( [
+    [FlowPeriodicity.Once,0],
+    [FlowPeriodicity.PerSecond,1000],
+    [FlowPeriodicity.PerMinute,60000],
+    [FlowPeriodicity.PerHour,3600000],
+    [FlowPeriodicity.PerDay,86400000],
+    [FlowPeriodicity.PerDay,604800000],
+]);
+
+/**
+ * Estima si los almacenes tendrán suficiente material para satisfacer
+ * la demanda de un edificio.
+ * @param placeable 
+ * @param stockpiles 
+ * @returns 
+ */
+function hasEnoughSuppliesToWork(placeable:Placeable,stockpiles:Record<string,Stockpile>){
+    return placeable.flows
+        .filter( flow => flow.amount < 0)
+        .every( flow => Math.abs(flow.amount) <= stockpiles[flow.resourceId].amount)
+}
+function checkFlow(flow:ResourceFlow):number{
+    let amount = 0;
+    const now = Date.now();
+    const elapsed = now - (flow.last||0);
+    const maxElapsed = flowPeriodRanges.get(flow.periodicity) || 0;
+   
+    if(elapsed >= maxElapsed){
+        amount = flow.amount
+        flow.last = now;
+    }
+    
+    return amount;
+}
 
 function unknownMedia(text:string):Media{
     return {
@@ -27,6 +97,7 @@ export interface IGameAPI extends IEventEmitter{
     checkActivityAvailability(type:ActivityType,target:ActivityTarget):ActivityAvailability;
     getResearchedTechnologies():Technology[];
     getQueue():EnqueuedActivity[];
+    getQueueByType(type:ActivityType):EnqueuedActivity[];
     /**
      * Métodos de obtención de información sobre elementos de juego
      */
@@ -36,13 +107,16 @@ export interface IGameAPI extends IEventEmitter{
     getPlaceable(id:string):Placeable;
     getActivity(type:ActivityType):Activity;
     getUIConfig(): UIConfig
+
+    calculateResourceStats():ResourceStat[];
 }
 
 export const GameEvents = {
     StockpileChanged:'stockpiles_changed',
     ActivityFinished:'activity_finished',
     CellInstanceUpdated:'cell_instance_updated',
-    TechnologyResearched:'technology_researched'
+    TechnologyResearched:'technology_researched',
+    Timer:'timer'
 }
 
 class MockAPI extends EventEmitter implements IGameAPI {
@@ -53,14 +127,22 @@ class MockAPI extends EventEmitter implements IGameAPI {
     private internalGame?:Game;
     private currentInstance?:GameInstance;
     private activityQueue:EnqueuedActivity[] = [];
+    private timer:number;
     private queueInterval:number;
     private resourceCheckInterval:number;
     private lastQueueCheck:number;
     constructor(){
         super();
+        this.timer = setInterval(this.ticker.bind(this),1000);
         this.queueInterval = setInterval(this.processQueue.bind(this),100);
-        this.resourceCheckInterval = setInterval(this.processResourceFlows.bind(this),100);
+        this.resourceCheckInterval = setInterval(this.processResourceFlows.bind(this),1000);
         this.lastQueueCheck = Date.now();
+    }
+
+    private ticker():void{
+        if(this.hasListener(GameEvents.Timer)){
+            this.raise(GameEvents.Timer);
+        }
     }
 
     private processResourceFlows():void{
@@ -68,12 +150,22 @@ class MockAPI extends EventEmitter implements IGameAPI {
         const stockpileMap = toMap(this.getInstancePlayer().stockpiles, sp => sp.resourceId);
         
         for(const cell of this.currentInstance!.cells){
+
             for(const pid of cell.placeableIds){
                 const placeable = this.getPlaceable(pid);
-                for(const flow of placeable.flows){
-                    const stockpile = stockpileMap[flow.resourceId];
-                    //stockpile.amount += flow.
-
+                
+                // 1.- Puede el almacen funcionar con los recursos disponibles?
+                if(hasEnoughSuppliesToWork(placeable,stockpileMap)){
+                    for(const flow of placeable.flows){
+                        const stockpile = stockpileMap[flow.resourceId];
+                        const amount = checkFlow(flow);
+                        if(amount != 0){
+                            console.log('Se añaden',amount,'del emplazable',pid);
+                            stockpile.amount += amount;
+                        }
+                    }
+                }else{
+                    console.log('El emplazable',pid,'no tiene recursos para producir');
                 }
             }
         }
@@ -104,6 +196,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
     }
         
     private handleCompletedActivity(item:EnqueuedActivity):void{
+        this.raise(GameEvents.ActivityFinished,item);
         if(item.type == ActivityType.Build){
             this.buildPlaceable(item.target as BuildingActivityTarget);
         }else if(item.type == ActivityType.Research){
@@ -261,7 +354,9 @@ class MockAPI extends EventEmitter implements IGameAPI {
     getQueue():EnqueuedActivity[]{
         return this.activityQueue;
     }
-  
+    getQueueByType(type:ActivityType):EnqueuedActivity[]{
+        return this.activityQueue.filter( item => item.type == type);
+    }
     startActivity(type:ActivityType,target:ActivityTarget):Promise<string>{
         const activity = this.getActivity(type);
         const item:EnqueuedActivity = {
@@ -282,6 +377,26 @@ class MockAPI extends EventEmitter implements IGameAPI {
 
 
         return new Promise( (resolve,reject) => setTimeout( ()=> resolve(item.id) , 1000));
+    }
+
+    
+    calculateResourceStats():ResourceStat[] {
+        if(!this.currentGame) throw new Error('No se ha cargado el juego');
+        if(!this.currentInstancePlayer) throw new Error('No se ha cargado la sesión del jugador');
+        if(!this.currentInstance) throw new Error('No se ha cargado la instancia del juego');
+
+        const stockpiles = toMap(this.currentInstancePlayer.stockpiles, sp => sp.resourceId);
+        const builtPlaceables = this.currentInstance.cells
+            .map( cell => cell.placeableIds.map( pid => this.currentGame!.placeables[pid]))
+            .flat();
+        
+        const stats:ResourceStat[] = Object
+            .entries(this.currentGame.resources)
+            .map( entry => entry[1])
+            .sort( (a,b) => a.media.name > b.media.name ? 1 : -1)
+            .map( resource => new ResourceStat(resource,stockpiles[resource.id],builtPlaceables));
+
+        return stats;
     }
 }
 

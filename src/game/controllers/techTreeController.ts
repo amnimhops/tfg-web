@@ -1,5 +1,4 @@
-import { Activity, ActivityTarget, ActivityType, CellInstance, Technology, UIConfig } from 'shared/monolyth';
-import {Vector} from '@/game/classes/vector';
+import { Activity, ActivityTarget, ActivityType, CellInstance, Technology, UIConfig, Vector } from 'shared/monolyth';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { GameEvents, IGameAPI, useGameAPI } from '../services/gameApi';
 import { MapController } from './canvasController';
@@ -36,12 +35,8 @@ function buildTechOrb(tech:TechTreeNode[],arcRange?:[number,number],parent:TechO
         let angle = arcRange[0] + (i * radianDelta) + radianDelta /2;
         // Se normaliza el ángulo para permitir rangos de arco negativos
         angle = angle < 0 ? Math.PI*2 + angle%(Math.PI*2) :  angle%(Math.PI*2);
-        
-        console.log('Painting orb',degrees(radianDelta),arcRange.map(degrees),degrees(angle),i);
-        
-        
 
-        const vector = new Vector(Math.cos( angle), Math.sin( angle));console.log('parent',parent)
+        const vector = new Vector(Math.cos( angle), Math.sin( angle));
         const newOrb = new TechOrb(tech[i].tech,outerLevel,vector.multiply(200*8*outerLevel),parent);
         orbs.push(newOrb);
         
@@ -89,14 +84,12 @@ export class TechTreeController extends MapController{
         const techs = api.getTechnologyList();
         const roots = techs.filter( tech => tech.parent == null).map( tech => ({children:[],tech} as TechTreeNode));
         roots.forEach( root => findHierarchy(root,techs));
-        console.log(roots);
 
         this.orbs = buildTechOrb(roots);
         // Se marcan los orbes correspondientes a tecnologías investigadas
         const researched = toMap(api.getResearchedTechnologies(), tech => tech.id);
         this.orbs.forEach( orb => {
             if(researched[orb.tech.id]) orb.researched = true
-            console.log(orb.tech.id,orb.researched);
         });
         this.background = AssetManager.get(ConstantAssets.TECH_BACKGROUND).data;
 
@@ -124,8 +117,23 @@ export class TechTreeController extends MapController{
         }
         if(selection) {
             selection.selected = true;
-            console.log(selection);
             this.raise(TechTreeEvents.TECH_SELECTED,selection.tech);
+        }
+    }
+
+    public setSelected(tech:Technology):void{
+        let selected = null;
+        for(const orb of this.orbs){
+            orb.selected = false;
+            if(orb.tech.id == tech.id){
+                selected = orb;
+            }
+        }
+
+        if(selected) {
+            selected.selected = true;
+            this.centerTo(selected.pos);//selected.pos.copy().multiply(-1));
+            this.raise(TechTreeEvents.TECH_SELECTED,selected.tech);
         }
     }
 
@@ -172,8 +180,6 @@ export class TechTreeController extends MapController{
             ctx.globalAlpha = 1;
         }
         ctx.restore();
-
-        //console.log(this.orbs.length)
     }
 
     private drawOrbRelations(orb:TechOrb){
@@ -187,7 +193,6 @@ export class TechTreeController extends MapController{
     }
 
     private getTechTexture(orb:TechOrb):HTMLImageElement{
-        //console.log(orb.tech.texture);
         return AssetManager.get(orb.tech.texture.id).data;
     }
 }

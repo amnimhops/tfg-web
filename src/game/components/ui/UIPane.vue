@@ -28,7 +28,6 @@ export default {
             font-size:$ui-control-heading-size;
         }
         
-        
         a.ui-link:link,a.ui-link:visited{
             color:$ui-control-font-color;
             text-decoration:underline;
@@ -42,13 +41,6 @@ export default {
         &.rounded{
             @include ui-control-rounded;
         }
-        ::-webkit-scrollbar{
-            width:8px;
-            background-color:$ui-control-shadow-color;
-            }   
-        ::-webkit-scrollbar-thumb{
-            background-color:$ui-control-foreground-color;
-        }
     }
 
     .small{
@@ -59,5 +51,13 @@ export default {
     }
     .extra-large{
         font-size:2em;
+    }
+
+    ::-webkit-scrollbar{
+        width:8px;
+        background-color:$ui-control-shadow-color;
+        }   
+    ::-webkit-scrollbar-thumb{
+        background-color:$ui-control-foreground-color;
     }
 </style>

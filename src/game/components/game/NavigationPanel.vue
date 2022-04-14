@@ -2,7 +2,7 @@
     <UIPane id="menu" class="menu-pane">
         <UIFlex direction="column" justifyContent="space-around">
             <UIFlex direction="row" alignItems="center" gap="15" class="nav-mobile">
-                <UIButton @click="toggleMenu" borderless :rounded="false">
+                <UIButton @onClick="toggleMenu" borderless :rounded="false">
                     <UIIcon class="fu" :src="menuIcon" size="medium"/>
                 </UIButton>
                 <UILabel class="extra-large nav-title">Mi area</UILabel>
@@ -28,6 +28,7 @@ import {menuIcon} from '@/game/components/ui/icons';
 import { Asset } from 'shared/monolyth'
 import { defineComponent, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
+import { showInfoPanel2 } from '@/game/controllers/ui';
 interface NavLink{
     icon:string;
     label:string;
@@ -41,7 +42,7 @@ export default defineComponent({
         const router = useRouter();
         const sections = ref<NavLink[]>([
             {icon:AssetManager.get(ConstantAssets.ICON_BUILD).url,label:'Mi zona',id:'home'},
-            {icon:AssetManager.get(ConstantAssets.ICON_BUILD).url,label:'Recursos',id:'resources'},
+            {icon:AssetManager.get(ConstantAssets.ICON_BUILD).url,label:'Recursos',id:'resource'},
             {icon:AssetManager.get(ConstantAssets.ICON_BUILD).url,label:'Tecnología',id:'technology'},
             {icon:AssetManager.get(ConstantAssets.ICON_BUILD).url,label:'Mapa',id:'world'},
             {icon:AssetManager.get(ConstantAssets.ICON_BUILD).url,label:'Actividades',id:'activity'},
@@ -52,6 +53,9 @@ export default defineComponent({
             menuActive.value = !menuActive.value;console.log(menuActive.value)
         }
         const changeTab = (tab:string)=>{
+            // NOTA: Ojo con quitar esto, o los paneles internos no se desmontan,
+            // conservando las referencias a la API
+            showInfoPanel2(null);
             router.push({path:`/game/${tab}`});
         }
         return {sections,menuIcon,toggleMenu,menuActive,changeTab};
@@ -93,8 +97,8 @@ export default defineComponent({
         flex-direction: row;
     }
     .icon-custom-size.ui-icon{
-        width:64px;
-        height:64px;
+        width:40px;
+        height:40px;
     }
     .menu-items .ui-label{
         @include invisible

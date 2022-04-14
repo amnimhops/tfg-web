@@ -1,30 +1,24 @@
 <template>
-    <!--Structure dropdown-->
-    <!--
-    <UIFlex v-if="dropdownData.length > 0" padding="10">
-    <UIDropdown :data="dropdownData" @change="select" :index="selectedIndex" v-if="dropdownData.length > 1">
-        <template v-slot="item">
-        <UIFlex direction="row" align-items="center" gap="15" padding="10">
-            <img :src="item.image" style="width:50px;height:50px;" />
-            <UILabel>{{item.title}}</UILabel>
-        </UIFlex>
-        </template>
-    </UIDropdown>
-    </UIFlex>
-    -->
+    <!-- Buildings -->
     <UISection title="Construcciones" class="ml-10">
         <UIFlex padding="10">
-            <UIButton v-for="(placeable,index) in placeables" :key="index" :borderless="true" :rounded="false" grow @click="openBuilding(placeable)">
-                <UIIcon :src="placeable.media.thumbnail.url" size="large" />
+            <UIButton v-for="(placeable,index) in placeables" :key="index" :borderless="true" :rounded="false" grow @onClick="openBuilding(placeable)">
+                <UIIcon :src="placeable.media.icon.url" size="large" />
                 <UILabel>{{placeable.media.name}}</UILabel>
             </UIButton>
+            <UILabel v-for="(item,index) in buildingQueue" :key="index">Construyendo {{item.media.name}} en {{item.remaining}}</UILabel>
         </UIFlex>
     </UISection>
+    <!-- Activities -->
     <UISection title="Actividades" class="ml-10">
         <UIFlex padding="10">
-            <UIButton v-for="(placeable,index) in placeables" :key="index" :borderless="true" :rounded="false" grow>
-                <UIIcon :src="placeable.media.thumbnail.url" size="large" />
-                <UILabel>{{placeable.media.name}}</UILabel>
+            <UIButton :borderless="true" :rounded="false" grow @onClick="addNewBuilding">
+                <UIIcon :src="buildIcon" size="large" />
+                <UILabel>Construir</UILabel>
+            </UIButton>
+            <UIButton :borderless="true" :rounded="false" grow @onClick="observe">
+                <UIIcon :src="buildIcon" size="large" />
+                <UILabel>OBSERVAR</UILabel>
             </UIButton>
         </UIFlex>
     </UISection>
@@ -32,31 +26,77 @@
 
 <script lang="ts">
 import { CellIPTarget, ExistingPlaceableIPTarget } from '@/game/classes/info'
-import { useGameAPI } from '@/game/services/gameApi'
-import { Placeable } from 'shared/monolyth'
-import { computed, defineComponent, PropType } from 'vue'
-import UIFlex from '../ui/UIFlex.vue'
-import UIButton from '../ui/UIButton.vue'
-import UISection from '../ui/UISection.vue'
-import UILabel from '../ui/UILabel.vue'
-import UIIcon from '../ui/UIIcon.vue'
-import { showInfoPanel, showInfoPanel2 } from '@/game/controllers/ui'
+import { GameEvents, useGameAPI } from '@/game/services/gameApi'
+import { ActivityType, Media, Placeable } from 'shared/monolyth'
+import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
+import { showInfoPanel2 } from '@/game/controllers/ui'
+import { AssetManager, ConstantAssets } from '@/game/classes/assetManager'
+import { BuildingActivityTarget } from '@/game/classes/activities'
+import * as UI from '../ui/';
+interface BuildingInQueue{
+    remaining?:string;
+    media:Media;
+}
+
 export default defineComponent({
-    components:{UIIcon,UIButton,UIFlex,UISection, UILabel},
+    components:{...UI},
     props:{
         target:Object as PropType<CellIPTarget>
     },
     setup(props) {
         const api = useGameAPI();
-        const placeables = computed<Placeable[]>( ()=> {
-            return props.target?.cellInstance.placeableIds.map( id => api.getGameData().placeables[id]) || [];
+        
+        const buildIcon = AssetManager.get(ConstantAssets.ICON_BUILD).url;
+        
+        const addNewBuilding = () => {
+            props.target?.actionCallback(CellIPTarget.ACTION_BUILD)
+        }
+
+        const openBuilding = (placeable:Placeable) => {
+            if(props.target){
+                showInfoPanel2(new ExistingPlaceableIPTarget(props.target.cellInstance,placeable.id,()=>{
+                    console.log('A DONDE VOY, QUE HAGOO')
+                }));
+            }
+        }
+
+        const apiChanged = ref<number>(Date.now());
+        const gameData = api.getGameData();
+
+        const handleApiChanges = ()=>{
+            console.log('api change detected')
+            apiChanged.value = Date.now();
+        }
+
+        api.on(GameEvents.Timer, handleApiChanges);
+
+        const buildingQueue = computed<BuildingInQueue[]>( () => {
+            apiChanged.value;
+            const buildingsInQueue:BuildingInQueue[] = [];
+            api.getQueueByType(ActivityType.Build).forEach( activity => {
+                const target = activity.target as BuildingActivityTarget;
+                if(target.cellInstanceId == props.target?.cellInstance.id){
+                    buildingsInQueue.push({
+                        remaining:(activity.remaining!/1000).toFixed(1)+" sec.",
+                        media:gameData.placeables[target.placeableId].media
+                    })
+                }
+            })
+
+            return buildingsInQueue;
         });
 
-        const openPlaceable = (placeable:Placeable) => {
-            showInfoPanel2(new ExistingPlaceableIPTarget(props.target,placeable.id));
-        }
- 
-        return {placeables}
+        const placeables = computed<Placeable[]>( ()=> {
+            apiChanged.value;
+            return props.target?.cellInstance.placeableIds.map( id => gameData.placeables[id]) || [];
+        });
+
+        onUnmounted(()=>{
+
+            api.off(GameEvents.Timer,handleApiChanges);
+        })
+
+        return {placeables,buildIcon,addNewBuilding,openBuilding,buildingQueue}
     },
 })
 </script>

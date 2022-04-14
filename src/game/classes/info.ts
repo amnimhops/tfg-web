@@ -1,182 +1,58 @@
 import { useStore } from "@/store";
-import { activities } from "shared/mocks";
-import { Cell, Resource, CellInstance, Media, ResourceFlow, Activity, ActivityType, Technology, FlowPeriodicity, EnqueuedActivity, Asset } from "shared/monolyth";
-import { onUpdated } from "vue";
-import { showInfoPanel } from "../controllers/ui";
+import { randomMedia } from "shared/mocks";
+import { CellInstance, Media, ResourceFlow, Activity, ActivityType, Technology, EnqueuedActivity, Asset, Cell, Resource } from "shared/monolyth";
 import { IGameAPI, useGameAPI } from "../services/gameApi";
 import { BuildingActivityTarget, ResearchActivityTarget } from "./activities";
 import { AssetManager, ConstantAssets } from "./assetManager";
+import { GameData } from "./gameIndex";
 
-export const WorldAtlas = {
-    mapa:{
-        celdas:{
-
-        },
-        emplazables:{
-
-        }
-    },
-    tecnologías:{
-
-    },
-    recursos:{
-
-    },
-    actividades:{
-
-    }
-}
-
-export class InfoPanelActivity{
-    constructor(public activity:Activity, public enabled:boolean=true, public causes:string[]=[]) {
-        
-    }
-}
-export class InfoPanelRunningActivity{
-    
-    constructor(public activity:EnqueuedActivity, public media:Media) {
-
-    }
-}
 export interface IPBreacrumbLink{
     href:string;
     label:string
 }
 export interface IPActionCallback{
-    (activity:Activity,target:InfopanelTarget):void;
+    (cmd:string,data?:any):void;
 }
-export interface InfoPanelWarning{
-    icon:Asset;
-    label:string;
-}
-export abstract class InfopanelTarget{
-    api:IGameAPI;
+
+export class InfopanelTarget{
     media?:Media;
     path?:IPBreacrumbLink[];
-    flows?:ResourceFlow[];
-    warnings: InfoPanelWarning[] = [];
-
-    constructor(public callback:IPActionCallback){
-        this.api = useGameAPI();
+    gameData:GameData;
+    constructor(public actionCallback:IPActionCallback){
+        this.gameData = useGameAPI().getGameData();
     }    
-
-    abstract getAvailableActivities():InfoPanelActivity[];
-    abstract getRunningActivities():InfoPanelRunningActivity[];
 }
 
 export class CellIPTarget extends InfopanelTarget{
-    constructor(public cellInstance:CellInstance,callback:IPActionCallback){
-        super(callback);
-
-        const cell = this.api.getCell(cellInstance.cellId);
-        
-        this.media = cell.media;
-        this.path = [
-            {href:'mapa',label:'mapa'},
-            {href:'celdas',label:'celdas'},
-            {href:cell.id,label:cell.media.name}
-        ];
-        this.flows = this.api.getActivity(ActivityType.Build).flows;
-    }
-
-    getAvailableActivities():InfoPanelActivity[]{
-        return [new InfoPanelActivity(this.api.getActivity(ActivityType.Build))];
-    }
-
-    getRunningActivities(): InfoPanelRunningActivity[] {
-        const involvedActivities = this.api.getQueue().filter( ea => ea.target instanceof BuildingActivityTarget && ea.target.cellInstanceId == this.cellInstance.id);
-        const placeables = this.api.getGameData().placeables;
-        return involvedActivities.map( activity => ({activity,media:placeables[(activity.target as BuildingActivityTarget).placeableId].media}));
+    public static ACTION_BUILD = 'build';
+    public static ACTION_EXPLORE = 'explore';
+    public static ACTION_CLAIM = 'claim';
+    constructor(public cellInstance:CellInstance,actionCallback:IPActionCallback){
+        super(actionCallback);
+        this.media = this.gameData.cells[cellInstance.cellId].media;
     }
 }
 
 export class ExistingPlaceableIPTarget extends InfopanelTarget{
-    constructor(public cellInstance:CellInstance,public pid:string,callback:IPActionCallback){
-        super(callback);
-        const placeable = this.api.getPlaceable(pid);
-        
-        this.media = placeable.media;
-        this.path = [
-            {href:'mapa',label:'mapa'},
-            {href:'edificios',label:'edificios'},
-            {href:placeable.id,label:placeable.media.name}
-        ];
-        this.flows = this.api.getActivity(ActivityType.Build).flows;
+    public static ACTION_DISMANTLE = 'dismantle';
+    constructor(public cellInstance:CellInstance,public pid:string,actionCallback:IPActionCallback){
+        super(actionCallback);
+        this.media = this.gameData.placeables[pid].media;
     }
-    getAvailableActivities():InfoPanelActivity[]{
-        return [new InfoPanelActivity(this.api.getActivity(ActivityType.Dismantle))];
-    }
-    getRunningActivities(): InfoPanelRunningActivity[] {
-        const involvedActivities = this.api.getQueue().filter( ea => 
-            ea.target instanceof BuildingActivityTarget && 
-            ea.target.cellInstanceId == this.cellInstance.id &&
-            ea.target.placeableId == this.pid
-        );
-
-        const placeables = this.api.getGameData().placeables;
-        return involvedActivities.map( activity => ({activity,media:placeables[(activity.target as BuildingActivityTarget).placeableId].media}));
-    }
-}
-
-
-export function buildCellInstanceTarget(cellInstance:CellInstance,callback:IPActionCallback):InfopanelTarget[]{
-        
-    const targets:InfopanelTarget[] = [];
-    // La instancia de la celda como primer elemento
-    targets.push(new CellIPTarget(cellInstance,callback));
-    
-    // Los emplazables construidos a continuación
-    
-    for(const pid of cellInstance.placeableIds){
-        targets.push(new ExistingPlaceableIPTarget(cellInstance,pid,callback));
-    }
-    
-    console.log(targets.length,'targets')
-    return targets;
 }
 
 export class TechIPTarget extends InfopanelTarget{
-    constructor(public tech:Technology,callback:IPActionCallback){
-        super(callback);
-        const api = useGameAPI();
-        const store = useStore();
-        this.media = tech.media;
-        this.path = [
-            {href:'investigación',label:'Investigación'},
-            {href:tech.id,label:tech.media.name}
-        ];
-        this.flows = []
+    public static ACTION_RESEARCH = 'research';
+    public static ACTION_NAVIGATE = 'navigate';
+    constructor(public tech:Technology,actionCallback:IPActionCallback){
+        super(actionCallback);
+        this.media = this.gameData.technologies[tech.id].media;
     }
+}
 
-    getAvailableActivities(): InfoPanelActivity[] {
-        const availability = this.api.checkActivityAvailability(ActivityType.Research,new ResearchActivityTarget(this.tech));
-        const activities = [];
-        console.log('fu')
-        if(availability.available){
-            activities.push(
-                new InfoPanelActivity(
-                    this.api.getActivity(ActivityType.Research),
-                    availability.available,
-                    availability.info
-                )
-            );
-        }else{
-            this.warnings.push(...availability.info.map( reason => ({
-                icon:AssetManager.get(ConstantAssets.UI_WARNING),label:reason
-            })))
-        }
-
-        return activities;
-    }
-
-    getRunningActivities(): InfoPanelRunningActivity[] {
-        const involvedActivities = this.api.getQueue().filter( ea => 
-            ea.target instanceof ResearchActivityTarget && 
-            ea.target.tech.id == this.tech.id
-        );
-        console.log(involvedActivities,'en tech!');
-        return involvedActivities.map( ea => ({
-            activity:ea,media:this.tech.media
-        }));
+export class ResourceIPTarget extends InfopanelTarget{
+    constructor(public resource:Resource,actionCallback:IPActionCallback){
+        super(actionCallback);
+        this.media = resource.media;
     }
 }

@@ -1,6 +1,6 @@
 import { createStore, Store } from 'vuex'
 import { InjectionKey } from 'vue'
-import {  InfoPanelActivity, InfopanelTarget } from '@/game/classes/info';
+import {  InfopanelTarget } from '@/game/classes/info';
 import {  Stockpile } from 'shared/monolyth';
 
 /**
@@ -33,6 +33,7 @@ export const store = createStore<GameStore>({
   },
   mutations: {
     setTarget(store:GameStore,selection:InfopanelTarget|null){
+      console.log('fu')
       store.target = selection;
     },
     setPanelTargets(store:GameStore, selection:InfopanelTarget[]=[]) {

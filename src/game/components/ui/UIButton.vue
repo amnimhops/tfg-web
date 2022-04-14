@@ -9,7 +9,6 @@ export default {
     emits:["onClick"],
     props:{
         label:String,
-        icon:String,
         justify:String, 
         description:{
             type:String,

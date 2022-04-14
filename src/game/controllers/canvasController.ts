@@ -63,7 +63,7 @@ export abstract class MapController extends EventEmitter{
         this.inputHandlers.forEach( handler => handler.destroy());
     }
     protected centerTo(pos:Vector):void{
-        this.position = new Vector(-pos.x + this.canvas.width/2,-pos.y+this.canvas.height/2);
+        this.position = new Vector(-pos.x+this.canvas.width/this.zoom/2,-pos.y+this.canvas.height/this.zoom/2);//new Vector(-pos.x + this.canvas.width/2,-pos.y+this.canvas.height/2);
     }
     protected getPos(){
         return new Vector(this.position.x+this.pan.x,this.position.y+this.pan.y);

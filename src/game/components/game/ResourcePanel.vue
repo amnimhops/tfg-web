@@ -12,7 +12,7 @@
                 :alt="resources[stockpile.resourceId].media.name"
               />
               <UILabel
-                @onClick="onResourceClicked(stockpile.resource.id)"
+                @onClick="onResourceClicked(stockpile.resource)"
                 title="Ver este recurso"
                 link
                 >{{ stockpile.amount }}</UILabel
@@ -42,9 +42,9 @@ import UIButton from '../ui/UIButton.vue';
 import UILabel from '../ui/UILabel.vue';
 import  {ellipsisIcon} from '@/game/components/ui/icons'
 import { useStore } from '@/store';
-import { useGameAPI } from '@/game/services/gameApi';
+import { GameEvents, useGameAPI } from '@/game/services/gameApi';
 import { Resource, Stockpile } from 'shared/monolyth';
-import { computed, defineComponent, ref } from 'vue';
+import { computed, defineComponent, onUnmounted, ref } from 'vue';
 
 const store = useStore();
 
@@ -53,18 +53,28 @@ export default defineComponent({
   components:{UIPane,UIIcon,UIFlex,UILabel,UIButton},
   setup() {
     const collapsed = ref<boolean>(true);
-    const store = useStore();
+    const api = useGameAPI();
+
     const toggleResourcePanel = () => {
         collapsed.value = ! collapsed.value;
     }
+    const apiChanged = ref<number>(Date.now());
+    const apiTimerHandler = () => {
+      
+      apiChanged.value = Date.now();
+    };
+    
+    api.on(GameEvents.Timer,apiTimerHandler);
+    const stockpiles = computed<Stockpile[]|undefined>( () => {
+        apiChanged.value;        
+        return  api.getInstancePlayer().stockpiles;
+    });
 
-    const stockpiles = computed<Stockpile[]|undefined>(  () => {
-        return store.state.stockpiles;
-        
-    });
-    const resources = computed<Record<string,Resource>>( () => {
-        return useGameAPI().getGameData().resources;
-    });
+    const resources = api.getGameData().resources;
+
+    onUnmounted(()=> {
+      api.off(GameEvents.Timer,apiTimerHandler);
+    })
 
     return {ellipsisIcon,collapsed,stockpiles,resources,toggleResourcePanel};
   }

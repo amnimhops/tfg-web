@@ -1,4 +1,4 @@
-import { Asset, Game, GameInstance, Media, Player, Technology, Vector } from "shared/monolyth";
+import { ActivityType, Asset, Game, GameInstance, Media, Player, Technology, Vector } from "shared/monolyth";
 import {players, games, gameInstances, randomName, MAP_SIZE} from "shared/mocks/";
 import { randomInt, randomItem, range } from "shared/functions";
 import { ConstantAssets } from "../classes/assetManager";
@@ -11,6 +11,16 @@ const hexUnknwon = require("@/assets/resources/hex-unknown.png");
 const ui_ok = require("@/assets/ui/icon-accept.svg");
 const ui_cancel = require("@/assets/ui/icon-close.svg");
 const ui_warning = require("@/assets/ui/icon-warning.svg");
+const ui_add = require("@/assets/ui/icon-add.svg");
+
+const iconbuild = require("@/assets/resources/icon-build.svg");
+const iconresearch = require("@/assets/resources/icon-research.svg");
+const icondismantle = require("@/assets/resources/icon-dismantle.svg");
+const iconspy = require("@/assets/resources/icon-spy.svg");
+const icontrade = require("@/assets/resources/icon-trade.svg");
+const iconattack = require("@/assets/resources/icon-attack.svg");
+const iconclaim = require("@/assets/resources/icon-claim.svg");
+const iconexplore = require("@/assets/resources/icon-explore.svg");
 
 const water1 = require("@/assets/resources/water-1.png");
 const dirt1 = require("@/assets/resources/dirt-1.png");
@@ -21,8 +31,10 @@ const swamp1 = require("@/assets/images/swamp1.jpeg");
 const swamp2 = require("@/assets/images/swamp2.jpg");
 const beach = require("@/assets/images/beach.jpeg");
 const iconbuilding = require("@/assets/resources/icon-building.svg");
-const iconbuild = require("@/assets/resources/icon-build.svg");
+
 const iconcell = require("@/assets/resources/icon-cell.svg");
+
+
 const texturestructureshop1 = require("@/assets/resources/texture-structure-shop1.svg");
 const structure1 = require("@/assets/images/structure-1.jpeg");
 const structure2 = require("@/assets/images/structure-2.jpeg");
@@ -41,7 +53,9 @@ const diamond = require("@/assets/images/diamond.jpeg");
 const photo1 = require("@/assets/images/pexels-photo-440731.jpeg");
 const photo2 = require("@/assets/images/pexels-photo-459728.jpeg");
 const photo3 = require("@/assets/images/solar-panel-array-power-sun-electricity-159397.jpeg");
+
 const techBackground = require("@/assets/images/tech-background.webp");
+const resourceBackground = require("@/assets/images/resource-background.png");
 const tech1 = require("@/assets/images/tech-texture-1.svg");
 const tech2 = require("@/assets/images/tech-texture-2.svg");
 const tech3 = require("@/assets/images/tech-texture-3.svg");
@@ -64,8 +78,19 @@ function defineAssets(){
         createAsset(ConstantAssets.HEX_SELECTED,'image',hexSelected),
         createAsset(ConstantAssets.HEX_UNKNOWN,'image',hexUnknwon),
         createAsset(ConstantAssets.UI_OK,'image',ui_ok),
+        createAsset(ConstantAssets.UI_ADD,'image',ui_add),
         createAsset(ConstantAssets.UI_CANCEL,'image',ui_cancel),
         createAsset(ConstantAssets.UI_WARNING,'image',ui_warning),
+        
+        createAsset(ConstantAssets.ICON_DISMANTLE,'image',icondismantle),
+        createAsset(ConstantAssets.ICON_BUILD,'image',iconbuild),
+        createAsset(ConstantAssets.ICON_RESEARCH,'image',iconresearch),
+        createAsset(ConstantAssets.ICON_SPY,'image',iconspy),
+        createAsset(ConstantAssets.ICON_TRADE,'image',icontrade),
+        createAsset(ConstantAssets.ICON_ATTACK,'image',iconattack),
+        createAsset(ConstantAssets.ICON_CLAIM,'image',iconclaim),
+        createAsset(ConstantAssets.ICON_EXPLORE,'image',iconexplore),
+
         createAsset('cell-texture-water','image',water1),
         createAsset('cell-texture-dirt1','image',dirt1),
         createAsset('cell-texture-dirt2','image',dirt2),
@@ -77,8 +102,9 @@ function defineAssets(){
        
         createAsset('icon-building','image',iconbuilding),
         createAsset('icon-cell','image',iconcell),
-        createAsset(ConstantAssets.ICON_BUILD,'image',iconbuild),
+        
         createAsset(ConstantAssets.TECH_BACKGROUND,'image',techBackground),
+        createAsset(ConstantAssets.RESOURCE_BACKGROUND,'image',resourceBackground),
         createAsset('structure-texture-shop1','image',texturestructureshop1),
     
         createAsset('placeable-texture-1','image',btex1),
@@ -137,7 +163,22 @@ export function randomizeGameAssets(game:Game){
         randomizeMediaAssets(tech.media)
     });
     game.resources.forEach( res => randomizeMediaAssets(res.media));
-    game.activities.forEach( activity => randomizeMediaAssets(activity.media));
+    
+    const iconsPerActivity = [
+        {type:ActivityType.Attack,asset:assets.find( asset => asset.id == ConstantAssets.ICON_ATTACK)},
+        {type:ActivityType.Build,asset:assets.find( asset => asset.id == ConstantAssets.ICON_BUILD)},
+        {type:ActivityType.Claim,asset:assets.find( asset => asset.id == ConstantAssets.ICON_CLAIM)},
+        {type:ActivityType.Dismantle,asset:assets.find( asset => asset.id == ConstantAssets.ICON_DISMANTLE)},
+        {type:ActivityType.Explore,asset:assets.find( asset => asset.id == ConstantAssets.ICON_EXPLORE)},
+        {type:ActivityType.Research,asset:assets.find( asset => asset.id == ConstantAssets.ICON_RESEARCH)},
+        {type:ActivityType.Spy,asset:assets.find( asset => asset.id == ConstantAssets.ICON_SPY)},
+        {type:ActivityType.Trade,asset:assets.find( asset => asset.id == ConstantAssets.ICON_TRADE)}
+
+    ]
+    game.activities.forEach( activity => {
+        randomizeMediaAssets(activity.media)
+        activity.media.icon = iconsPerActivity.find( ipa => ipa.type == activity.type)!.asset!;
+    });
     
     randomizeMediaAssets(game.media);   
 }
