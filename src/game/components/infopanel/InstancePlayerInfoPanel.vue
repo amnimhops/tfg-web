@@ -32,7 +32,8 @@ export default defineComponent({
         const trade = api.getActivity(ActivityType.Trade);
         const message = api.getActivity(ActivityType.Message);
         const performActivity = (activity:Activity) => {
-            console.log('Sacar el modal de ',activity)
+            //console.log('Sacar el modal de ',activity)
+            props.target?.actionCallback(InstancePlayerIPTarget.ACTION_MESSAGE,props.target);
         };
         const activities = [attack,spy,trade,message]
         return {activities,performActivity}

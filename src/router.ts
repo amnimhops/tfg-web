@@ -7,6 +7,7 @@ import TechnologyView from '@/game/views/TechnologyView.vue';
 import ResourceView from '@/game/views/ResourceView.vue';
 import WorldMapView from '@/game/views/WorldMapView.vue';
 import MessagingView from '@/game/views/MessagingView.vue';
+import ActivityView from '@/game/views/ActivityView.vue';
 
 const routes = [
     { 
@@ -16,7 +17,8 @@ const routes = [
             {path:'technology/:id?',name:'technology',component:TechnologyView},
             {path:'resource/:id?',name:'resource',component:ResourceView},
             {path:'world/:id?',name:'world',component:WorldMapView},
-            {path:'messaging/:id?',name:'messaging',component:MessagingView}
+            {path:'messaging/',name:'messaging',component:MessagingView},
+            {path:'activity/:id?',name:'messaging',component:ActivityView}
         ]
     },
     { path: '/', component: WebsiteApp }

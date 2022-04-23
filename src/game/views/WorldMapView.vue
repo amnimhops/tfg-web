@@ -1,4 +1,5 @@
 <template>
+  <MessageForm :input="messageFormInput" v-if="messageFormInput" @onClose="sendMessage" />
   <div class="world-view">
     <div class="world-map" ref="mapHolder">
       <canvas ref="canvasRef" id="world-map"></canvas>
@@ -23,6 +24,7 @@
 import { computed, defineComponent, onMounted, onUnmounted, ref } from "vue";
 import * as UI from "../components/ui/";
 import PlayerList from "../components/game/PlayerList.vue";
+import MessageForm from "../components/game/MessageForm.vue"
 import { Player, Vector } from "shared/monolyth";
 import {
   WorldMapEvents,
@@ -33,9 +35,11 @@ import { MAP_SIZE } from "shared/mocks";
 import { AssetManager, ConstantAssets } from "../classes/assetManager";
 import { showInfoPanel2 } from "../controllers/ui";
 import { InstancePlayerIPTarget } from "../classes/info";
+import { useMessageWriter } from "../classes/messaging";
+import InstancePlayerInfoPanelVue from "../components/infopanel/InstancePlayerInfoPanel.vue";
 
 export default defineComponent({
-  components: { ...UI, PlayerList },
+  components: { ...UI, PlayerList, MessageForm },
   setup() {
     const playersIcon = AssetManager.get(ConstantAssets.ICON_PLAYERS).url;
     const api = useGameAPI();
@@ -45,6 +49,9 @@ export default defineComponent({
     const playerFilter = ref<string>('');
     const playerListVisible = ref<boolean>(false);
     const players = ref<WorldPlayer[]>([]);
+    // Funcionalidad de mensajería
+    const {messageFormInput,openMessageForm,sendMessage} = useMessageWriter();
+
     const filteredPlayers = computed<WorldPlayer[]>( () => {
       const filter = (playerFilter.value || '').toLowerCase();
       return players.value.filter( p => p.media.name.toLowerCase().indexOf(filter) >= 0);
@@ -68,8 +75,10 @@ export default defineComponent({
       // No será necesario traer los datos del jugador de la API ya
       // que están en la info del sector, así que podemos construir
       // un parcial de jugador suficiente.
-      showInfoPanel2(new InstancePlayerIPTarget(player,()=>{
-        console.log('wwiiii');
+      showInfoPanel2(new InstancePlayerIPTarget(player,(cmd:string,target:InstancePlayerIPTarget)=>{
+        if(cmd == InstancePlayerIPTarget.ACTION_MESSAGE){
+          openMessageForm(target.player.playerId!);
+        }
       }));
     }
     const onResizeCanvas: () => void = () => {
@@ -110,9 +119,9 @@ export default defineComponent({
       canvasRef,
       mapHolder,
       togglePlayerList,
-      
       onPlayerSelected,
-      playersIcon
+      playersIcon,
+      messageFormInput,sendMessage
     };
   },
 });

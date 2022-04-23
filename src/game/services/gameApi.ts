@@ -24,7 +24,7 @@ export interface WorldMapCell{
 
 export interface WorldPlayer{
     media:Media;
-    id:string;
+    playerId:string;
     techLevel?:number;
     buildings?:number;
     stockpiles?:Stockpile[];
@@ -491,7 +491,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
                         if(!playerMap[cell.playerId]){
                             // A la primera aparición, se añade a la lista
                             playerMap[cell.playerId] = {
-                                id:cell.playerId,
+                                playerId:cell.playerId,
                                 media:this.currentInstance.players.find( player => player.playerId == cell.playerId)!.media
                             }
                         }

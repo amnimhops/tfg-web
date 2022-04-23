@@ -42,6 +42,7 @@ import {truncate} from 'shared/functions'
 import { InstancePlayerIPTarget, IPActionCallback, MessageIPTarget } from '../classes/info';
 import MessageForm, { MessageFormInput, MessageFormOutput } from '../components/game/MessageForm.vue'
 import { useRouter } from 'vue-router';
+import { useMessageWriter } from '../classes/messaging';
 
 interface MessagingSection{
     title:string;
@@ -62,8 +63,7 @@ export default defineComponent({
         const page = ref<number>(1);
         const messages = ref<Message[]>([]);
         const pageCount = ref<number>();
-        const messageFormInput = ref<MessageFormInput|null>();
-
+        const {messageFormInput,openMessageForm,sendMessage} = useMessageWriter();
         const sections:MessagingSection[] = [
             {title:'Mensajes de jugadores',icon:iconMessage,type:MessageType.Message},
             {title:'Notificaciones',icon:iconNotification,type:MessageType.Notification},
@@ -74,7 +74,7 @@ export default defineComponent({
 
         const activityHandler:IPActionCallback = (action:string,message:Message) =>{
             if(action == MessageIPTarget.ACTION_REPLY){
-                replyMessage(message);
+                openMessageForm(message.srcPlayerId!,'Re:'+message.subject);
             }
         }
         const changePage = (pageIndex:number)=>{
@@ -121,27 +121,6 @@ export default defineComponent({
             findMessages(query.value,page.value,section.value);
         }
 
-        const replyMessage = async (message:Message) => {
-            const player = api.getCurrentPlayer();
-            const remotePlayer = await api.getInstancePlayer(message.srcPlayerId!);
-            messageFormInput.value = {
-                to : remotePlayer.media!.name,
-                subject : 'Re:'+message.subject,
-                playerId : message.srcPlayerId!,
-                message : ''
-            }
-        }
-
-        const sendMessage = async (output:MessageFormOutput) => {
-            console.log(output)
-            if(!output.canceled){
-                api.sendMessage(output.playerId,output.subject,output.message);
-
-                closeInfoPanel();
-            }
-            messageFormInput.value = null;
-        }
-
         watch([query,page,section], ([nextQuery,nextPage,nextSection],[prevQuery,prevPage,prevSection])=>{
             findMessages(query.value,page.value,section.value);
         });
@@ -154,7 +133,7 @@ export default defineComponent({
             query,page,section,sections,messages,pageCount,
             bgImage,deleteIcon,
             changePage,changeSection,truncate,onPlayerSelected,openMessage,deleteMessage,
-            messageFormInput,replyMessage,sendMessage
+            messageFormInput,sendMessage
         }
     }
 })

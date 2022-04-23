@@ -60,6 +60,7 @@ export class ResourceIPTarget extends InfopanelTarget{
 }
 
 export class InstancePlayerIPTarget extends InfopanelTarget{
+    public static ACTION_MESSAGE = 'send_message';
     constructor(public player:Partial<InstancePlayer>, actionCallback:IPActionCallback){
         super(actionCallback);
         this.media = player.media;
