@@ -161,6 +161,7 @@ export interface IGameAPI extends IEventEmitter{
     calculateResourceStats():ResourceStat[];
 
     getMessages(text:string, type: MessageType, page: number): Promise<SearchResult<Message>>;
+    sendMessage(dstPlayerId:string,subject:string,message:string):Promise<Message>;
     deleteMessage(id:string):Promise<void>;
 
 }
@@ -550,6 +551,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
                     id:`message-${i}`,
                     dstPlayerId:this.currentInstancePlayer!.playerId,
                     message:randomText(100),
+                    senderName:emitter.media.name,
                     readedAt:null,
                     sendAt:Date.now(),
                     srcPlayerId:emitter.playerId,
@@ -572,7 +574,21 @@ class MockAPI extends EventEmitter implements IGameAPI {
             resolve(result);
         });
     }
-
+    sendMessage(dstPlayerId:string,subject:string,message:string):Promise<Message>{
+        if(!this.currentInstancePlayer) throw new Error('No se ha cargado la sesión del jugador');
+        const msg:Message = {
+            type:MessageType.Message,
+            dstPlayerId,
+            message,
+            srcPlayerId:this.currentInstancePlayer?.playerId,
+            subject,
+            sendAt:Date.now(),
+            senderName: this.currentInstancePlayer.media.name
+        }
+        this.playerMessages.push(msg);
+        return new Promise( (resolve,reject) => resolve(msg));
+    }
+    
     deleteMessage(id:string):Promise<void>{
         return new Promise( (resolve,reject) => {
             for(let i = 0; i< this.playerMessages.length; i++){

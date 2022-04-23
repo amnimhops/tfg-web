@@ -1,5 +1,5 @@
 <template>
-    <MessageForm :input="messageFormInput" v-if="messageFormInput" />
+    <MessageForm :input="messageFormInput" v-if="messageFormInput" @onClose="sendMessage" />
     <UIPane class="message-view" :style="{ backgroundImage: 'url('+bgImage+')' }">
         <UIFlex padding="10" gap="5" class="options-header">
             <UILabel class="title extra-large mt-10 mb-10">{{section.title}}</UILabel>
@@ -13,7 +13,7 @@
         <UIFlex class="messages" v-if="messages" padding="10" gap="15">
             <UIFlex class="message" v-for="(message,index) in messages" :key="index">
                 <span class="xs-12 hidden-xl-up label">De</span>
-                <UILabel class="xs-12 xl-3 from" link @onClick="onPlayerSelected(message.srcPlayerId)">{{message.from}}</UILabel>
+                <UILabel class="xs-12 xl-3 from" link @onClick="onPlayerSelected(message.srcPlayerId)">{{message.senderName}}</UILabel>
                 <span class="xs-12 hidden-xl-up label">Fecha</span>
                 <span class="xs-12 xl-1 date">{{new Date(message.sendAt).toLocaleDateString()}}</span>
                 <span class="xs-12 hidden-xl-up label">Asunto</span>
@@ -34,13 +34,15 @@
 import { defineComponent, onMounted, ref, watch } from 'vue'
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import * as UI from '../components/ui';
-import { showErrorPanel, showInfoPanel2 } from '../controllers/ui';
+import { closeInfoPanel, showErrorPanel, showInfoPanel2 } from '../controllers/ui';
 import { useGameAPI } from '../services/gameApi';
 import { Message, MessageType } from 'shared/monolyth';
 import { deleteIcon } from '../components/ui/icons'
 import {truncate} from 'shared/functions'
 import { InstancePlayerIPTarget, IPActionCallback, MessageIPTarget } from '../classes/info';
-import MessageForm, { MessageFormInput, MessageStatus } from '../components/game/MessageForm.vue'
+import MessageForm, { MessageFormInput, MessageFormOutput } from '../components/game/MessageForm.vue'
+import { useRouter } from 'vue-router';
+
 interface MessagingSection{
     title:string;
     icon:string;
@@ -50,20 +52,17 @@ interface MessagingSection{
 export default defineComponent({
     components:{...UI,MessageForm},
     setup() {
-        
+        const router = useRouter();
         const api = useGameAPI();
-        const messagesReceived = ref<number>(Date.now());
         const iconMessage = AssetManager.get(ConstantAssets.ICON_MSG_MESSAGE).url
         const iconNotification = AssetManager.get(ConstantAssets.ICON_MSG_NOTIFICATION).url
         const iconReport = AssetManager.get(ConstantAssets.ICON_MSG_REPORT).url
         const bgImage = AssetManager.get(ConstantAssets.MESSAGING_BACKGROUND).url;
         const query = ref<string>('');
-        const page = ref<number>(0);
-        const type = ref<MessageType>(MessageType.Message);
+        const page = ref<number>(1);
         const messages = ref<Message[]>([]);
         const pageCount = ref<number>();
-        const apiChanged = ref<number>(Date.now());
-        const messageFormInput = ref<MessageFormInput|undefined>();
+        const messageFormInput = ref<MessageFormInput|null>();
 
         const sections:MessagingSection[] = [
             {title:'Mensajes de jugadores',icon:iconMessage,type:MessageType.Message},
@@ -84,6 +83,7 @@ export default defineComponent({
         }
         const changeSection = (newSection:MessagingSection) => {
             section.value = newSection;
+            page.value = 1;
         }
         
         const findMessages = (query:string,page:number,section:MessagingSection) => {
@@ -127,30 +127,34 @@ export default defineComponent({
             messageFormInput.value = {
                 to : remotePlayer.media!.name,
                 subject : 'Re:'+message.subject,
+                playerId : message.srcPlayerId!,
                 message : ''
             }
         }
 
-        const newMessage = (playerId:string) => {
-            console.log('wii');
-        }
+        const sendMessage = async (output:MessageFormOutput) => {
+            console.log(output)
+            if(!output.canceled){
+                api.sendMessage(output.playerId,output.subject,output.message);
 
-        const onMessageClosed = (status:MessageStatus) => {
-            console.log('wii');
+                closeInfoPanel();
+            }
+            messageFormInput.value = null;
         }
 
         watch([query,page,section], ([nextQuery,nextPage,nextSection],[prevQuery,prevPage,prevSection])=>{
             findMessages(query.value,page.value,section.value);
         });
 
-        onMounted( () => {
-            page.value = 1;
+        onMounted( async () => {
+            changeSection(sections[0]);
+            await findMessages(query.value,page.value,sections[0]);
         })
         return {
             query,page,section,sections,messages,pageCount,
             bgImage,deleteIcon,
             changePage,changeSection,truncate,onPlayerSelected,openMessage,deleteMessage,
-            messageFormInput,replyMessage,newMessage
+            messageFormInput,replyMessage,sendMessage
         }
     }
 })
@@ -169,7 +173,7 @@ export default defineComponent({
     }
     .options-header{
         position:sticky;
-        top:-70px;
+        top:-110px;
         //background-color:$ui-control-background-color;
     }
     .options-header .ui-button{

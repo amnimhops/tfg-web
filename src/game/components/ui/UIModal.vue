@@ -1,27 +1,29 @@
 <template>
-  <div class="veil transparent black"></div>
-  <div class="veil" @keydown.esc="close" tabindex="0" autofocus>
-    <!-- Flex de centrado horizontal -->
-    <UIFlex direction="row" justify-content="space-around" align-items="center" class="ui-modal-adjust">
-        <UIPane class="ui-modal" rounded>
-            <UIFlex justify-content="center" gap="10" padding="10">
-                <UIFlex direction="row" align-items="center" gap="10">
-                    <UIButton description="Cerrar esta ventana modal" @onClick="close" borderless>
-                        <UIIcon :src="closeIcon" size="medium" />
-                    </UIButton>
-                    <span class="ui-heading">{{ title }}</span>
-                </UIFlex>
-                <!-- Contenido -->
-                <UIFlex class="scrollable"><slot name="content"></slot></UIFlex>
-                <!-- Botonera al pie -->
-                <UIFlex>
-                    <slot name="footer"></slot>
-                </UIFlex>
-            </UIFlex>
-        </UIPane>
+  <Teleport to="body">
+    <div class="veil transparent black"></div>
+    <div class="veil" @keydown.esc="close" tabindex="0" autofocus>
+      <!-- Flex de centrado horizontal -->
+      <UIFlex direction="row" justify-content="space-around" align-items="center" class="ui-modal-adjust">
+          <UIPane class="ui-modal" rounded>
+              <UIFlex justify-content="center" gap="10" padding="10">
+                  <UIFlex direction="row" align-items="center" gap="10">
+                      <UIButton description="Cerrar esta ventana modal" @onClick="close" borderless>
+                          <UIIcon :src="closeIcon" size="medium" />
+                      </UIButton>
+                      <span class="ui-heading">{{ title }}</span>
+                  </UIFlex>
+                  <!-- Contenido -->
+                  <UIFlex class="scrollable"><slot name="content"></slot></UIFlex>
+                  <!-- Botonera al pie -->
+                  <UIFlex>
+                      <slot name="footer"></slot>
+                  </UIFlex>
+              </UIFlex>
+          </UIPane>
 
-    </UIFlex>
-  </div>
+      </UIFlex>
+    </div>
+  </Teleport>
 </template>
 
 <script>
@@ -63,23 +65,37 @@ export default {
     background-color: black;
   }
   .ui-modal-adjust{
-    position:relative;
-    top:105px;
     >.ui-pane{
       width:100%;
-      border-radius:0;
+      border-radius:5px;
       height:100vh;
+      >.ui-flex{
+        height:100%;
+        justify-content: space-between;
+      }
     }
   }
   .scrollable{
+      flex-grow:1;
       overflow-y:auto;
-      // TODO: Esto DEBE ser dependiente del media-query
-      max-height:400px;
   }
 }
 @media(min-width:768px){
-  .ui-modal-adjust{
-    height: 100vh;
-  }   
+  .veil{
+    .ui-modal-adjust{
+      >.ui-pane{
+        border-radius:$ui-control-border-radius;
+        /*margin:25px;
+        height:calc(100vh - 50px);*/
+        max-height:calc(100vh - 100px);
+        width:auto;
+        margin:50px auto 50px auto;
+        >.ui-flex{
+          height:100%;
+          justify-content: space-between;
+        }
+      }
+    }   
+  }
 }
 </style>

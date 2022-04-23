@@ -127,13 +127,18 @@ $breakpoints: ("xs":320px,"sm":576px,"md":768px,"lg":1024px,"xl":1200px);
 }
 
 input,select,textarea{
-    font-family:$ui-control-font-family
+    font-family:$ui-control-font-family;
 }
     
-input[type=search]{
+input[type=search],input[type=text]{
     height:50px;
     border-radius: $ui-control-border-radius;
     padding-left:15px;
+}
+textarea{
+    border-radius: $ui-control-border-radius;
+    padding-left:15px;
+    padding-top:10px;
 }
 
 .bold{
