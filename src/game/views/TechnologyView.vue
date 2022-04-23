@@ -34,7 +34,7 @@ import {
   watch,
 } from "vue";
 import { TechTreeController, TechTreeEvents } from '@/game/controllers/techTreeController';
-import { Activity, ActivityType, Technology } from "shared/monolyth";
+import { ActivityType, Technology } from "shared/monolyth";
 import UIModal from '../components/ui/UIModal.vue';
 import UIButton from '../components/ui/UIButton.vue';
 import UIIcon from '../components/ui/UIIcon.vue';
@@ -42,8 +42,8 @@ import UIFlex from '../components/ui/UIFlex.vue';
 import UISection from '../components/ui/UISection.vue';
 import ResourceFlowItem from '../components/game/ResourceFlowItem.vue';
 import {acceptIcon,closeIcon} from '../components/ui/icons'
-import { GameEvents, useGameAPI } from "../services/gameApi";
-import { InfopanelTarget, IPActionCallback, TechIPTarget } from "../classes/info";
+import { useGameAPI } from "../services/gameApi";
+import { IPActionCallback, TechIPTarget } from "../classes/info";
 import { showInfoPanel2 } from '../controllers/ui';
 import { ResearchActivityTarget } from "../classes/activities";
 import { useRoute, useRouter } from "vue-router";

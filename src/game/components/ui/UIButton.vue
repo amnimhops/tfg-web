@@ -110,7 +110,7 @@ export default {
             background-color:$ui-control-background-primary;
         }
 
-        &:active{
+        &:active, .active{
             background-color:$ui-control-background-secondary;
             -webkit-tap-highlight-color:transparent;
             outline: 0 none;

@@ -2,7 +2,7 @@ import { CellInstance } from 'shared/monolyth';
 import {Vector} from '@/game/classes/vector';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { GameEvents, IGameAPI, useGameAPI } from '../services/gameApi';
-import { MapController } from './canvasController';
+import { ManagedMapController } from './canvasController';
 
 const CELL_WIDTH = 101;
 const CELL_HEIGHT = 61;
@@ -23,7 +23,7 @@ export const PlayerMapEvents = {
     CELL_SELECTED : 'cell_selected'
 };
 
-export class PlayerMapController extends MapController{
+export class PlayerMapController extends ManagedMapController{
     private cells:HexCell[]
     private selected:HexCell|null;
     
@@ -43,7 +43,7 @@ export class PlayerMapController extends MapController{
         const gameData = this.api.getGameData();
         this.cells = cells.map( cell => new HexCell(cell));
         this.selected = null;
-        
+        this.background = AssetManager.get(ConstantAssets.HOME_BACKGROUND).data;
         /**
          * Se cachean las posiciones de dibujado, esto ayuda a detectar
          * la celda sobre la que se ubica el ratón y aligera el bucle
@@ -99,13 +99,13 @@ export class PlayerMapController extends MapController{
     }
     private getBuildingTexture(cell:HexCell):HTMLImageElement|undefined{
         const cellDef = this.api.getCell(cell.cellInstance.cellId).media.image.data;
-        const numBuildings = cell.cellInstance.placeableIds.length;
+        const numBuildings = cell.cellInstance.placeables.length;
         
         if(numBuildings == 0){
             return;
         }else{
             // Usamos la textura del primer edificio que encontremos
-            const placeableTextureId = this.api.getPlaceable(cell.cellInstance.placeableIds[0]).texture.id;
+            const placeableTextureId = this.api.getPlaceable(cell.cellInstance.placeables[0].placeableId).texture.id;
             return AssetManager.get(placeableTextureId).data;
         }
     }
@@ -164,8 +164,8 @@ export class PlayerMapController extends MapController{
                     );
                 }
                 // Pintar el badge con el número de edificios
-                if(hex.cellInstance.placeableIds.length  > 1){
-                    ctx.fillText(hex.cellInstance.placeableIds.length+'',hex.drawPos.x+CELL_WIDTH/2,hex.drawPos.y + CELL_HEIGHT / 2);
+                if(hex.cellInstance.placeables.length  > 1){
+                    ctx.fillText(hex.cellInstance.placeables.length+'',hex.drawPos.x+CELL_WIDTH/2,hex.drawPos.y + CELL_HEIGHT / 2);
                 }
             }
         }

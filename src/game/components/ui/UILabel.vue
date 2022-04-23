@@ -24,15 +24,10 @@ export default {
             type:String,
             default:''
         }
-
     }
 }
 </script>
 
 <style lang="scss" scoped>
-    .danger{
-        font-weight:bold;
-        color:$ui-control-font-color-danger;
-    }
     
 </style>

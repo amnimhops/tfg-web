@@ -41,6 +41,11 @@ export default {
         &.rounded{
             @include ui-control-rounded;
         }
+        input{
+            font-family: $ui-control-font-family;
+            font-size: $ui-control-text-size;
+            border-color: $ui-control-border-color;
+        }
     }
 
     .small{

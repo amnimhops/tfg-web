@@ -1,7 +1,7 @@
 import { Activity, ActivityTarget, ActivityType, CellInstance, Technology, UIConfig, Vector } from 'shared/monolyth';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { GameEvents, IGameAPI, useGameAPI } from '../services/gameApi';
-import { MapController } from './canvasController';
+import { ManagedMapController } from './canvasController';
 import { toMap } from 'shared/functions';
 import { ResearchActivityTarget } from '../classes/activities';
 
@@ -16,13 +16,6 @@ function findHierarchy(root:TechTreeNode, nodes:Technology[]){
     root.children.forEach( child => findHierarchy(child,nodes));
 }
 const ORB_RADIUS = 100;
-
-function rgba(r:number,g:number,b:number,a=1):string{
-    return `rgb(${r},${g},${b},${a})`
-}
-function degrees(rads:number):number{
-    return rads * 360 / (Math.PI * 2)
-}
 
 function buildTechOrb(tech:TechTreeNode[],arcRange?:[number,number],parent:TechOrb|null=null,outerLevel=1):TechOrb[]{
     
@@ -75,7 +68,7 @@ export const TechTreeEvents = {
 };
 
 
-export class TechTreeController extends MapController{
+export class TechTreeController extends ManagedMapController{
     
     orbs:TechOrb[];
     uiConfig:UIConfig;

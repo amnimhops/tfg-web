@@ -29,7 +29,7 @@ import { CellIPTarget, ExistingPlaceableIPTarget } from '@/game/classes/info'
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
 import { ActivityType, Media, Placeable } from 'shared/monolyth'
 import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
-import { showInfoPanel2 } from '@/game/controllers/ui'
+import { closeInfoPanel, showInfoPanel2 } from '@/game/controllers/ui'
 import { AssetManager, ConstantAssets } from '@/game/classes/assetManager'
 import { BuildingActivityTarget } from '@/game/classes/activities'
 import * as UI from '../ui/';
@@ -49,6 +49,7 @@ export default defineComponent({
         const buildIcon = AssetManager.get(ConstantAssets.ICON_BUILD).url;
         
         const addNewBuilding = () => {
+            
             props.target?.actionCallback(CellIPTarget.ACTION_BUILD)
         }
 
@@ -88,7 +89,7 @@ export default defineComponent({
 
         const placeables = computed<Placeable[]>( ()=> {
             apiChanged.value;
-            return props.target?.cellInstance.placeableIds.map( id => gameData.placeables[id]) || [];
+            return props.target?.cellInstance.placeables.map( pInstance => gameData.placeables[pInstance.placeableId]) || [];
         });
 
         onUnmounted(()=>{

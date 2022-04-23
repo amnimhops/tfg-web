@@ -15,12 +15,14 @@
       <InfoPanelBreadcrumb :links="selection.path" />
       
       <!--Description-->
-      <UIFlex padding="10"><p>{{selection.media.description}}</p></UIFlex>
+      <UIFlex padding="10" v-if="selection.media.description"><p>{{selection.media.description}}</p></UIFlex>
       
       <!-- Specific panel -->      
       <CellInfoPanel v-if="selectionType=='CellIPTarget'" :target="selection"/>
       <PlaceableInfoPanel v-if="selectionType=='ExistingPlaceableIPTarget'" :target="selection"/>
       <TechInfoPanel v-if="selectionType=='TechIPTarget'" :target="selection"/>
+      <InstancePlayerInfoPanel v-if="selectionType=='InstancePlayerIPTarget'" :target="selection"/>
+      <MessageInfoPanel v-if="selectionType=='MessageIPTarget'" :target="selection"/>
       <!-- -->
 
     </UIFlex>
@@ -44,13 +46,18 @@ import CellInfoPanel from './CellInfoPanel.vue';
 import TechInfoPanel from './TechInfoPanel.vue';
 
 import PlaceableInfoPanel from './PlaceableInfoPanel.vue';
+import InstancePlayerInfoPanel from './InstancePlayerInfoPanel.vue';
+import MessageInfoPanel from './MessageInfoPanel.vue';
 
 const store = useStore();
 
 export default defineComponent({
   components:{
     UIPane,UIIcon,UIFlex,UIButton,
-    InfoPanelBreadcrumb,CellInfoPanel,PlaceableInfoPanel,TechInfoPanel
+    InfoPanelBreadcrumb,CellInfoPanel,
+    PlaceableInfoPanel,TechInfoPanel,
+    InstancePlayerInfoPanel,
+    MessageInfoPanel
   },
   
   setup(){

@@ -1,4 +1,4 @@
-import {Vector} from '../classes/vector'
+import {Vector} from 'shared/monolyth'
 import { EventEmitter } from '../classes/events';
 
 const STATE_NONE = 'none';

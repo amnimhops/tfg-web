@@ -3,13 +3,10 @@
 </template>
 
 <script lang="ts">
-import { CellIPTarget, ExistingPlaceableIPTarget, ResourceIPTarget } from '@/game/classes/info'
-import { GameEvents, useGameAPI } from '@/game/services/gameApi'
-import { ActivityType, Media, Placeable } from 'shared/monolyth'
-import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
-import { showInfoPanel2 } from '@/game/controllers/ui'
-import { AssetManager, ConstantAssets } from '@/game/classes/assetManager'
-import { BuildingActivityTarget } from '@/game/classes/activities'
+import { ResourceIPTarget } from '@/game/classes/info'
+import { useGameAPI } from '@/game/services/gameApi'
+import { Media } from 'shared/monolyth'
+import { defineComponent, PropType } from 'vue'
 import * as UI from '../ui';
 interface BuildingInQueue{
     remaining?:string;
@@ -23,18 +20,6 @@ export default defineComponent({
     },
     setup(props) {
         const api = useGameAPI();
-
-        /*const apiChanged = ref<number>(Date.now());
-        const gameData = api.getGameData();
-
-        const handleApiChanges = ()=>{
-            console.log('api change detected')
-            apiChanged.value = Date.now();
-        }
-
-        api.on(GameEvents.Timer, handleApiChanges);
-*/
-
 
         return {}
     },

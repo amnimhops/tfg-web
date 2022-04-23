@@ -24,6 +24,71 @@ $steps: 1 2 3 5 10 15 20 25;
 $paddings: $steps;
 $gaps: $steps;
 $margins: $steps;
+
+@mixin ui-control-rounded{
+    border-radius:$ui-control-border-radius;
+    border:1px solid $ui-control-border-color;
+}
+
+@mixin invisible{
+    visibility:hidden;
+    display:none;
+}
+@mixin visible($display){
+    visibility:visible;
+    display:$display;
+}
+
+/**
+ * Sistema de reticulado, fuertemente
+ * inspirado en bootstrap. Se definen
+ * 12 columnas y 3 puntos de ruptura:
+ * movil, tablet y escritorio.
+ */
+
+/* Número de columnas */
+$columns: 12;
+/* Puntos de ruptura */
+$breakpoints: ("xs":320px,"sm":576px,"md":768px,"lg":1024px,"xl":1200px);
+/**
+ * Se iteran todos los tamaños definidos
+ */
+@each $name,$value in $breakpoints{
+    /**
+     * Para cada tamaño se definen los tipos de columna. Esto
+     * permitirá asignar dos clases de distinto tamaño a un mismo
+     * tag de forma que tome uno u otro en función del media query
+     * activo en cada instante.
+     */
+    @media(min-width:#{$value}){
+        @for $i from 1 through $columns{
+            .#{$name}-#{$i} {
+                $width : $i * 100% / 12;
+                width: #{$width};
+            }
+        }
+    }
+    /**
+     * Esta regla permite ocultar columnas para todas las
+     * media queries con ancho inferior o igual al dado
+     * 
+     */
+    @media(max-width:#{$value}){
+        .hidden-#{$name}-down{
+            @include invisible;
+        }
+    }
+    /**
+     * Esta regla permite ocultar columnas para todas las
+     * media queries con ancho superior o igual al dado
+     * 
+     */
+     @media(min-width:#{$value}){
+        .hidden-#{$name}-up{
+            @include invisible;
+        }
+    }
+}
 // Padding
 @each $step in $steps {
     .pad-#{$step} {
@@ -60,16 +125,17 @@ $margins: $steps;
         margin-right: #{$step}px;
     }
 }
-@mixin ui-control-rounded{
-    border-radius:$ui-control-border-radius;
-    border:1px solid $ui-control-border-color;
+
+input,select,textarea{
+    font-family:$ui-control-font-family
+}
+    
+input[type=search]{
+    height:50px;
+    border-radius: $ui-control-border-radius;
+    padding-left:15px;
 }
 
-@mixin invisible{
-    visibility:hidden;
-    display:none;
-}
-@mixin visible($display){
-    visibility:visible;
-    display:$display;
+.bold{
+    font-weight:bold;
 }

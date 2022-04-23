@@ -2,8 +2,8 @@
   <div class="veil transparent black"></div>
   <div class="veil" @keydown.esc="close" tabindex="0" autofocus>
     <!-- Flex de centrado horizontal -->
-    <UIFlex direction="row" justify-content="space-around" align-items="center" class="full-height">
-        <UIPane rounded>
+    <UIFlex direction="row" justify-content="space-around" align-items="center" class="ui-modal-adjust">
+        <UIPane class="ui-modal" rounded>
             <UIFlex justify-content="center" gap="10" padding="10">
                 <UIFlex direction="row" align-items="center" gap="10">
                     <UIButton description="Cerrar esta ventana modal" @onClick="close" borderless>
@@ -62,17 +62,24 @@ export default {
   &.black {
     background-color: black;
   }
-  &>.ui-flex{
-      margin:10px;
-  }
-  .full-height{
-      height: 100vh;
+  .ui-modal-adjust{
+    position:relative;
+    top:105px;
+    >.ui-pane{
+      width:100%;
+      border-radius:0;
+      height:100vh;
+    }
   }
   .scrollable{
       overflow-y:auto;
       // TODO: Esto DEBE ser dependiente del media-query
       max-height:400px;
   }
-  
+}
+@media(min-width:768px){
+  .ui-modal-adjust{
+    height: 100vh;
+  }   
 }
 </style>

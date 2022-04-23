@@ -1,9 +1,9 @@
 import { useStore } from "@/store";
 import { randomMedia } from "shared/mocks";
-import { CellInstance, Media, ResourceFlow, Activity, ActivityType, Technology, EnqueuedActivity, Asset, Cell, Resource } from "shared/monolyth";
+import { CellInstance, Media, ResourceFlow, Activity, ActivityType, Technology, EnqueuedActivity, Asset, Cell, Resource, Player, InstancePlayer, Message, MessageType } from "shared/monolyth";
 import { IGameAPI, useGameAPI } from "../services/gameApi";
 import { BuildingActivityTarget, ResearchActivityTarget } from "./activities";
-import { AssetManager, ConstantAssets } from "./assetManager";
+import { AssetManager, ASSET_EMPTY, ConstantAssets } from "./assetManager";
 import { GameData } from "./gameIndex";
 
 export interface IPBreacrumbLink{
@@ -17,9 +17,11 @@ export interface IPActionCallback{
 export class InfopanelTarget{
     media?:Media;
     path?:IPBreacrumbLink[];
+    api:IGameAPI;
     gameData:GameData;
     constructor(public actionCallback:IPActionCallback){
-        this.gameData = useGameAPI().getGameData();
+        this.api = useGameAPI();
+        this.gameData = this.api.getGameData();
     }    
 }
 
@@ -54,5 +56,40 @@ export class ResourceIPTarget extends InfopanelTarget{
     constructor(public resource:Resource,actionCallback:IPActionCallback){
         super(actionCallback);
         this.media = resource.media;
+    }
+}
+
+export class InstancePlayerIPTarget extends InfopanelTarget{
+    constructor(public player:Partial<InstancePlayer>, actionCallback:IPActionCallback){
+        super(actionCallback);
+        this.media = player.media;
+    }
+}
+
+export class MessageIPTarget extends InfopanelTarget{
+    public static ACTION_REPLY = 'reply';
+    constructor(public message:Message,public remotePlayer:Partial<InstancePlayer>, actionCallback:IPActionCallback){
+        super(actionCallback);
+        /**
+         * Al contrario que el resto de targets del panel, los mensajes
+         * de jugadores no tienen información de medios propia. En su lugar
+         * creamos una 'virtual' con los valores que se desean mostrar.
+         */
+        this.media = {
+            name: message.type == MessageType.Message? 'Mensaje' : message.type == MessageType.Notification? 'Notificación' : 'Informe',
+            icon:ASSET_EMPTY,
+            thumbnail:ASSET_EMPTY,
+            description:'',
+            image:this.getImageAsset(message.type)
+        }
+    }
+    private getImageAsset(type:MessageType):Asset{
+        if(type == MessageType.Message){
+            return AssetManager.get(ConstantAssets.MESSAGING_MESSAGE);
+        }else if(type == MessageType.Notification){
+            return AssetManager.get(ConstantAssets.MESSAGING_NOTIFICATION);
+        }else{
+            return AssetManager.get(ConstantAssets.MESSAGING_REPORT)
+        }
     }
 }

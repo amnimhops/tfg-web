@@ -1,10 +1,10 @@
 <template>
   <template v-if="resourcesLoaded">
+    
     <div class="header">
-      <NavigationPanel :tab="tab" />
+      <NavigationPanel />
       <ResourcePanel />
     </div>
-
     <div id="current-view" class="current-view" ref="playerMap">
       <router-view></router-view>
     </div>
@@ -33,7 +33,6 @@ export default defineComponent({
     const store = useStore();
     const resourcesLoaded = ref(false);
     const api = useGameAPI();
-    const tab = ref<string>('home');
 
     onMounted( async () => {
       const player = await api.authenticate("fu","bar");
@@ -55,9 +54,6 @@ export default defineComponent({
           }
           resourcesLoaded.value = true;
           
-          // Ahora se preparan los almacenes
-          store.commit('setStockpiles',api.getInstancePlayer().stockpiles);
-
           // Enganchamos con los eventos de la api de juego para retransmitorlos a 
           // donde haga falta
           console.log('prevent')
@@ -70,7 +66,7 @@ export default defineComponent({
         
     });
     
-    return {resourcesLoaded,tab}
+    return {resourcesLoaded}
   },
 })
 </script>

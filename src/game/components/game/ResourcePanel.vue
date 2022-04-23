@@ -12,10 +12,10 @@
                 :alt="resources[stockpile.resourceId].media.name"
               />
               <UILabel
-                @onClick="onResourceClicked(stockpile.resource)"
+                @onClick="onResourceClicked(stockpile.resourceId)"
                 title="Ver este recurso"
                 link
-                >{{ stockpile.amount }}</UILabel
+                >{{ fmtResourceAmount(stockpile.amount) }}</UILabel
               >
             </UIFlex>
           </UIFlex>
@@ -45,7 +45,9 @@ import { useStore } from '@/store';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
 import { Resource, Stockpile } from 'shared/monolyth';
 import { computed, defineComponent, onUnmounted, ref } from 'vue';
-
+import { showInfoPanel2 } from '@/game/controllers/ui';
+import { useRouter } from 'vue-router';
+import {fmtResourceAmount} from '../../classes/formatters'
 const store = useStore();
 
 
@@ -53,6 +55,7 @@ export default defineComponent({
   components:{UIPane,UIIcon,UIFlex,UILabel,UIButton},
   setup() {
     const collapsed = ref<boolean>(true);
+    const router = useRouter();
     const api = useGameAPI();
 
     const toggleResourcePanel = () => {
@@ -67,16 +70,19 @@ export default defineComponent({
     api.on(GameEvents.Timer,apiTimerHandler);
     const stockpiles = computed<Stockpile[]|undefined>( () => {
         apiChanged.value;        
-        return  api.getInstancePlayer().stockpiles;
+        return  api.getCurrentPlayer().stockpiles;
     });
 
     const resources = api.getGameData().resources;
 
+    const onResourceClicked = (id:string) => {
+      router.push({name:'resource',params:{id}});
+    }
     onUnmounted(()=> {
       api.off(GameEvents.Timer,apiTimerHandler);
     })
 
-    return {ellipsisIcon,collapsed,stockpiles,resources,toggleResourcePanel};
+    return {ellipsisIcon,collapsed,stockpiles,resources,toggleResourcePanel,onResourceClicked,fmtResourceAmount};
   }
 });
 </script>
@@ -85,6 +91,9 @@ export default defineComponent({
 .icon-custom-size {
   height: 38px;
   width: 38px;
+}
+.ui-label{
+  min-width: 75px;
 }
 .resource-panel {
   background-color: $ui-control-background-color;

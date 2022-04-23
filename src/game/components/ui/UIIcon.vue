@@ -12,15 +12,16 @@ export default {
         },
         title:{
             type:String,
-            default:'icon image'
+            default:null
         }
     }
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
     .ui-icon{
         color:red;
+
         &.small{
             width:16px;
             height:16px;
@@ -34,4 +35,5 @@ export default {
             height:64px;
         }
     }
+    
 </style>

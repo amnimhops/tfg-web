@@ -1,35 +1,27 @@
 <template>
     <UIPane class="resource-view" :style="{ backgroundImage: 'url('+bgImage+')' }">
-        <UIFlex gap="10" padding="10">
-            <input type="search" name="q" class="mt-10 mb-10"/>
+        <UIFlex class="resource-list" gap="20" padding="10" justifyContent="space-around">
+            <input id="resource-search" type="search" name="q" class="mt-10 mb-10" @change="filterResources" v-model="query"/>
 
-            <UIFlex class="resource-item" v-for="(stat,idx) in resourceStats" :key="idx" alignItems="stretch" gap="5" padding="5">
-                <UIFlex direction="row" alignItems="center" gap="5" padding="5">
-                    <UIIcon :src="stat.resource.media.icon.url" size="custom-icon-size" />
-                    <UILabel :link="true" @onClick="navigate(stat.resource.id)">{{stat.resource.media.name}}</UILabel>
-                </UIFlex>
-                <UIFlex class="big-numbers" direction="row" justifyContent="space-between">
-                    <UILabel class="large">{{stat.available}}</UILabel>
-                    <UILabel class="large">{{stat.totalIncome}}</UILabel>
-                    <UILabel class="large">{{stat.totalExpense}}</UILabel>
-                </UIFlex>
+            <UIFlex class="resource-item" v-for="(stat,idx) in resourceStats" :key="idx" alignItems="stretch" gap="5">
+                <ResourceSummary :stat="stat" iconSize="resource-summary-icon-size"/>
             </UIFlex>
         </UIFlex>
     </UIPane>
 </template>
 
 <script lang="ts">
-import { Resource } from 'shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { IPActionCallback, ResourceIPTarget } from '../classes/info';
 import * as UI from '../components/ui/';
+import ResourceSummary from '../components/game/ResourceSummary.vue';
 import { showInfoPanel2 } from '../controllers/ui';
 import { GameEvents, ResourceStat, useGameAPI } from '../services/gameApi';
-
+import { fmtResourceAmount } from '../classes/formatters';
 export default defineComponent({
-    components:{...UI},
+    components:{...UI,ResourceSummary},
     setup() {
         const api = useGameAPI();
         const router = useRouter();
@@ -37,6 +29,7 @@ export default defineComponent({
         const bgImage = AssetManager.get(ConstantAssets.RESOURCE_BACKGROUND).url;
         const gameData = api.getGameData();
 
+        const query = ref<string>();
         const apiChanged = ref<number>(Date.now());
 
         const navigate = (resid:string) => {
@@ -56,8 +49,14 @@ export default defineComponent({
         const resourceStats = computed<ResourceStat[]|undefined>(()=>{
             apiChanged.value;
             const stats = api.calculateResourceStats();
-            console.log(stats);
-            return stats;
+            /**
+             * Generalmente usaríamos un watch() para detectar los
+             * cambios en query.value debidos al input, pero como 
+             * este método se actualiza 1/s cuando la api informa,
+             * basta con leer el nuevo valor de query.value
+             */
+            const textQuery = (query.value||'').toLowerCase();
+            return stats.filter(stat => stat.resource.media.name.toLowerCase().indexOf(textQuery)>=0);
         });
 
         const resourceIdentifierWatcherStopper = watch(()=>route.params.id, (newId)=>{
@@ -90,34 +89,46 @@ export default defineComponent({
         onUnmounted(()=>{
             api.off(GameEvents.Timer,handleApiChanges);
         })
-        return {resourceStats,bgImage,navigate};
+        return {resourceStats,bgImage,navigate,fmtResourceAmount,query};
     },
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
+    #resource-search{
+        width:100%;
+    }
     .resource-view{
         height:100vh;
         padding-top:105px;
         overflow-y: auto;
         background-size: cover;
     }
-    
-    img.responsive{
-        height:200px;
-    }
-    .custom-icon-size{
+
+    .resource-summary-icon-size{
         width:32px;
         height:32px;
     }
-    .resource-item{
-
-    }
-    .big-numbers{
+@media(min-width:768px){
+    // El motivo de hacer sel.sel es para
+    // darle más especificidad que la que tiene
+    // por defecto y reescribir el valor de justify-content
+    .ui-flex.resource-list{ 
+        flex-flow: row wrap;
+        justify-content: space-around;
+        gap:50px;
         
     }
-    input[type=search]{
-        height:50px;
+    .resource-item{
+        width:320px;
     }
-
+    .resource-summary-icon-size{
+        width:64px;
+        height:64px;
+    }
+    hr{
+        @include invisible;
+    }
+    
+}
 </style>

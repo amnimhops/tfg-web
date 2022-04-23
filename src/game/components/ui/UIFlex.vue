@@ -72,7 +72,7 @@ export default {
             justify-content: flex-start;
         }
         &.justify-flex-end{
-            justify-content: space-around;
+            justify-content: flex-end;
         }
         &.align-flex-start{
             align-items: flex-start;

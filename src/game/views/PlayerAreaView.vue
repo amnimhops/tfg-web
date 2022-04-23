@@ -35,6 +35,7 @@ import { useStore } from "@/store";
 import { CellIPTarget, InfopanelTarget, IPActionCallback } from "../classes/info";
 import { closeInfoPanel, showInfoPanel2 } from '../controllers/ui';
 import { BuildingActivityTarget } from "../classes/activities";
+import { AssetManager, ConstantAssets } from "../classes/assetManager";
 
 export default defineComponent({
   components: { BuildingPicker },
@@ -43,7 +44,6 @@ export default defineComponent({
     const picker = ref(false);
     const canvasRef = ref<HTMLCanvasElement | null>(null); // brujería!?
     const cellSelected = ref<CellInstance|null>(null);
-
     const api = useGameAPI();
     const gameData = api.getGameData();
 
@@ -81,7 +81,6 @@ export default defineComponent({
     };
 
     const onResizeCanvas: () => void = () => {
-      console.log(canvasRef.value);
       if (canvasRef.value != null && mapHolder.value != null) {
         canvasRef.value.width = mapHolder.value.clientWidth;
         canvasRef.value.height = mapHolder.value.clientHeight;
@@ -129,8 +128,5 @@ export default defineComponent({
   top: 0;
   width: 100%;
   height: 100%;
-}
-canvas {
-  background-color: red;
 }
 </style>

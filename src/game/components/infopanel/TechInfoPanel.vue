@@ -39,7 +39,7 @@ import { ResearchActivityTarget } from '@/game/classes/activities';
 import { TechIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
 import { ActivityType, Media, Technology } from 'shared/monolyth';
-import { computed, defineComponent, PropType, ref } from 'vue'
+import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
 import { showInfoPanel2 } from '@/game/controllers/ui';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -111,6 +111,12 @@ export default defineComponent({
             //props.target?.actionCallback(TechIPTarget.ACTION_NAVIGATE,otherTech)
             router.push({name:'technology',params:{id:otherTech.id}});
         }
+
+        onUnmounted( ()=>{
+            // es MUY importante desconectar de la api al desmontar,
+            // ya que este panel se crea y destruye múltiples veces
+            api.off(GameEvents.Timer, handleApiChanges);
+        })
 
         return {researchActivity,researched,inResearch,research,unlockedTechs,requiredTech,navigate};
     },

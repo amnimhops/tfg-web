@@ -17,52 +17,22 @@ import {  Stockpile } from 'shared/monolyth';
  */
 export interface GameStore {
   target:InfopanelTarget|null;
-  stockpiles?: Stockpile[];
-  panelTargets:InfopanelTarget[],
-  panelSelectedIndex:number|null,
+  error:string|null,
   gameLoaded:boolean;
 }
 
 export const store = createStore<GameStore>({
   state: {
     target:null,
-    panelTargets:[],
-    panelSelectedIndex:null,
-    stockpiles:[],
+    error:null,
     gameLoaded:false
   },
   mutations: {
     setTarget(store:GameStore,selection:InfopanelTarget|null){
-      console.log('fu')
       store.target = selection;
     },
-    setPanelTargets(store:GameStore, selection:InfopanelTarget[]=[]) {
-      console.log("valor", selection);
-      store.panelTargets = [...selection];
-      store.panelSelectedIndex = 0;
-    },
-    changeSelectionIndex(store:GameStore,index:number){
-      if(store.panelTargets.length > index){
-        store.panelSelectedIndex = index;
-      }
-    },
-    setStockpiles(store:GameStore, stockpiles:Stockpile[]) {
-      store.stockpiles = stockpiles;
-    },
-    setStockpile(store:GameStore, stockpile:Stockpile) {
-      store.stockpiles = store.stockpiles?.map( sp => {
-        if(sp.resourceId == stockpile.resourceId){
-          return stockpile;
-        }else{
-          return sp;
-        }
-      });
-    },
-    addResource(store:GameStore, resource:{id:string,amount:number}) {
-      store.stockpiles?.filter(sp => sp.resourceId == resource.id).forEach(sp => sp.amount += resource.amount);
-    },
-    setGameState(store:GameStore, state:boolean){
-      store.gameLoaded = state;
+    setError(store:GameStore,message:string|null){
+      store.error = message;
     }
   },
   actions: {
