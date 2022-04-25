@@ -3,81 +3,36 @@
     <canvas ref="canvasRef" id="player-map"></canvas>
     <div class="fullscreen"></div>
   </div>
-  <span v-if="picker">fuuu</span>
-  <BuildingPicker
-    v-if="picker"
-    @onClose="showStructurePicker(false)"
-    :structures="availableStructures"
-    :cell="cellSelected"
-    @onSelect="buildStructure"
-  />
 </template>
 
 <script lang="ts">
-/*import {
-  PlayerMapController,
-  PlayerMapEvents,
-} from "@/game/controllers/playerMapController";*/
 import {
   PlayerMapController,
   PlayerMapEvents,
 } from "@/game/controllers/playerMapController";
-import { CellInstance, Activity, ActivityType, Placeable } from "shared/monolyth";
-import {
-  defineComponent,
-  onMounted,
-  onUnmounted,
-  ref,
-} from "vue";
+import { CellInstance } from "shared/monolyth";
+import { defineComponent, onMounted, onUnmounted, ref } from "vue";
 import { useGameAPI } from "../services/gameApi";
-import BuildingPicker from "../components/game/BuildingPicker.vue";
-import { useStore } from "@/store";
-import { CellIPTarget, InfopanelTarget, IPActionCallback } from "../classes/info";
-import { closeInfoPanel, showInfoPanel2 } from '../controllers/ui';
-import { BuildingActivityTarget } from "../classes/activities";
-import { AssetManager, ConstantAssets } from "../classes/assetManager";
+import { CellIPTarget } from "../classes/info";
+import { closeInfoPanel, showInfoPanel2 } from "../controllers/ui";
 
 export default defineComponent({
-  components: { BuildingPicker },
+  components: {},
   setup() {
     const mapHolder = ref<HTMLElement | null>(null);
-    const picker = ref(false);
+
     const canvasRef = ref<HTMLCanvasElement | null>(null); // brujería!?
-    const cellSelected = ref<CellInstance|null>(null);
+    const cellSelected = ref<CellInstance | null>(null);
     const api = useGameAPI();
     const gameData = api.getGameData();
 
-    let pmc:PlayerMapController;
-
-    /**
-     * Al final todo se reduce a construir esto
-     */
-    const buildStructure: (placeable:Placeable) => void = async (placeable:Placeable) => {
-      showStructurePicker(false);
-      const id = await api.startActivity(ActivityType.Build,new BuildingActivityTarget(cellSelected.value!.id,placeable.id));
-      showInfoPanel2(new CellIPTarget(cellSelected.value!,activityHandler));
-    };
-
-    const availableStructures = ref<Placeable[]>([]);
-
-    const showStructurePicker: (value:boolean) => void = (value:boolean)=> {
-      closeInfoPanel();
-      picker.value = value;
-    }
-
-    const activityHandler:IPActionCallback = (action:string) =>{
-      if(action == CellIPTarget.ACTION_BUILD){
-        
-        const cellDef = gameData.cells[cellSelected.value!.cellId];
-
-        availableStructures.value = cellDef.allowedPlaceableIds.map( id => api.getPlaceable(id));
-        showStructurePicker(true);
-      }
-    }
+    let pmc: PlayerMapController;
 
     const onCellSelected: (cell: CellInstance) => void = (cell) => {
       cellSelected.value = cell;
-      showInfoPanel2(new CellIPTarget(cellSelected.value!,activityHandler));
+      showInfoPanel2(new CellIPTarget(cellSelected.value!, ()=>{
+        console.log('wiii')
+      }));
     };
 
     const onResizeCanvas: () => void = () => {
@@ -102,19 +57,15 @@ export default defineComponent({
 
     onUnmounted(() => {
       closeInfoPanel();
-      console.log('Destruyendo vista de área del jugador');
+      console.log("Destruyendo vista de área del jugador");
       pmc.destroy();
-      window.removeEventListener("resize",onResizeCanvas);
-    })
+      window.removeEventListener("resize", onResizeCanvas);
+    });
 
     return {
-      picker,
       canvasRef,
       mapHolder,
-      availableStructures,
-      showStructurePicker,
-      buildStructure,
-      cellSelected
+      cellSelected,
     };
   },
 });

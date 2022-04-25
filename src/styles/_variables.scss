@@ -15,6 +15,13 @@ $ui-control-border-radius: 15px;
 $ui-control-background-primary: #b1a91a;//#rgb(207, 0, 197);
 $ui-control-background-secondary: #8f1323;//hsl(46, 100%, 41%);
 
+$ui-success: #28fb28;
+$ui-warning: #fbf728;
+$ui-danger: #fb7228;
+$ui-resource-flow-positive:$ui-success;
+$ui-resource-flow-negative:$ui-danger;
+
+
 $site-background-color-dark: #303030;
 $site-background-color-light: #888888;
 $site-front-color:white;

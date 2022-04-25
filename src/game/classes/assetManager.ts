@@ -52,6 +52,7 @@ export const ConstantAssets = {
     HOME_BACKGROUND: 'home-background',
     RESOURCE_BACKGROUND: 'resource-background',
     MESSAGING_BACKGROUND: 'messaging-background',
+    ACTIVITY_BACKGROUND: 'activity-background',
 
     /* Messaging section assets */
     MESSAGING_MESSAGE : 'messaging-message-image',

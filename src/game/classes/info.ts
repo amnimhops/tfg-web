@@ -1,6 +1,6 @@
 import { useStore } from "@/store";
 import { randomMedia } from "shared/mocks";
-import { CellInstance, Media, ResourceFlow, Activity, ActivityType, Technology, EnqueuedActivity, Asset, Cell, Resource, Player, InstancePlayer, Message, MessageType } from "shared/monolyth";
+import { CellInstance, Media, ResourceFlow, Activity, ActivityType, Technology, EnqueuedActivity, Asset, Cell, Resource, Player, InstancePlayer, Message, MessageType, PlaceableInstance } from "shared/monolyth";
 import { IGameAPI, useGameAPI } from "../services/gameApi";
 import { BuildingActivityTarget, ResearchActivityTarget } from "./activities";
 import { AssetManager, ASSET_EMPTY, ConstantAssets } from "./assetManager";
@@ -37,9 +37,9 @@ export class CellIPTarget extends InfopanelTarget{
 
 export class ExistingPlaceableIPTarget extends InfopanelTarget{
     public static ACTION_DISMANTLE = 'dismantle';
-    constructor(public cellInstance:CellInstance,public pid:string,actionCallback:IPActionCallback){
+    constructor(public cellInstance:CellInstance,public placeableInstance:PlaceableInstance,actionCallback:IPActionCallback){
         super(actionCallback);
-        this.media = this.gameData.placeables[pid].media;
+        this.media = this.gameData.placeables[placeableInstance.placeableId].media;
     }
 }
 

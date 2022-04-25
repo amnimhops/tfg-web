@@ -9,6 +9,8 @@ import leftIcon from '@/assets/ui/icon-left.svg';
 import upIcon from '@/assets/ui/icon-up.svg';
 import rightIcon from '@/assets/ui/icon-right.svg';
 import downIcon from '@/assets/ui/icon-down.svg';
+import caretUpIcon from '@/assets/ui/icon-caret-up.svg';
+import caretDownIcon from '@/assets/ui/icon-caret-down.svg';
 
 
 export  {
@@ -22,5 +24,7 @@ export  {
     leftIcon,
     upIcon,
     rightIcon,
-    downIcon
+    downIcon,
+    caretUpIcon,
+    caretDownIcon
 }

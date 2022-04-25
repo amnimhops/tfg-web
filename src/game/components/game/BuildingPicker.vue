@@ -71,7 +71,10 @@ export default defineComponent({
       if(selectedItem.value != null){
         const availability = api.checkActivityAvailability(
           ActivityType.Build,
-          new BuildingActivityTarget((props.cell as CellInstance).id,selectedItem.value.id)
+          {
+            cellInstanceId:(props.cell as CellInstance).id,
+            placeableId:selectedItem.value.id
+          } as BuildingActivityTarget
         );
         if(availability.available){
           return false;

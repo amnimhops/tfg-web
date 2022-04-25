@@ -85,9 +85,9 @@ export default defineComponent({
     }
 
     .income{
-        color:#aaffaa;
+        color:$ui-resource-flow-positive;
     }
     .expense{
-        color:#ffaaaa;
+        color:$ui-resource-flow-negative;
     }
 </style>

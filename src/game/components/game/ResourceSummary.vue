@@ -64,10 +64,10 @@ export default defineComponent({
     }
 }
 .expense{
-    color:#ff6200;
+    color:$ui-danger;
 }
 .income{
-    color:#00ff51;
+    color:$ui-success;
 }
 
 </style>

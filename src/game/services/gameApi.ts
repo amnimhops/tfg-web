@@ -12,6 +12,7 @@ export interface Minimap{
     height:number;
     cells:number[];
 }
+
 export interface WorldMapQuery{
     p1:Vector;
     p2:Vector;
@@ -134,15 +135,14 @@ function unknownMedia(text:string):Media{
         name:text
     }
 }
-export interface IGameAPI extends IEventEmitter{
-    authenticate(email:string,pass:string):Promise<Player>;
-    joinGame(id:string):Promise<Asset[]>;
-    getGameList():Promise<Partial<Game>[]>;
-    getCells():Promise<CellInstance[]>;
+/**
+ * Esta interfaz define las operaciones que se llevan a cabo
+ * en el lado del cliente
+ */
+export interface ILocalGameAPI{
+    getCellInstance(cellInstanceId:number):CellInstance|undefined
     getGameData():GameData;
     getCurrentPlayer():InstancePlayer;
-    getInstancePlayer(id:string):Promise<Partial<InstancePlayer>>;
-    startActivity(type:ActivityType,target:ActivityTarget):Promise<string>
     checkActivityAvailability(type:ActivityType,target:ActivityTarget):ActivityAvailability;
     getResearchedTechnologies():Technology[];
     getQueue():EnqueuedActivity[];
@@ -155,15 +155,31 @@ export interface IGameAPI extends IEventEmitter{
     getResource(id:string):Resource;
     getPlaceable(id:string):Placeable;
     getActivity(type:ActivityType):Activity;
+    getPlaceablesUnderConstruction(cellInstanceId:number):PlaceableInstance[];
     getUIConfig(): UIConfig
     getWorldMap(query:WorldMapQuery):WorldMapSector;
 
     calculateResourceStats():ResourceStat[];
-
+}
+/**
+ * Esta interfaz define las operaciones que se llevan a cabo
+ * en el lado del servidor
+ */
+export interface IRemoteGameAPI{
+    authenticate(email:string,pass:string):Promise<Player>;
+    joinGame(id:string):Promise<Asset[]>;
+    getGameList():Promise<Partial<Game>[]>;
+    getCells():Promise<CellInstance[]>;
+    getInstancePlayer(id:string):Promise<Partial<InstancePlayer>>;
+    startActivity(type:ActivityType,target:ActivityTarget):Promise<number|ActivityAvailability>;
+    cancelActivity(id:number):Promise<void>;
     getMessages(text:string, type: MessageType, page: number): Promise<SearchResult<Message>>;
     sendMessage(dstPlayerId:string,subject:string,message:string):Promise<Message>;
     deleteMessage(id:string):Promise<void>;
+}
 
+export interface IGameAPI extends ILocalGameAPI, IRemoteGameAPI, IEventEmitter{
+    
 }
 
 export const GameEvents = {
@@ -195,6 +211,18 @@ class MockAPI extends EventEmitter implements IGameAPI {
         this.lastQueueCheck = Date.now();
     }
 
+    /**
+     * Actualiza el contador de identificadores únicos de la instancia
+     * y devuelve el siguiente. Los números en JS/TS tienen un rango 
+     * de 2^63, lo que permite generar 292k identificadores únicos por 
+     * segundo durante el próximo millón de años. Como este tiempo excede
+     * el periodo de servicio de la aplicación, se puede dar por válido.
+     * 
+     * @returns Un número único a nivel de instancia.
+     */
+    private nextUUID():number{
+        return ++this.currentInstance!.nextUUID;
+    }
 
     private ticker():void{
         if(this.hasListener(GameEvents.Timer)){
@@ -234,6 +262,8 @@ class MockAPI extends EventEmitter implements IGameAPI {
         const now = Date.now();
 
         let i = 0;
+        let cummulativeTime = 0;
+        const queueParallelActivities = this.currentInstancePlayer?.properties.queueParallelActivities || 0;
         
         while(i < this.activityQueue.length){
             const item = this.activityQueue[i];
@@ -242,11 +272,27 @@ class MockAPI extends EventEmitter implements IGameAPI {
             if(item.elapsed>=activity.duration){
                 const deleted = this.activityQueue.splice(i,1);
                 // Gestionar el fin de actividad
-                this.handleCompletedActivity(deleted[0]);
+                this.onActivityFinished(deleted[0]);
             }else{
-                item.elapsed += now - this.lastQueueCheck;
-                item.remaining = activity.duration - item.elapsed;
+                if(i < queueParallelActivities){
+                    // Solo se actualiza el tiempo de aquellas
+                    // tareas que la cola es capaz de procesar
+                    if(!item.startedAt){
+                        // Si la actividad comienza ahora, se establece
+                        // la marca de tiempo de inicio.
+                        item.startedAt = now;
+                    }
+
+                    item.elapsed += now - this.lastQueueCheck;
+                    item.remaining = activity.duration - item.elapsed;
+                }else{
+                    // Ajustamos el tiempo restante para mostrar la cuenta atrás
+                    // hasta su inicio
+                    item.remaining = cummulativeTime;
+                }
+                
                 console.log('Actividad',activity.type,'quedan',activity.duration-item.elapsed);
+                cummulativeTime+=item.remaining;
             }
 
             i++;
@@ -255,12 +301,30 @@ class MockAPI extends EventEmitter implements IGameAPI {
         this.lastQueueCheck = now;
     }
 
-    private handleCompletedActivity(item:EnqueuedActivity):void{
+
+    private onActivityCreated(item:EnqueuedActivity):void{
+        if(item.type == ActivityType.Build){
+            /**
+             * Cuando se inicia una actividad de construcción se añade automáticamente
+             * el emplazable a la celda y se marca como inactivo. Al completar la actividad
+             * se marca como activo. Mientras se encuentre inactivo los flujos no deben
+             * procesarse.
+             */
+             this.buildInactivePlaceable(item.target as BuildingActivityTarget);
+        }
+    }
+    private onActivityFinished(item:EnqueuedActivity):void{
         this.raise(GameEvents.ActivityFinished,item);
         if(item.type == ActivityType.Build){
-            this.buildPlaceable(item.target as BuildingActivityTarget);
+            this.activatePlaceable(item.target as BuildingActivityTarget);
         }else if(item.type == ActivityType.Research){
             this.finishResearch(item.target as ResearchActivityTarget);
+        }
+    }
+    private onActivityCanceled(item:EnqueuedActivity):void{
+        if(item.type == ActivityType.Build){
+            const target = item.target as BuildingActivityTarget;
+            this.removePlaceableInstance(target.cellInstanceId,target.placeableInstanceId!);
         }
     }
 
@@ -268,15 +332,53 @@ class MockAPI extends EventEmitter implements IGameAPI {
         this.currentInstancePlayer?.technologies.push(target.tech.id);
         this.raise(GameEvents.TechnologyResearched,target.tech);
     }
-    private buildPlaceable(target:BuildingActivityTarget){
+    /**
+     * Termina el ciclo de construcción de un edificio, permitiendo
+     * que sus flujos y características se activen.
+     * 
+     * @param target Objetivo sobre el que actua la actividad
+     */
+    private activatePlaceable(target:BuildingActivityTarget){
+        const cellInstance = this.currentInstance!.cells[target.cellInstanceId];
+        const placeableInstance = cellInstance.placeables.find( pi => pi.id == target.placeableInstanceId);
+        if(placeableInstance) {
+            placeableInstance.built = true;
+            this.raise(GameEvents.CellInstanceUpdated,cellInstance);
+        }else{
+            throw new Error('Error al activar, no se ha encontrado la instancia del emplazable');
+        }
+    }
+
+    private buildInactivePlaceable(target:BuildingActivityTarget){
         const cellInstance = this.currentInstance!.cells[target.cellInstanceId];
         const placeable = this.currentGame!.placeables[target.placeableId];
+        const placeableInstanceId = this.nextUUID();
         cellInstance.placeables.push({
-            id:-1,
+            id:placeableInstanceId,
+            built:false,
             instanceFlows:placeable?.flows.map( flow => ({...flow})), // Se copian los flujos del original al crear
             placeableId:target.placeableId
         });
+        // Vinculamos el target con el recien creado edificio para
+        // poder activarlo al terminar la tarea
+        target.placeableInstanceId = placeableInstanceId;
         this.raise(GameEvents.CellInstanceUpdated,cellInstance);
+    }
+
+    /**
+     * Elimina un emplazable de una celda
+     * @param cellInstanceId Identificador de la celda
+     * @param placeableInstanceId Identificador del emplazable
+     */
+    private removePlaceableInstance(cellInstanceId:number,placeableInstanceId:number){
+        const cellInstance = this.currentInstance!.cells[cellInstanceId];
+
+        for(let i = 0; i <cellInstance.placeables.length; i++){
+            if(cellInstance.placeables[i].id == placeableInstanceId){
+                const deleted = cellInstance.placeables.splice(i,1);
+                console.log('Se han eliminado los emplazables',deleted);
+            }
+        }
     }
 
     authenticate(email:string,pass:string):Promise<Player>{
@@ -316,7 +418,10 @@ class MockAPI extends EventEmitter implements IGameAPI {
              } ,1000);
         } );
     }
-
+    getCellInstance(cellInstanceId:number):CellInstance|undefined{
+        if(!this.currentInstance) throw new Error('No se ha cargado la instancia de juego');
+        return this.currentInstance.cells.find( cell => cell.id == cellInstanceId);
+    }
     getGameData():GameData{
         if(!this.currentGame) throw new Error('No se ha cargado el juego');
         return this.currentGame;
@@ -423,8 +528,12 @@ class MockAPI extends EventEmitter implements IGameAPI {
             }
         }
 
-
-        return new ActivityAvailability(failedPreconditions.length == 0,type,target,failedPreconditions);
+        return {
+            available:failedPreconditions.length == 0,
+            target,
+            type,
+            info:failedPreconditions
+        }
     }
 
     getQueue():EnqueuedActivity[]{
@@ -433,26 +542,60 @@ class MockAPI extends EventEmitter implements IGameAPI {
     getQueueByType(type:ActivityType):EnqueuedActivity[]{
         return this.activityQueue.filter( item => item.type == type);
     }
-    startActivity(type:ActivityType,target:ActivityTarget):Promise<string>{
+    startActivity(type:ActivityType,target:ActivityTarget):Promise<number>{
         const activity = this.getActivity(type);
+        const activityId = this.nextUUID();
         const item:EnqueuedActivity = {
-            id:Date.now().toString(),
+            id:activityId,
             target,
+            name:activity.media.name + ' ' + target.name,
+            enqueuedAt:Date.now(),
             type,
             elapsed:0,
             remaining:activity.duration
         };
         
-        this.activityQueue.push(item);
-        // Descontar el coste de la actividad
-        const stockPiles = toMap(this.getCurrentPlayer().stockpiles, sp => sp.resourceId);
-        activity.flows.forEach(flow => {
-            stockPiles[flow.resourceId].amount-=Math.abs(flow.amount);
-            this.raise<Stockpile>(GameEvents.StockpileChanged,stockPiles[flow.resourceId]);
+        return new Promise( (resolve,reject) => {
+            const availability = this.checkActivityAvailability(type,target);
+            
+            if(availability.available){
+                this.activityQueue.push(item);
+                // Descontar el coste de la actividad
+                const stockPiles = toMap(this.getCurrentPlayer().stockpiles, sp => sp.resourceId);
+                
+                activity.flows.forEach(flow => {
+                    stockPiles[flow.resourceId].amount-=Math.abs(flow.amount);
+                    this.raise<Stockpile>(GameEvents.StockpileChanged,stockPiles[flow.resourceId]);
+                });
+    
+                this.onActivityCreated(item);
+                
+                resolve(item.id);
+            }else{
+                reject(availability);
+            }
+            
         });
+    }
 
+    cancelActivity(id: number): Promise<void> {
+        return new Promise( (resolve,reject) => {
+            let removedActivity = null;
+            for(let i = 0; i < this.activityQueue.length; i++){
+                if(this.activityQueue[i].id == id){
+                    removedActivity = this.activityQueue.splice(i,1)[0];
+                    break;
+                }
+            }
 
-        return new Promise( (resolve,reject) => setTimeout( ()=> resolve(item.id) , 1000));
+            if(removedActivity){
+                resolve();    
+            }else{
+                reject('No se ha encontrado la actividad en la cola');
+            }
+            
+        })
+        
     }
 
     private getPlayerPosition(id:string):Vector{
@@ -599,6 +742,26 @@ class MockAPI extends EventEmitter implements IGameAPI {
             }
             resolve();
         });
+    }
+
+    getPlaceablesUnderConstruction(cellInstanceId: number): PlaceableInstance[] {
+        if(!this.currentInstance) throw new Error('No se ha cargado la instancia del juego');
+
+        const cellInstance = this.currentInstance.cells[cellInstanceId];
+        const placeableInstances:PlaceableInstance[] = [];
+        const buildingActivities = this
+            .getQueueByType(ActivityType.Build)
+            .filter( ea => (ea.target as BuildingActivityTarget).cellInstanceId == cellInstanceId);
+
+        buildingActivities.forEach( ea => {
+            const target = ea.target as BuildingActivityTarget;
+            const placeable = cellInstance.placeables.find( pi => pi.id == target.placeableInstanceId);
+            if(placeable){
+                placeableInstances.push()
+            }
+        });
+
+        return placeableInstances;
     }
 }
 

@@ -7,4 +7,5 @@ import UIModal from './UIModal.vue';
 import UIPane from './UIPane.vue';
 import UISection from './UISection.vue';
 import UIPager from './UIPager.vue';
-export {UIButton,UIFlex,UIIcon,UILabel,UIList,UIModal,UIPane,UISection,UIPager}
+import UIProgressBar from './UIProgressBar.vue';
+export {UIButton,UIFlex,UIIcon,UILabel,UIList,UIModal,UIPane,UISection,UIPager,UIProgressBar}

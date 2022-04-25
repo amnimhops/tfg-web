@@ -59,12 +59,19 @@ export default {
 
 <style lang="scss" scoped>
     
-    @mixin ui-control-layout{
+    .ui-button{
         display:flex;
         flex-flow: row nowrap;
         justify-content: left;
         align-items: center;
         gap: 10px;
+        background-color:$ui-control-foreground-color;
+        color:$ui-control-font-color;
+        
+        font-family:$ui-control-font-family;
+        
+        padding:$ui-control-padding;
+        user-select: none;
 
         &.center{
             justify-content: center;
@@ -84,19 +91,8 @@ export default {
         }
         &.borderless{
             border:0px none;
-        }
-    }
-
-    .ui-button{
-        @include ui-control-layout();    
-
-        background-color:$ui-control-foreground-color;
-        color:$ui-control-font-color;
+        }  
         
-        font-family:$ui-control-font-family;
-        
-        padding:$ui-control-padding;
-        user-select: none;
         &.grow{
            width:100%;
         }

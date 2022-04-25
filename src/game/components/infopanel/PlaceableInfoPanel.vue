@@ -39,19 +39,16 @@ export default defineComponent({
     },
     components:{ResourceFlowItem,UISection,UIFlex,UIButton,UILabel,UIIcon},
     setup(props) {
-        const api = useGameAPI();
         const iconDismantle = AssetManager.get(ConstantAssets.ICON_DISMANTLE).url;
 
         const incomes = computed<ResourceFlow[]>( () => {
-            const f = api.getGameData().placeables[props.target!.pid].flows.filter( flow => flow.amount > 0);
-            console.log(f);
+            const f = props.target?.placeableInstance.instanceFlows.filter( flow => flow.amount > 0) || [];
             return f;
         });
-        const expenses = computed<ResourceFlow[]>( () => {
-            
-            return api.getGameData().placeables[props.target!.pid].flows.filter( flow => flow.amount < 0);
+        const expenses = computed<ResourceFlow[]>( () => {            
+            return props.target?.placeableInstance.instanceFlows.filter( flow => flow.amount < 0) || [];
         });
-
+        
         return {incomes,expenses,iconDismantle}
     },
 })

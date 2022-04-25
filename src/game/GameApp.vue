@@ -53,15 +53,7 @@ export default defineComponent({
             console.log("Added", id);
           }
           resourcesLoaded.value = true;
-          
-          // Enganchamos con los eventos de la api de juego para retransmitorlos a 
-          // donde haga falta
-          console.log('prevent')
-          api.on<Stockpile>(GameEvents
-          .StockpileChanged, (data:Stockpile)=>{
-            store.commit('setStockpile',data);
-          });
-        });
+      });
 
         
     });

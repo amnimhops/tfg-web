@@ -1,8 +1,8 @@
 <template>
     <!-- En curso -->
-    <UISection title="Investigando" class="ml-10" v-if="inResearch">
+    <UISection title="En cola" class="ml-10" v-if="inResearch">
         <UIFlex padding="10">
-            <UILabel >Investigando {{inResearch.media.name}} en {{inResearch.remaining}}</UILabel>
+            <EnqueuedActivityInfo :data="inResearch" />
         </UIFlex>
     </UISection>
     <!-- Más datos -->
@@ -42,16 +42,13 @@ import { ActivityType, Media, Technology } from 'shared/monolyth';
 import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
 import { showInfoPanel2 } from '@/game/controllers/ui';
 import { useRoute, useRouter } from 'vue-router';
+import EnqueuedActivityInfo,{ EnqueuedActivityInfoModel } from '../game/EnqueuedActivityInfo.vue';
 
-interface TechInQueue{
-    remaining?:string;
-    media:Media;
-}
 export default defineComponent({
     props:{
         target:Object as PropType<TechIPTarget>
     },
-    components:{...UI},
+    components:{...UI,EnqueuedActivityInfo},
     setup(props) {
         const api = useGameAPI();
         const apiChanged = ref<number>(Date.now());
@@ -70,7 +67,8 @@ export default defineComponent({
             console.log('investigado',api.getResearchedTechnologies().some( tech=> tech.id == props.target?.tech.id));
             return api.getResearchedTechnologies().some( tech=> tech.id == props.target?.tech.id);
         });
-        const inResearch = computed<TechInQueue|null>( () => {
+        
+        const inResearch = computed<EnqueuedActivityInfoModel|null>( () => {
             apiChanged.value;
 
             const activity = api.getQueueByType(ActivityType.Research).find( activity => {
@@ -80,9 +78,9 @@ export default defineComponent({
 
             if(activity) {
                 return {
-                    media:(activity.target as ResearchActivityTarget).tech.media,
-                    remaining:activity.remaining
-                } as TechInQueue
+                    activity,
+                    media:(activity.target as ResearchActivityTarget).tech.media
+                };
             }else{
                 return null;
             }

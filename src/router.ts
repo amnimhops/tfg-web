@@ -18,7 +18,7 @@ const routes = [
             {path:'resource/:id?',name:'resource',component:ResourceView},
             {path:'world/:id?',name:'world',component:WorldMapView},
             {path:'messaging/',name:'messaging',component:MessagingView},
-            {path:'activity/:id?',name:'messaging',component:ActivityView}
+            {path:'activity/:id?',name:'activity',component:ActivityView}
         ]
     },
     { path: '/', component: WebsiteApp }

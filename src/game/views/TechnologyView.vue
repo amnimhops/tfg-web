@@ -90,7 +90,11 @@ export default defineComponent({
 
     const startResearch = ()=>{
       closeResearchConfirmDialog();
-      api.startActivity(ActivityType.Research,new ResearchActivityTarget(techSelected.value!));
+      const target:ResearchActivityTarget = {
+        tech:techSelected.value!,
+        name:techSelected.value!.media.name
+      }
+      api.startActivity(ActivityType.Research,target);
       showInfoPanel2(new TechIPTarget(techSelected.value!,infoPanelHandler));
     }
     const researchActivity = api.getGameData().activities.get(ActivityType.Research);

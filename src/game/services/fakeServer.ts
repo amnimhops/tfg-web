@@ -14,6 +14,7 @@ const ui_warning = require("@/assets/ui/icon-warning.svg");
 const ui_add = require("@/assets/ui/icon-add.svg");
 const ui_delete = require("@/assets/ui/icon-delete.svg");
 
+
 const iconSectionArea = require('@/assets/resources/icon-section-area.svg');
 const iconSectionResources = require('@/assets/resources/icon-section-resources.svg');
 const iconSectionTechnology = require('@/assets/resources/icon-section-technologies.svg');
@@ -72,6 +73,7 @@ const homeBackground = require("@/assets/images/home-background.png");
 const techBackground = require("@/assets/images/tech-background.webp");
 const resourceBackground = require("@/assets/images/resource-background.png");
 const messagingBackground = require("@/assets/images/messaging-background.webp");
+const activityBackground = require("@/assets/images/activity-background.webp");
 const tech1 = require("@/assets/images/tech-texture-1.svg");
 const tech2 = require("@/assets/images/tech-texture-2.svg");
 const tech3 = require("@/assets/images/tech-texture-3.svg");
@@ -152,6 +154,7 @@ function defineAssets(){
         createAsset(ConstantAssets.RESOURCE_BACKGROUND,'image',resourceBackground),
         createAsset(ConstantAssets.HOME_BACKGROUND,'image',homeBackground),
         createAsset(ConstantAssets.MESSAGING_BACKGROUND,'image',messagingBackground),
+        createAsset(ConstantAssets.ACTIVITY_BACKGROUND,'image',activityBackground),
 
         createAsset(ConstantAssets.MESSAGING_MESSAGE,'image',msgMessageImage),
         createAsset(ConstantAssets.MESSAGING_NOTIFICATION,'image',msgNotificationImage),
@@ -275,7 +278,11 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
         stockpiles:game.resources.map( resource => ({resourceId:resource.id,amount:100}) ),
         queue:[],
         media:randomMedia(),
-        technologies:game.technologies.filter(tech => tech.parent == null).map(tech=>tech.id)
+        technologies:game.technologies.filter(tech => tech.parent == null).map(tech=>tech.id),
+        properties:{
+            queueCapacity:5,
+            queueParallelActivities:1
+        }
     });
     // Ajustar los medios de los jugadores
     instance.players.forEach( player => {
@@ -295,6 +302,7 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
                 if(Math.random() > .75){
                     ci.placeables.push({
                         id:-1,
+                        built:true,
                         instanceFlows: [
                             {amount:Math.random()*100,periodicity:FlowPeriodicity.PerSecond,resourceId:randomItem(game.resources).id}, // IRREALES, FALSOS, NO SE CORRESPPONDEN CON EL ORIGINAL
                             {amount:-Math.random()*88,periodicity:FlowPeriodicity.PerSecond,resourceId:randomItem(game.resources).id}
