@@ -34,7 +34,7 @@ function getProductionSpeed(flow:ResourceFlow):string {
             unit = '/ semana';
             break;
     }
-    return Math.abs(flow.amount)+ ' '+unit;
+    return Math.abs(flow.amount).toFixed(2)+ ' '+unit;
 }
 
 export default defineComponent({
@@ -42,48 +42,18 @@ export default defineComponent({
     components:{UIIcon,UIFlex},
     setup(props){
         const gameDef = useGameAPI().getGameData();
-        const amount = computed<string>( ()=> {
-            let amountStr = null;
-            if(props.packed){
-                amountStr = ''+Math.abs(props.flow.amount);
-            }else{
-                if(props.flow.amount > 0){
-                     amountStr = 'Proporciona +'+props.flow.amount;
-                }else{
-                    amountStr ='Cuesta '+ (-props.flow.amount);
-                }
-            }
-            return amountStr;
-        });
-
         const flowType = computed<string>( ()=> props.flow.amount >= 0 ? 'income': 'expense');
         const productionSpeed = computed<string>( ()=> getProductionSpeed(props.flow) ); 
         const resource = computed<string>( ()=> gameDef.resources[props.flow.resourceId].media.name );
         const icon = computed<string>( ()=> gameDef.resources[props.flow.resourceId].media.icon.url );
        // mounted(){
         return {icon,flowType,productionSpeed,resource};
-    }/*,
-    computed:{
-        icon(){
-            return gameDef.resources[this.flow.resourceId].media.icon.url;
-        },
-        label(){
-            return getFlowText(this.flow);
-        },
-        flowType(){
-            return this.flow.amount >0 ? 'income':'expense';
-        }
-
-
-    }*/
+    }
 });
 </script>
 
 <style lang="scss" scoped>
-    .resource-flow{
-        
-    }
-
+   
     .income{
         color:$ui-resource-flow-positive;
     }

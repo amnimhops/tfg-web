@@ -14,7 +14,7 @@
 import { computed, defineComponent, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
-import { IPActionCallback, ResourceIPTarget } from '../classes/info';
+import { ResourceIPTarget } from '../classes/info';
 import * as UI from '../components/ui/';
 import ResourceSummary from '../components/game/ResourceSummary.vue';
 import { showInfoPanel2 } from '../controllers/ui';
@@ -34,10 +34,6 @@ export default defineComponent({
 
         const navigate = (resid:string) => {
             router.replace({name:'resource',params:{id:resid}});
-        }
-
-        const panelActionHandler:IPActionCallback = (cmd:string,data:any)=>{
-            console.log('Received action handler on resource view')
         }
 
         const handleApiChanges = () => {
@@ -60,7 +56,7 @@ export default defineComponent({
         });
 
         const resourceIdentifierWatcherStopper = watch(()=>route.params.id, (newId)=>{
-            showInfoPanel2(new ResourceIPTarget(gameData.resources[newId as string],panelActionHandler));
+            showInfoPanel2(new ResourceIPTarget(gameData.resources[newId as string]));
         })
 
         /**
@@ -82,7 +78,7 @@ export default defineComponent({
             if(route.params.id){
                 const id = route.params.id as string;
                 console.log('Route id is',id)
-                showInfoPanel2(new ResourceIPTarget(gameData.resources[id],panelActionHandler));
+                showInfoPanel2(new ResourceIPTarget(gameData.resources[id]));
             }
         });
 

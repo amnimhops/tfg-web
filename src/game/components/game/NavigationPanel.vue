@@ -28,11 +28,9 @@ import UILabel from '@/game/components/ui/UILabel.vue';
 import UIButton from '@/game/components/ui/UIButton.vue';
 import UIPane from '@/game/components/ui/UIPane.vue';
 import {menuIcon, fullscreenIcon} from '@/game/components/ui/icons';
-import { Asset } from 'shared/monolyth'
-import { computed, defineComponent, ref, watch } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import { showInfoPanel2 } from '@/game/controllers/ui';
-import { store } from '@/store';
 interface NavLink{
     icon:string;
     label:string;

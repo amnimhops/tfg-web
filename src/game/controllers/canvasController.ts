@@ -94,6 +94,7 @@ export abstract class ManagedMapController extends AbstractMapController{
     get api():IGameAPI {return this._api;}
 
     destroy(){
+        this.redraw = false; // Dejar de replanificar requestAnimationFrame
         super.destroy()
     }
 

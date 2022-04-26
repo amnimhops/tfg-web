@@ -8,8 +8,9 @@
             </UIButton>
         </UIFlex>
     </UISection>
+    <!-- Sección de elementos actualmente en construcción -->
     <UISection title="En cola" class="ml-10" v-if="buildActivities.length > 0">
-        <UIFlex padding="10">
+        <UIFlex padding="10" gap="10">
             <EnqueuedActivityInfo v-for="(ba,index) in buildActivities" :key="index" :data="ba" />
         </UIFlex>
     </UISection>
@@ -33,7 +34,6 @@
 </template>
 
 <script lang="ts">
-import {countdown,countdownStr} from 'shared/functions';
 import BuildingPicker from "../game/BuildingPicker.vue";
 
 import {deleteIcon} from '../ui/icons';
@@ -41,7 +41,7 @@ import { CellIPTarget, ExistingPlaceableIPTarget } from '@/game/classes/info'
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
 import { ActivityType, Media, WithMedia, PlaceableInstance, Placeable } from 'shared/monolyth'
 import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
-import { closeInfoPanel, showInfoPanel2 } from '@/game/controllers/ui'
+import { showInfoPanel2 } from '@/game/controllers/ui'
 import { AssetManager, ConstantAssets } from '@/game/classes/assetManager'
 import { BuildingActivityTarget } from '@/game/classes/activities'
 
@@ -96,10 +96,9 @@ export default defineComponent({
 
         const openBuilding = (model:WithMedia<PlaceableInstance>) => {
             if(props.target){
-                showInfoPanel2(new ExistingPlaceableIPTarget(props.target.cellInstance,model,()=>{
-                    console.log('A DONDE VOY, QUE HAGOO')
-                }));
+                showInfoPanel2(new ExistingPlaceableIPTarget(props.target.cellInstance,model));
             }
+                
         }
 
         const apiChanged = ref<number>(Date.now());
@@ -149,7 +148,11 @@ export default defineComponent({
             api.off(GameEvents.Timer,handleApiChanges);
         })
 
-        return {builtPlaceables,buildIcon,addNewBuilding,openBuilding,deleteIcon,buildActivities,picker,availableStructures,showStructurePicker,buildStructure}
+        return {
+            builtPlaceables,buildIcon,deleteIcon,addNewBuilding,openBuilding,
+            buildActivities,
+            picker,availableStructures,showStructurePicker,buildStructure
+        }
     },
 })
 </script>

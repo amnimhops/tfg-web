@@ -76,22 +76,18 @@ export default defineComponent({
             });
         });
 
-        const actionHandler:IPActionCallback = (command:string,data:any) => {
-            console.log(command,data);
-        }
-
         const viewDetails = (summary:ActivitySummary) => {
             let ipTarget:InfopanelTarget|null = null;
 
             if(summary.activity.type == ActivityType.Research){
-                ipTarget = new TechIPTarget((summary.target as ResearchActivityTarget).tech, actionHandler);
+                ipTarget = new TechIPTarget((summary.target as ResearchActivityTarget).tech,);
                 showInfoPanel2(ipTarget);
             }else if(summary.activity.type == ActivityType.Build){
                 const activityTarget = summary.target as BuildingActivityTarget;
                 const cellInstance = api.getCellInstance(activityTarget.cellInstanceId);
                 const placeableInstance = cellInstance?.placeables.find( pi => pi.id == activityTarget.placeableInstanceId);
                 if(cellInstance && placeableInstance){
-                    ipTarget = new ExistingPlaceableIPTarget(cellInstance,placeableInstance,actionHandler);
+                    ipTarget = new ExistingPlaceableIPTarget(cellInstance,placeableInstance);
                 }
             }
 

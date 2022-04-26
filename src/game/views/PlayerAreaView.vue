@@ -30,9 +30,7 @@ export default defineComponent({
 
     const onCellSelected: (cell: CellInstance) => void = (cell) => {
       cellSelected.value = cell;
-      showInfoPanel2(new CellIPTarget(cellSelected.value!, ()=>{
-        console.log('wiii')
-      }));
+      showInfoPanel2(new CellIPTarget(cellSelected.value!));
     };
 
     const onResizeCanvas: () => void = () => {

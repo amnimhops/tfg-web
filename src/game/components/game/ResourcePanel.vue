@@ -43,9 +43,8 @@ import UILabel from '../ui/UILabel.vue';
 import  {ellipsisIcon} from '@/game/components/ui/icons'
 import { useStore } from '@/store';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
-import { Resource, Stockpile } from 'shared/monolyth';
+import { Stockpile } from 'shared/monolyth';
 import { computed, defineComponent, onUnmounted, ref } from 'vue';
-import { showInfoPanel2 } from '@/game/controllers/ui';
 import { useRouter } from 'vue-router';
 import {fmtResourceAmount} from '../../classes/formatters'
 const store = useStore();

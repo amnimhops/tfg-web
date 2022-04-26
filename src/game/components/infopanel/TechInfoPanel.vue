@@ -1,4 +1,12 @@
 <template>
+    <ErrorPanel v-if="error" :message="error" @onClose="error=null"/>
+    <ActivityConfirmation 
+        v-if="activityConfirmationModel" 
+        :model="activityConfirmationModel" 
+        @onCancel="closeActivityConfirmationDialog" 
+        @onAccept="startResearch"
+    />
+
     <!-- En curso -->
     <UISection title="En cola" class="ml-10" v-if="inResearch">
         <UIFlex padding="10">
@@ -10,7 +18,7 @@
         <UIFlex padding="10" gap="5">
             <UIFlex direction="row" v-for="(tech,index) in unlockedTechs" :key="index" alignItems="center" gap="15">
                 <UIIcon :src="tech.media.icon.url" size="large" />
-                <UILabel @onClick="navigate(tech)" :link="true">{{tech.id}}</UILabel>
+                <UILabel @onClick="navigate(tech)" :link="true">{{tech.media.name}}</UILabel>
             </UIFlex>
         </UIFlex>
     </UISection>
@@ -34,27 +42,55 @@
 
 <script lang="ts">
 import * as UI from '../ui/';
-import ResourceFlowItem from '../game/ResourceFlowItem.vue'
-import { ResearchActivityTarget } from '@/game/classes/activities';
+import ActivityConfirmation from '../game/ActivityConfirmation.vue'
+import { ActivityConfirmationModel, ResearchActivityTarget, useActivityConfirmation } from '@/game/classes/activities';
 import { TechIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
-import { ActivityType, Media, Technology } from 'shared/monolyth';
+import { Activity, ActivityType, Technology } from 'shared/monolyth';
 import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
-import { showInfoPanel2 } from '@/game/controllers/ui';
-import { useRoute, useRouter } from 'vue-router';
+import ErrorPanel from '../game/ErrorPanel.vue';
+import { useRouter } from 'vue-router';
+import {acceptIcon,closeIcon} from '../ui/icons'
 import EnqueuedActivityInfo,{ EnqueuedActivityInfoModel } from '../game/EnqueuedActivityInfo.vue';
 
 export default defineComponent({
     props:{
         target:Object as PropType<TechIPTarget>
     },
-    components:{...UI,EnqueuedActivityInfo},
+    components:{...UI,EnqueuedActivityInfo,ActivityConfirmation,ErrorPanel},
     setup(props) {
         const api = useGameAPI();
         const apiChanged = ref<number>(Date.now());
+        const error = ref<string|undefined>();
         const gameData = api.getGameData();
         const router = useRouter();
-        
+        const activityType = ActivityType.Research;
+        const activity = api.getActivity(activityType);
+        const {activityConfirmationModel,openActivityConfirmationDialog,closeActivityConfirmationDialog} = useActivityConfirmation();
+        const research = () => {
+            openActivityConfirmationDialog('Comenzar investigación',ActivityType.Research,{
+                name:props.target?.media?.name,
+                tech:props.target?.tech
+            } as ResearchActivityTarget);
+        }
+        //const activityConfirmationModel = ref<ActivityConfirmationModel|null>();
+        // const openActivityConfirmationDialog = /*(title:string,type:ActivityType,target:ActivityTarget)*/ () => {
+        //     activityConfirmationModel.value = {
+        //         title:'Comenzar investigación',
+        //         activityInfo:{
+        //             type:ActivityType.Research,
+        //             target:{
+        //                 tech:props.target!.tech,
+        //                 name:props.target!.tech.media.name
+        //             } as ResearchActivityTarget
+        //         }
+        //     };
+        // }
+
+        // const closeActivityConfirmationDialog = () => {
+        //     activityConfirmationModel.value = null;
+        // }
+
         const handleApiChanges = ()=>{
             console.log('api change detected')
             apiChanged.value = Date.now();
@@ -98,11 +134,27 @@ export default defineComponent({
             
         });
 
-        const researchActivity = gameData.activities.get(ActivityType.Research);
+        const researchActivity = computed<Activity|undefined>( ()=>{
+            apiChanged.value;
+
+            const activity = gameData.activities.get(ActivityType.Research);
+            console.log(activity);
+            return activity;
+        });
         
-        const research = ()=>{
-            showInfoPanel2(null);
-            props.target?.actionCallback(TechIPTarget.ACTION_RESEARCH);
+        const startResearch = async ()=>{
+            try{
+                closeActivityConfirmationDialog();
+
+                const researchTarget:ResearchActivityTarget = {
+                    tech:props.target!.tech,
+                    name:props.target!.tech.media.name
+                };
+                await api.startActivity(ActivityType.Research,researchTarget);
+            }catch(err){
+                console.error(err);
+                error.value = err as string;
+            }
         };
 
         const navigate = (otherTech:Technology) => {
@@ -115,8 +167,14 @@ export default defineComponent({
             // ya que este panel se crea y destruye múltiples veces
             api.off(GameEvents.Timer, handleApiChanges);
         })
-
-        return {researchActivity,researched,inResearch,research,unlockedTechs,requiredTech,navigate};
+       
+        return {
+            researchActivity,researched,inResearch,
+            acceptIcon,closeIcon,
+            startResearch,unlockedTechs,requiredTech,navigate,
+            activityConfirmationModel,research,closeActivityConfirmationDialog,
+            error
+        };
     },
 })
 </script>

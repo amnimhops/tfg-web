@@ -1,8 +1,7 @@
-import { hsl, limit, randomInt, range } from "shared/functions";
-import { MAP_SIZE } from "shared/mocks";
+import { limit, randomInt, range } from "shared/functions";
 import { Cell, Vector } from "shared/monolyth";
-import { GameEvents, IGameAPI, useGameAPI, WorldMapSector } from "../services/gameApi";
-import { AbstractMapController, ManagedMapController } from "./canvasController";
+import { IGameAPI, WorldMapSector } from "../services/gameApi";
+import { AbstractMapController } from "./canvasController";
 
 function createFalseColorMap(map:Record<string,Cell>):Record<string,string>{
     const colorMap:Record<string,string> = {};

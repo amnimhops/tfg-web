@@ -1,6 +1,6 @@
-import { limit, randomInt, randomItem, range, toMap } from 'shared/functions';
+import { randomInt, randomItem, range, toMap } from 'shared/functions';
 import { MAP_SIZE, randomText } from 'shared/mocks';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, FlowPeriodicity, Game, GameInstance, InstancePlayer, Media, Message, MessageType, Placeable, PlaceableInstance, Player, Resource, ResourceAmount, ResourceFlow, SearchResult, Stockpile, Technology, UIConfig, Vector } from 'shared/monolyth';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, FlowPeriodicity, Game, GameInstance, InstancePlayer, Media, Message, MessageType, Placeable, PlaceableInstance, Player, Resource, ResourceFlow, SearchResult, Stockpile, Technology, UIConfig, Vector } from 'shared/monolyth';
 import { ActivityAvailability, BuildingActivityTarget, ResearchActivityTarget } from '../classes/activities';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { EventEmitter, IEventEmitter } from '../classes/events';
@@ -143,7 +143,7 @@ export interface ILocalGameAPI{
     getCellInstance(cellInstanceId:number):CellInstance|undefined
     getGameData():GameData;
     getCurrentPlayer():InstancePlayer;
-    checkActivityAvailability(type:ActivityType,target:ActivityTarget):ActivityAvailability;
+    checkActivityAvailability(type:ActivityType,target?:ActivityTarget):ActivityAvailability;
     getResearchedTechnologies():Technology[];
     getQueue():EnqueuedActivity[];
     getQueueByType(type:ActivityType):EnqueuedActivity[];
@@ -155,6 +155,7 @@ export interface ILocalGameAPI{
     getResource(id:string):Resource;
     getPlaceable(id:string):Placeable;
     getActivity(type:ActivityType):Activity;
+    getActivityCosts(type:ActivityType,target?:ActivityTarget):ResourceFlow[];
     getPlaceablesUnderConstruction(cellInstanceId:number):PlaceableInstance[];
     getUIConfig(): UIConfig
     getWorldMap(query:WorldMapQuery):WorldMapSector;
@@ -311,6 +312,8 @@ class MockAPI extends EventEmitter implements IGameAPI {
              * procesarse.
              */
              this.buildInactivePlaceable(item.target as BuildingActivityTarget);
+        }else if(item.type == ActivityType.Dismantle){
+            // Ningun disparador previo
         }
     }
     private onActivityFinished(item:EnqueuedActivity):void{
@@ -482,6 +485,12 @@ class MockAPI extends EventEmitter implements IGameAPI {
         if(!this.currentGame) throw new Error('No se ha cargado el juego');
         return this.currentGame.activities.get(type) || {type,media:unknownMedia('unknown activity'),flows:[],duration:0} ;
     }
+    getActivityCosts(type:ActivityType,target?:ActivityTarget):ResourceFlow[]{
+        if(!this.currentGame) throw new Error('No se ha cargado el juego');
+        // TODO El coste de la actividad puede (DEBE) depender del target
+        // TIP: Añadir activityEffort a target?
+        return this.getActivity(type).flows;
+    }
 
     getTechnologyDependencies(tech:Technology):Technology[]{
         const deps:Technology[] = [];
@@ -496,20 +505,29 @@ class MockAPI extends EventEmitter implements IGameAPI {
         return deps.reverse();
     }
 
-    checkActivityAvailability(type:ActivityType,target:ActivityTarget):ActivityAvailability{
+    checkActivityAvailability(type:ActivityType,target?:ActivityTarget):ActivityAvailability{
         const failedPreconditions:string[] = [];
         const activity = this.getActivity(type);
+        console.log('echecking')    ;
+        // Es necesaria alguna tecnología para comenzar la actividad?
+        if(activity.requiredTech){
+            const requiredTech = this.currentGame?.technologies[activity.requiredTech];
+            const researchedTechs = this.getResearchedTechnologies();
+            if(!researchedTechs.some( tech => tech.id == requiredTech?.id)){
+                failedPreconditions.push('Se necesita '+requiredTech?.media.name+' para llevar a cabo esta actividad');
+            }
+        }
         // Comprobamos que hay suficiente para empezar
         const stockPiles = toMap(this.getCurrentPlayer().stockpiles, sp => sp.resourceId);
         // No se puede construir si al menos un almacen tiene menos stock que lo que el flujo requiere
         activity.flows.forEach( flow => {
             if(flow.amount >= stockPiles[flow.resourceId].amount){
                 const resource = this.currentGame?.resources[flow.resourceId];
-                failedPreconditions.push('Faltan '+ (stockPiles[flow.resourceId].amount-flow.amount)+' de '+resource?.media.name);
+                failedPreconditions.push('Faltan '+ (flow.amount-stockPiles[flow.resourceId].amount)+' de '+resource?.media.name);
             }
         });
-
-        // Si es una tecnología:
+        
+        // Si es una tecnología concreta:
         if(type == ActivityType.Research){
 
             // Debe estar sin investigar

@@ -33,7 +33,8 @@ export default defineComponent({
     const store = useStore();
     const resourcesLoaded = ref(false);
     const api = useGameAPI();
-
+    // TODO Quitar esto para producción
+    (window as any).api = api;
     onMounted( async () => {
       const player = await api.authenticate("fu","bar");
       const assets = await api.joinGame("TODO_GAMEID_HERE");

@@ -1,16 +1,16 @@
 <template>
-    <MessageForm :input="messageFormInput" v-if="messageFormInput" @onClose="sendMessage" />
     <UIPane class="message-view" :style="{ backgroundImage: 'url('+bgImage+')' }">
         <UIFlex padding="10" gap="5" class="options-header">
             <UILabel class="title extra-large mt-10 mb-10">{{section.title}}</UILabel>
-            <UIFlex direction="row" justifyContent="space-between">
-                <UIButton v-for="(sect,index) in sections" :key="index" :rounded="false" @onClick="changeSection(sect)" :class="{selected:(section.type==sect.type)}">
+            <UIFlex direction="row" justifyContent="space-between" class="button-group">
+                <UIButton v-for="(sect,index) in sections" :key="index" :rounded="false" @onClick="changeSection(sect)" :class="{selected:(section.type==sect.type)}" :description="sect.title">
                     <UIIcon :src="sect.icon" size="medium" />
                     <UILabel class="category-label medium">{{sect.title}}</UILabel>
                 </UIButton>
             </UIFlex>
         </UIFlex>
-        <UIFlex class="messages" v-if="messages" padding="10" gap="15">
+
+        <UIFlex class="messages" v-if="messages" padding="10" gap="10">
             <UIFlex class="message" v-for="(message,index) in messages" :key="index">
                 <span class="xs-12 hidden-xl-up label">De</span>
                 <UILabel class="xs-12 xl-3 from" link @onClick="onPlayerSelected(message.srcPlayerId)">{{message.senderName}}</UILabel>
@@ -19,8 +19,8 @@
                 <span class="xs-12 hidden-xl-up label">Asunto</span>
                 <span class="xs-12 xl-6 subject">{{truncate(message.subject,64)}}</span>
                 <UIFlex direction="row" justifyContent="flex-end" class="xs-12 xl-2 mt-5" gap="5">
-                    <UIButton @onClick="openMessage(message)"><UIIcon :src="section.icon"/>Abrir</UIButton>
-                    <UIButton @onClick="deleteMessage(message)"><UIIcon :src="deleteIcon"/>Eliminar</UIButton>
+                    <UIButton description="Abrir" @onClick="openMessage(message)"><UIIcon :src="section.icon" size="medium" /></UIButton>
+                    <UIButton description="Eliminar" @onClick="deleteMessage(message)"><UIIcon :src="deleteIcon" size="medium"/></UIButton>
                 </UIFlex>
             </UIFlex>
             <UIFlex direction="row" justifyContent="space-around">
@@ -34,15 +34,13 @@
 import { defineComponent, onMounted, ref, watch } from 'vue'
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import * as UI from '../components/ui';
-import { closeInfoPanel, showErrorPanel, showInfoPanel2 } from '../controllers/ui';
+import { showErrorPanel, showInfoPanel2 } from '../controllers/ui';
 import { useGameAPI } from '../services/gameApi';
 import { Message, MessageType } from 'shared/monolyth';
 import { deleteIcon } from '../components/ui/icons'
 import {truncate} from 'shared/functions'
-import { InstancePlayerIPTarget, IPActionCallback, MessageIPTarget } from '../classes/info';
-import MessageForm, { MessageFormInput, MessageFormOutput } from '../components/game/MessageForm.vue'
+import { InstancePlayerIPTarget, MessageIPTarget } from '../classes/info';
 import { useRouter } from 'vue-router';
-import { useMessageWriter } from '../classes/messaging';
 
 interface MessagingSection{
     title:string;
@@ -51,9 +49,8 @@ interface MessagingSection{
 }
 
 export default defineComponent({
-    components:{...UI,MessageForm},
+    components:{...UI},
     setup() {
-        const router = useRouter();
         const api = useGameAPI();
         const iconMessage = AssetManager.get(ConstantAssets.ICON_MSG_MESSAGE).url
         const iconNotification = AssetManager.get(ConstantAssets.ICON_MSG_NOTIFICATION).url
@@ -63,20 +60,15 @@ export default defineComponent({
         const page = ref<number>(1);
         const messages = ref<Message[]>([]);
         const pageCount = ref<number>();
-        const {messageFormInput,openMessageForm,sendMessage} = useMessageWriter();
+        
         const sections:MessagingSection[] = [
-            {title:'Mensajes de jugadores',icon:iconMessage,type:MessageType.Message},
+            {title:'Mensajes',icon:iconMessage,type:MessageType.Message},
             {title:'Notificaciones',icon:iconNotification,type:MessageType.Notification},
             {title:'Informes',icon:iconReport,type:MessageType.Report},
         ]
 
         const section = ref<MessagingSection>(sections[0]);
 
-        const activityHandler:IPActionCallback = (action:string,message:Message) =>{
-            if(action == MessageIPTarget.ACTION_REPLY){
-                openMessageForm(message.srcPlayerId!,'Re:'+message.subject);
-            }
-        }
         const changePage = (pageIndex:number)=>{
             page.value = pageIndex;
             console.log(pageIndex);
@@ -104,14 +96,12 @@ export default defineComponent({
             // el ID del jugador, habrá que recuperar sus datos vía
             // API
             const playerDetails = await api.getInstancePlayer(id);
-            showInfoPanel2(new InstancePlayerIPTarget(playerDetails,()=>{
-                console.log('wwiiii');
-            }));
+            showInfoPanel2(new InstancePlayerIPTarget(playerDetails));
         }
 
         const openMessage = async (message:Message) => {
             const remotePlayer = await api.getInstancePlayer(message.srcPlayerId!);
-            showInfoPanel2(new MessageIPTarget(message,remotePlayer,activityHandler));
+            showInfoPanel2(new MessageIPTarget(message,remotePlayer));
         }
 
         const deleteMessage = async (message:Message) => {
@@ -132,8 +122,7 @@ export default defineComponent({
         return {
             query,page,section,sections,messages,pageCount,
             bgImage,deleteIcon,
-            changePage,changeSection,truncate,onPlayerSelected,openMessage,deleteMessage,
-            messageFormInput,sendMessage
+            changePage,changeSection,truncate,onPlayerSelected,openMessage,deleteMessage
         }
     }
 })
@@ -152,19 +141,24 @@ export default defineComponent({
     }
     .options-header{
         position:sticky;
-        top:-110px;
+        top:-70px;
         //background-color:$ui-control-background-color;
+    }
+    .button-group{
+        overflow:hidden;
+        border-radius:$ui-control-border-radius;
     }
     .options-header .ui-button{
         flex-grow:1;
         justify-content: center;
     }
     .message{
+        @include ui-control-rounded;
+        background-color:$ui-control-foreground-color;
+        padding:10px;
         flex-wrap: wrap;
         justify-content: space-between;
         gap:5px;
-        padding-bottom:15px;
-        border-bottom:2px solid $ui-control-border-color;
         .label{ font-weight: bold; }
         .from,.date,.subject{ padding-left:15px; padding-bottom:15px}
     }
@@ -177,7 +171,10 @@ export default defineComponent({
         flex-direction: row;
         align-items: center;
         gap:0;
-        .from,.date,.subject{ margin:0;}
+        .from,.date,.subject{ 
+            margin:0;
+            padding:0;
+        }
         .from{
             font-weight:bold;
         }

@@ -36,8 +36,7 @@
 import * as UI from '@/game/components/ui/';
 import {acceptIcon,closeIcon} from '@/game/components/ui/icons'
 import { useGameAPI } from '@/game/services/gameApi'
-import { Message } from 'shared/monolyth';
-import {computed, defineComponent, PropType, ref} from 'vue';
+import {defineComponent, PropType, ref} from 'vue';
 
 export interface MessageFormOutput{
     canceled:boolean;

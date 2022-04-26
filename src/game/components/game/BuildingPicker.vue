@@ -52,7 +52,7 @@ import {acceptIcon} from '@/game/components/ui/icons'
 import { useGameAPI } from '@/game/services/gameApi'
 import { ActivityType, CellInstance, Placeable } from 'shared/monolyth'
 import {computed, defineComponent, ref} from 'vue';
-import { ActivityAvailability, BuildingActivityTarget } from '@/game/classes/activities'
+import { BuildingActivityTarget } from '@/game/classes/activities'
 
 export default defineComponent({
   components:{UIModal,UIFlex,UIButton,UIIcon,UIList,ResourceFlowItem,UILabel},

@@ -25,18 +25,15 @@ import { computed, defineComponent, onMounted, onUnmounted, ref } from "vue";
 import * as UI from "../components/ui/";
 import PlayerList from "../components/game/PlayerList.vue";
 import MessageForm from "../components/game/MessageForm.vue"
-import { Player, Vector } from "shared/monolyth";
 import {
   WorldMapEvents,
   WorldMapController,
 } from "../controllers/worldMapController";
 import { useGameAPI, WorldPlayer } from "../services/gameApi";
-import { MAP_SIZE } from "shared/mocks";
 import { AssetManager, ConstantAssets } from "../classes/assetManager";
 import { showInfoPanel2 } from "../controllers/ui";
 import { InstancePlayerIPTarget } from "../classes/info";
 import { useMessageWriter } from "../classes/messaging";
-import InstancePlayerInfoPanelVue from "../components/infopanel/InstancePlayerInfoPanel.vue";
 
 export default defineComponent({
   components: { ...UI, PlayerList, MessageForm },
@@ -75,11 +72,7 @@ export default defineComponent({
       // No será necesario traer los datos del jugador de la API ya
       // que están en la info del sector, así que podemos construir
       // un parcial de jugador suficiente.
-      showInfoPanel2(new InstancePlayerIPTarget(player,(cmd:string,target:InstancePlayerIPTarget)=>{
-        if(cmd == InstancePlayerIPTarget.ACTION_MESSAGE){
-          openMessageForm(target.player.playerId!);
-        }
-      }));
+      showInfoPanel2(new InstancePlayerIPTarget(player));
     }
     const onResizeCanvas: () => void = () => {
         if (canvasRef.value != null && mapHolder.value != null) {

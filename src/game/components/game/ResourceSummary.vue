@@ -23,19 +23,12 @@
 
 <script lang="ts">
 import { ResourceStat } from '@/game/services/gameApi';
-import { toMap } from 'shared/functions';
 import { Placeable } from 'shared/monolyth';
-import { computed, defineComponent, PropType } from 'vue'
-import { useRoute, useRouter } from 'vue-router';
+import { defineComponent, PropType } from 'vue'
+import { useRouter } from 'vue-router';
 import { fmtResourceAmount } from '../../classes/formatters';
 import * as UI from '../ui/';
 
-interface StatGroupByPlaceable{
-    placeable:Placeable;
-    amount:number;
-    totalIncome:number;
-    totalExpense:number;
-}
 export default defineComponent({
     props:{
         stat:Object as PropType<ResourceStat>,

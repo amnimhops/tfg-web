@@ -25,7 +25,7 @@ export default defineComponent({
   props:['message'],
   setup(props,{emit}) {
     
-    return {acceptIcon}
+    return {acceptIcon,emit}
   }
 });
 </script>

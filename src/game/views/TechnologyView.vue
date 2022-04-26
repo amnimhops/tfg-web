@@ -1,28 +1,8 @@
 <template >
   <div class="tech-map" ref="mapHolder">
+    <!--<input type="search" class="tech-filter" v-model="techFilter" @change="applyFilter"/>-->
     <canvas ref="canvasRef" id="tech-map"></canvas>
   </div>
-  <!-- Modal de confirmación -->
-  <UIModal v-if="showResearchConfirmDialog" title="Comenzar investigación" @onClose="closeResearchConfirmDialog">
-    <template v-slot:content>
-      <UISection title="Coste de investigación" class="ml-10">
-        <UIFlex padding="10" gap="10">
-          <ResourceFlowItem v-for="(flow,index) in researchActivity.flows" :key="index" :flow="flow"/>
-          <ResourceFlowItem v-for="(flow,index) in researchActivity.flows" :key="index" :flow="flow"/>
-          <ResourceFlowItem v-for="(flow,index) in researchActivity.flows" :key="index" :flow="flow"/>
-          <ResourceFlowItem v-for="(flow,index) in researchActivity.flows" :key="index" :flow="flow"/>
-          <ResourceFlowItem v-for="(flow,index) in researchActivity.flows" :key="index" :flow="flow"/>
-          <ResourceFlowItem v-for="(flow,index) in researchActivity.flows" :key="index" :flow="flow"/>
-        </UIFlex>
-      </UISection>
-    </template>
-    <template v-slot:footer>
-      <UIFlex direction="row" justifyContent="space-between">
-        <UIButton @onClick="startResearch"><UIIcon :src="acceptIcon" size="medium" /><span>Comenzar</span></UIButton>
-        <UIButton @onClick="closeResearchConfirmDialog"><UIIcon :src="closeIcon" size="medium" /><span>Cancelar</span></UIButton>
-      </UIFlex>
-    </template>
-  </UIModal>
 </template>
 
 <script lang="ts">
@@ -35,25 +15,18 @@ import {
 } from "vue";
 import { TechTreeController, TechTreeEvents } from '@/game/controllers/techTreeController';
 import { ActivityType, Technology } from "shared/monolyth";
-import UIModal from '../components/ui/UIModal.vue';
-import UIButton from '../components/ui/UIButton.vue';
-import UIIcon from '../components/ui/UIIcon.vue';
-import UIFlex from '../components/ui/UIFlex.vue';
-import UISection from '../components/ui/UISection.vue';
-import ResourceFlowItem from '../components/game/ResourceFlowItem.vue';
 import {acceptIcon,closeIcon} from '../components/ui/icons'
 import { useGameAPI } from "../services/gameApi";
-import { IPActionCallback, TechIPTarget } from "../classes/info";
+import { TechIPTarget } from "../classes/info";
 import { showInfoPanel2 } from '../controllers/ui';
-import { ResearchActivityTarget } from "../classes/activities";
 import { useRoute, useRouter } from "vue-router";
 
 export default defineComponent({
-  components: { UIModal,UIFlex,UISection,ResourceFlowItem,UIButton,UIIcon },
   setup() {
     const router = useRouter();
     const route = useRoute();
 
+    const techFilter = ref<string|undefined>();
     const mapHolder = ref<HTMLElement | null>(null);
     const canvasRef = ref<HTMLCanvasElement | null>(null); // brujería!?
     let treeController:TechTreeController|null = null;
@@ -74,29 +47,12 @@ export default defineComponent({
     const closeResearchConfirmDialog = () => showResearchConfirmDialog.value = false
    
     const techSelected = ref<Technology|null>(null);
-    
-    const infoPanelHandler:IPActionCallback = (cmd:string, data:any) => {
-      if(cmd == TechIPTarget.ACTION_RESEARCH){
-        openResearchConfirmDialog();
-      }else if(cmd == TechIPTarget.ACTION_NAVIGATE){
-        treeController?.setSelected(data as Technology);
-      }
-    }
 
     const onTechSelected: (tech: Technology) => void = (tech) => {
       techSelected.value = tech;
-      showInfoPanel2(new TechIPTarget(tech,infoPanelHandler));
+      showInfoPanel2(new TechIPTarget(tech));
     };
 
-    const startResearch = ()=>{
-      closeResearchConfirmDialog();
-      const target:ResearchActivityTarget = {
-        tech:techSelected.value!,
-        name:techSelected.value!.media.name
-      }
-      api.startActivity(ActivityType.Research,target);
-      showInfoPanel2(new TechIPTarget(techSelected.value!,infoPanelHandler));
-    }
     const researchActivity = api.getGameData().activities.get(ActivityType.Research);
 
     
@@ -151,7 +107,8 @@ export default defineComponent({
       canvasRef,
       mapHolder,
       techSelected,
-      startResearch,
+      //techFilter,applyFilter,
+      //startResearch,
       researchActivity,
       acceptIcon,closeIcon,
       showResearchConfirmDialog,
