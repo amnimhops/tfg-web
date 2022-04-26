@@ -89,9 +89,9 @@ export class TechTreeController extends ManagedMapController{
         this.uiConfig = api.getUIConfig();
         this.onPaint();
 
-        this.api.on(GameEvents.TechnologyResearched, (tech:Technology)=>{
+        this.api.on(GameEvents.TechnologyResearched, (techId:string)=>{
             this.orbs.forEach(orb => {
-                if(orb.tech.id == tech.id) orb.researched = true;
+                if(orb.tech.id == techId) orb.researched = true;
             });
         });
         

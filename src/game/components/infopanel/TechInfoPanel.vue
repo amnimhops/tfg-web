@@ -70,27 +70,10 @@ export default defineComponent({
         const research = () => {
             openActivityConfirmationDialog('Comenzar investigación',ActivityType.Research,{
                 name:props.target?.media?.name,
-                tech:props.target?.tech
+                techId:props.target!.tech.id
             } as ResearchActivityTarget);
         }
-        //const activityConfirmationModel = ref<ActivityConfirmationModel|null>();
-        // const openActivityConfirmationDialog = /*(title:string,type:ActivityType,target:ActivityTarget)*/ () => {
-        //     activityConfirmationModel.value = {
-        //         title:'Comenzar investigación',
-        //         activityInfo:{
-        //             type:ActivityType.Research,
-        //             target:{
-        //                 tech:props.target!.tech,
-        //                 name:props.target!.tech.media.name
-        //             } as ResearchActivityTarget
-        //         }
-        //     };
-        // }
-
-        // const closeActivityConfirmationDialog = () => {
-        //     activityConfirmationModel.value = null;
-        // }
-
+        
         const handleApiChanges = ()=>{
             console.log('api change detected')
             apiChanged.value = Date.now();
@@ -109,13 +92,13 @@ export default defineComponent({
 
             const activity = api.getQueueByType(ActivityType.Research).find( activity => {
                 const target = activity.target as ResearchActivityTarget;
-                return target.tech.id == props.target?.tech.id;
+                return target.techId == props.target?.tech.id;
             });
 
             if(activity) {
                 return {
                     activity,
-                    media:(activity.target as ResearchActivityTarget).tech.media
+                    media:props.target!.media!
                 };
             }else{
                 return null;
@@ -147,7 +130,7 @@ export default defineComponent({
                 closeActivityConfirmationDialog();
 
                 const researchTarget:ResearchActivityTarget = {
-                    tech:props.target!.tech,
+                    techId:props.target!.tech.id,
                     name:props.target!.tech.media.name
                 };
                 await api.startActivity(ActivityType.Research,researchTarget);

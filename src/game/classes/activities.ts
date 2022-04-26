@@ -70,7 +70,7 @@ export interface BuildingActivityTarget extends ActivityTarget{
 }
 
 export interface ResearchActivityTarget extends ActivityTarget{
-    tech:Technology;
+    techId:string;
 }
 
 export interface DismantlingActivityTarget extends ActivityTarget{

@@ -332,8 +332,8 @@ class MockAPI extends EventEmitter implements IGameAPI {
     }
 
     private finishResearch(target:ResearchActivityTarget){
-        this.currentInstancePlayer?.technologies.push(target.tech.id);
-        this.raise(GameEvents.TechnologyResearched,target.tech);
+        this.currentInstancePlayer?.technologies.push(target.techId);
+        this.raise(GameEvents.TechnologyResearched,target.techId);
     }
     /**
      * Termina el ciclo de construcción de un edificio, permitiendo
@@ -492,8 +492,9 @@ class MockAPI extends EventEmitter implements IGameAPI {
         return this.getActivity(type).flows;
     }
 
-    getTechnologyDependencies(tech:Technology):Technology[]{
+    private getTechnologyDependencies(id:string):Technology[]{
         const deps:Technology[] = [];
+        const tech = this.currentGame!.technologies[id];
         let parentId = tech.parent;
 
         while(parentId != null){
@@ -531,16 +532,16 @@ class MockAPI extends EventEmitter implements IGameAPI {
         if(type == ActivityType.Research){
 
             // Debe estar sin investigar
-            const tech = (target as ResearchActivityTarget).tech;
-            if(this.currentInstancePlayer?.technologies.some( t => t == tech.id)){
+            const techId = (target as ResearchActivityTarget).techId;
+            if(this.currentInstancePlayer?.technologies.some( t => t == techId)){
                 failedPreconditions.push('Esta tecnología ya está investigada')
             }
             // No debe estar en cola
-            if(this.activityQueue.some( ea => ea.type == ActivityType.Research && (ea.target as ResearchActivityTarget).tech.id == tech.id)){
+            if(this.activityQueue.some( ea => ea.type == ActivityType.Research && (ea.target as ResearchActivityTarget).techId == techId)){
                 failedPreconditions.push('Esta tecnología ya está en cola de investigación');
             }
             // Todo el arbol tecnologico previo debe estar desbloqueado
-            const depTree = this.getTechnologyDependencies(tech);
+            const depTree = this.getTechnologyDependencies(techId);
             if(depTree.some( dep => this.currentInstancePlayer?.technologies.indexOf(dep.id) == -1)){
                 failedPreconditions.push('Es necesario investigar una tecnología previa');
             }

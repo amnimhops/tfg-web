@@ -53,6 +53,7 @@ export default defineComponent({
     components:{...UI},
     setup() {
         const api = useGameAPI();
+        const gameData = api.getGameData();
         const apiChanged = ref<number>(Date.now());
         const bgImage = AssetManager.get(ConstantAssets.ACTIVITY_BACKGROUND).url;
         const summaries = computed<ActivitySummary[]>( ()=>{
@@ -80,7 +81,10 @@ export default defineComponent({
             let ipTarget:InfopanelTarget|null = null;
 
             if(summary.activity.type == ActivityType.Research){
-                ipTarget = new TechIPTarget((summary.target as ResearchActivityTarget).tech,);
+                const techId = (summary.target as ResearchActivityTarget).techId;
+                const tech = gameData.technologies[techId];
+                ipTarget = new TechIPTarget(tech);
+                
                 showInfoPanel2(ipTarget);
             }else if(summary.activity.type == ActivityType.Build){
                 const activityTarget = summary.target as BuildingActivityTarget;

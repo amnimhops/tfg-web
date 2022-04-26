@@ -18,6 +18,7 @@
       <UIFlex padding="10" v-if="selection.media.description"><p>{{selection.media.description}}</p></UIFlex>
       
       <!-- Specific panel -->      
+      <!--{{selection}}-->
       <CellInfoPanel v-if="selectionType=='CellIPTarget'" :target="selection"/>
       <PlaceableInfoPanel v-if="selectionType=='ExistingPlaceableIPTarget'" :target="selection"/>
       <TechInfoPanel v-if="selectionType=='TechIPTarget'" :target="selection"/>
