@@ -12,6 +12,9 @@ export function closeInfoPanel(){
 export function showErrorPanel(message:string){
     store.commit('setError',message);
 }
+export function hideErrorPanel(){
+    store.commit('setError',null);
+}
 
 
 export function fullscreen(state:boolean){

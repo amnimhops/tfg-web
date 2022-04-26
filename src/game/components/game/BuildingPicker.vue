@@ -25,15 +25,11 @@
       </UIFlex>
     </template>
     <template v-slot:footer>
-      <UIFlex direction="row" justify-content="flex-start" align-items="center" gap="15">
-        <UIButton :disabled="disabled" @onClick="emit('onSelect',selectedItem)"><UIIcon :src="acceptIcon" size="medium" /><span>Seleccionar</span></UIButton>
-        
-        <UIFlex alignItems="flex-start">
-          <UILabel class="title">Coste de producción</UILabel>
-          <UIFlex direction="row" :wrap="true">
-            <ResourceFlowItem v-for="(flow,index) in activity.flows" :key="index" :flow="flow" :packed="true" />
-          </UIFlex>
-        </UIFlex>
+      <UIFlex direction="row" justify-content="space-around" align-items="center" gap="15">
+        <UIButton @onClick="emit('onSelect',selectedItem)">
+          <UIIcon :src="acceptIcon" size="medium" />
+          <UILabel>Seleccionar</UILabel>
+        </UIButton>
       </UIFlex>
     </template>
   </UIModal>
@@ -59,39 +55,12 @@ export default defineComponent({
   emits:['onClose','onSelect','update:modelValue'],
   props:['structures','cell','modelValue'],
   setup(props,{emit}) {
-    const api = useGameAPI();
     const selectedItem = ref<Placeable|null>(null);
-    const activity = api.getActivity(ActivityType.Build);
-    const reasons = ref<string[]>([]);
-    
-    const changeReasons = (newReasons:string[]) => {
-      reasons.value = newReasons;
-    }
-    const disabled = computed<boolean>( ():boolean => {
-      if(selectedItem.value != null){
-        const availability = api.checkActivityAvailability(
-          ActivityType.Build,
-          {
-            cellInstanceId:(props.cell as CellInstance).id,
-            placeableId:selectedItem.value.id
-          } as BuildingActivityTarget
-        );
-        if(availability.available){
-          return false;
-        }else{
-          changeReasons(availability.info);
-          return true;
-        }
-      }else{
-        return true;
-      }
-      
-    });
 
     const select: () => void = () => {
       emit("update:modelValue", selectedItem);
     }
-    return {acceptIcon,select,selectedItem,activity, disabled, emit, reasons}
+    return {acceptIcon,select,selectedItem,emit}
   }
 });
 </script>

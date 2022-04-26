@@ -1,5 +1,5 @@
 <template>
-  <UIModal title="Error" @onClose="emit('onClose')">
+  <UIModal title="Error" v-if="message" @onClose="hideErrorPanel">
     <template v-slot:content>
       <UIFlex gap="5" class="item-holder">
       <p>{{message}}</p>
@@ -7,7 +7,7 @@
     </template>
     <template v-slot:footer>
       <UIFlex direction="row" justify-content="flex-start" align-items="center" gap="15">
-        <UIButton @onClick="emit('onClose')"><UIIcon :src="acceptIcon" size="medium" /><span>Entendido</span></UIButton>
+        <UIButton @onClick="hideErrorPanel"><UIIcon :src="acceptIcon" size="medium" /><span>Entendido</span></UIButton>
       </UIFlex>
     </template>
   </UIModal>
@@ -16,16 +16,22 @@
 <script lang="ts">
 
 import {acceptIcon} from '@/game/components/ui/icons'
-import { defineComponent } from 'vue';
+import { hideErrorPanel } from '@/game/controllers/ui';
+import { useStore } from '@/store';
+import { computed, defineComponent } from 'vue';
+
 import * as UI from '../ui/';
 
 export default defineComponent({
   components:{...UI},
-  emits:['onClose'],
-  props:['message'],
-  setup(props,{emit}) {
+  setup() {
+    const store = useStore();
     
-    return {acceptIcon,emit}
+    const message = computed<string|null>(()=>{
+      return store.state.error;
+    });
+
+    return {acceptIcon,hideErrorPanel,message}
   }
 });
 </script>

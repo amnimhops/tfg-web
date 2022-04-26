@@ -1,5 +1,7 @@
 import { ActivityTarget, ActivityType, Technology } from "shared/monolyth";
 import { ref } from "vue";
+import { showErrorPanel } from "../controllers/ui";
+import { useGameAPI } from "../services/gameApi";
 /**
  * Datos de entrada del modal de confirmación de actividad
  */
@@ -25,6 +27,7 @@ export interface ActivityAvailability{
 }
 
 export function useActivityConfirmation(){
+    const api = useGameAPI();
     const activityConfirmationModel = ref<ActivityConfirmationModel|null>();
     const openActivityConfirmationDialog = (title:string,type:ActivityType,target:ActivityTarget) => {
         activityConfirmationModel.value = {
@@ -36,6 +39,25 @@ export function useActivityConfirmation(){
         };
     }
 
+    const startActivity = async ()=>{
+        try{
+            if(activityConfirmationModel.value){
+                await api.startActivity(
+                    activityConfirmationModel.value.activityInfo.type,
+                    activityConfirmationModel.value?.activityInfo.target
+                )
+            }
+
+            console.log('Activity request send');
+            // Recuerda NO PONER ESTO al principio, ya que borra el modelo.
+            closeActivityConfirmationDialog();
+            
+        }catch(err){
+            console.log('Activity request error');
+            showErrorPanel(err as string);
+        }
+    };
+
     const closeActivityConfirmationDialog = () => {
         activityConfirmationModel.value = null;
     }
@@ -43,7 +65,8 @@ export function useActivityConfirmation(){
     return {
         activityConfirmationModel,
         openActivityConfirmationDialog,
-        closeActivityConfirmationDialog
+        closeActivityConfirmationDialog,
+        startActivity
     }
 }
 /**

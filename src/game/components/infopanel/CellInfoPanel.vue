@@ -17,7 +17,7 @@
     <!-- Activities -->
     <UISection title="Actividades" class="ml-10">
         <UIFlex padding="10">
-            <UIButton :borderless="true" :rounded="false" grow @onClick="addNewBuilding">
+            <UIButton :borderless="true" :rounded="false" grow @onClick="showStructurePicker(true)">
                 <UIIcon :src="buildIcon" size="large" />
                 <UILabel>Construir</UILabel>
             </UIButton>
@@ -29,21 +29,27 @@
         @onClose="showStructurePicker(false)"
         :structures="availableStructures"
         :cell="target.cellInstance"
-        @onSelect="buildStructure"
+        @onSelect="confirm"
+    />
+    <ActivityConfirmation 
+        v-if="activityConfirmationModel" 
+        :model="activityConfirmationModel" 
+        @onCancel="closeActivityConfirmationDialog" 
+        @onAccept="startActivity"
     />
 </template>
 
 <script lang="ts">
 import BuildingPicker from "../game/BuildingPicker.vue";
-
+import ActivityConfirmation from "../game/ActivityConfirmation.vue";
 import {deleteIcon} from '../ui/icons';
 import { CellIPTarget, ExistingPlaceableIPTarget } from '@/game/classes/info'
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
 import { ActivityType, Media, WithMedia, PlaceableInstance, Placeable } from 'shared/monolyth'
-import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
+import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import { showInfoPanel2 } from '@/game/controllers/ui'
 import { AssetManager, ConstantAssets } from '@/game/classes/assetManager'
-import { BuildingActivityTarget } from '@/game/classes/activities'
+import { BuildingActivityTarget, useActivityConfirmation } from '@/game/classes/activities'
 
 import * as UI from '../ui/';
 import EnqueuedActivityInfo, { EnqueuedActivityInfoModel } from '../game/EnqueuedActivityInfo.vue';
@@ -56,61 +62,48 @@ type PlaceableInstanceView = PlaceableInstance & {
 }
 
 export default defineComponent({
-    components:{...UI,EnqueuedActivityInfo,BuildingPicker},
+    components:{...UI,EnqueuedActivityInfo,BuildingPicker,ActivityConfirmation},
     props:{
         target:Object as PropType<CellIPTarget>
     },
     setup(props) {
         const api = useGameAPI();
+        const apiChanged = ref<number>(Date.now());
+        const gameData = api.getGameData();
         const picker = ref(false);
         const buildIcon = AssetManager.get(ConstantAssets.ICON_BUILD).url;
+        const {activityConfirmationModel,openActivityConfirmationDialog,closeActivityConfirmationDialog,startActivity} = useActivityConfirmation();
         
-        /**
-         * Al final todo se reduce a construir esto
-         */
-        const buildStructure: (placeable:Placeable) => void = async (placeable:Placeable) => {
-            showStructurePicker(false);
-            const target:BuildingActivityTarget = {
-                cellInstanceId:props.target!.cellInstance.id,
-                placeableInstanceId:null,
-                placeableId:placeable.id,
-                name:placeable.media.name
-            }
-            const id = await api.startActivity(ActivityType.Build,target);
-            //showInfoPanel2(new CellIPTarget(cellSelected.value!,activityHandler));
-        };
-
-        const availableStructures = ref<Placeable[]>([]);
-
-        const showStructurePicker: (value:boolean) => void = (value:boolean)=> {
-            //closeInfoPanel();
-            picker.value = value;
-        }
-        
-        const addNewBuilding = () => {
+        // Lista de edificios construibles que mostrará el selector de edificios
+        const availableStructures = computed<Placeable[]>(()=>{
             const cellInstance = props.target?.cellInstance;
-            availableStructures.value = gameData.cells[cellInstance!.cellId].allowedPlaceableIds.map( id => api.getPlaceable(id));
-            
-            picker.value = true;
+            return gameData.cells[cellInstance!.cellId].allowedPlaceableIds.map( id => api.getPlaceable(id));
+        });
+        // Saca el popup de confirmación de inicio de actividad usando el edificio seleccionado
+        const confirm = (placeable:Placeable)=>{
+            showStructurePicker(false);
+            openActivityConfirmationDialog('Comenzar construcción',ActivityType.Build,{
+                name:props.target?.media?.name,
+                cellInstanceId:props.target?.cellInstance.id,
+                placeableInstanceId:null,
+                placeableId:placeable.id
+            } as BuildingActivityTarget);
         }
-
+        // Activa/desactiva la visibilidad del selector de edificios
+        const showStructurePicker: (value:boolean) => void = (value:boolean)=> picker.value = value;
+        
+        // Cambia el panel a la ficha del edificio asociado al emplazable seleccionado
         const openBuilding = (model:WithMedia<PlaceableInstance>) => {
             if(props.target){
                 showInfoPanel2(new ExistingPlaceableIPTarget(props.target.cellInstance,model));
-            }
-                
+            }  
         }
-
-        const apiChanged = ref<number>(Date.now());
-        const gameData = api.getGameData();
-
+        // Actualiza el flag de cambios del API
         const handleApiChanges = ()=>{
-            console.log('api change detected')
             apiChanged.value = Date.now();
         }
 
-        api.on(GameEvents.Timer, handleApiChanges);
-
+        // Obtiene reactivamente la listsa de edificios construidos
         const builtPlaceables = computed<PlaceableInstanceView[]>( ()=> {
             apiChanged.value;
 
@@ -120,11 +113,10 @@ export default defineComponent({
                 media:gameData.placeables[pInstance.placeableId].media
             })) || [];
         });
-
+        // Obtiene reactivamente la lista de actividades asociadas en curso
         const buildActivities = computed<EnqueuedActivityInfoModel[]>( () => {
             apiChanged.value;
 
-            const now = Date.now();
             const cellInstance = props.target!.cellInstance;
             const placeables:EnqueuedActivityInfoModel[] = [];
             const buildingActivities = api
@@ -143,15 +135,23 @@ export default defineComponent({
             return placeables;
         })
 
+        onMounted(()=>{
+            // Conectamos el componente con el temporizador de la API
+            api.on(GameEvents.Timer, handleApiChanges);
+        })
         onUnmounted(()=>{
-
+            // Desonectamos el componente del temporizador de la API
             api.off(GameEvents.Timer,handleApiChanges);
         })
 
         return {
-            builtPlaceables,buildIcon,deleteIcon,addNewBuilding,openBuilding,
-            buildActivities,
-            picker,availableStructures,showStructurePicker,buildStructure
+            /* Iconos */
+            buildIcon,deleteIcon,
+            /* Datos */
+            buildActivities,builtPlaceables,activityConfirmationModel,picker,availableStructures,
+            /* Acciones */
+            openBuilding,confirm,closeActivityConfirmationDialog,showStructurePicker,startActivity
+            
         }
     },
 })

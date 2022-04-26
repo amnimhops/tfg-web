@@ -19,11 +19,11 @@
       
       <!-- Specific panel -->      
       <!--{{selection}}-->
-      <CellInfoPanel v-if="selectionType=='CellIPTarget'" :target="selection"/>
-      <PlaceableInfoPanel v-if="selectionType=='ExistingPlaceableIPTarget'" :target="selection"/>
-      <TechInfoPanel v-if="selectionType=='TechIPTarget'" :target="selection"/>
-      <InstancePlayerInfoPanel v-if="selectionType=='InstancePlayerIPTarget'" :target="selection"/>
-      <MessageInfoPanel v-if="selectionType=='MessageIPTarget'" :target="selection"/>
+      <CellInfoPanel v-if="selection.type=='cell'" :target="selection"/>
+      <PlaceableInfoPanel v-if="selection.type=='placeable'" :target="selection"/>
+      <TechInfoPanel v-if="selection.type=='technology'" :target="selection"/>
+      <InstancePlayerInfoPanel v-if="selection.type=='player'" :target="selection"/>
+      <MessageInfoPanel v-if="selection.type=='message'" :target="selection"/>
       <!-- -->
 
     </UIFlex>

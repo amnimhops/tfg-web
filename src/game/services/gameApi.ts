@@ -562,6 +562,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
         return this.activityQueue.filter( item => item.type == type);
     }
     startActivity(type:ActivityType,target:ActivityTarget):Promise<number>{
+        console.log('ff ffffffff')
         const activity = this.getActivity(type);
         const activityId = this.nextUUID();
         const item:EnqueuedActivity = {

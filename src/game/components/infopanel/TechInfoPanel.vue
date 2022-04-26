@@ -1,10 +1,9 @@
 <template>
-    <ErrorPanel v-if="error" :message="error" @onClose="error=null"/>
     <ActivityConfirmation 
         v-if="activityConfirmationModel" 
         :model="activityConfirmationModel" 
         @onCancel="closeActivityConfirmationDialog" 
-        @onAccept="startResearch"
+        @onAccept="startActivity"
     />
 
     <!-- En curso -->
@@ -48,7 +47,6 @@ import { TechIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
 import { Activity, ActivityType, Technology } from 'shared/monolyth';
 import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
-import ErrorPanel from '../game/ErrorPanel.vue';
 import { useRouter } from 'vue-router';
 import {acceptIcon,closeIcon} from '../ui/icons'
 import EnqueuedActivityInfo,{ EnqueuedActivityInfoModel } from '../game/EnqueuedActivityInfo.vue';
@@ -57,16 +55,13 @@ export default defineComponent({
     props:{
         target:Object as PropType<TechIPTarget>
     },
-    components:{...UI,EnqueuedActivityInfo,ActivityConfirmation,ErrorPanel},
+    components:{...UI,EnqueuedActivityInfo,ActivityConfirmation},
     setup(props) {
         const api = useGameAPI();
         const apiChanged = ref<number>(Date.now());
-        const error = ref<string|undefined>();
         const gameData = api.getGameData();
         const router = useRouter();
-        const activityType = ActivityType.Research;
-        const activity = api.getActivity(activityType);
-        const {activityConfirmationModel,openActivityConfirmationDialog,closeActivityConfirmationDialog} = useActivityConfirmation();
+        const {activityConfirmationModel,openActivityConfirmationDialog,closeActivityConfirmationDialog,startActivity} = useActivityConfirmation();
         const research = () => {
             openActivityConfirmationDialog('Comenzar investigación',ActivityType.Research,{
                 name:props.target?.media?.name,
@@ -124,21 +119,6 @@ export default defineComponent({
             console.log(activity);
             return activity;
         });
-        
-        const startResearch = async ()=>{
-            try{
-                closeActivityConfirmationDialog();
-
-                const researchTarget:ResearchActivityTarget = {
-                    techId:props.target!.tech.id,
-                    name:props.target!.tech.media.name
-                };
-                await api.startActivity(ActivityType.Research,researchTarget);
-            }catch(err){
-                console.error(err);
-                error.value = err as string;
-            }
-        };
 
         const navigate = (otherTech:Technology) => {
             //props.target?.actionCallback(TechIPTarget.ACTION_NAVIGATE,otherTech)
@@ -154,9 +134,8 @@ export default defineComponent({
         return {
             researchActivity,researched,inResearch,
             acceptIcon,closeIcon,
-            startResearch,unlockedTechs,requiredTech,navigate,
-            activityConfirmationModel,research,closeActivityConfirmationDialog,
-            error
+            unlockedTechs,requiredTech,navigate,
+            activityConfirmationModel,research,closeActivityConfirmationDialog,startActivity
         };
     },
 })

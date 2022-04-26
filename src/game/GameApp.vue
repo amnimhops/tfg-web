@@ -9,6 +9,7 @@
       <router-view></router-view>
     </div>
     <InfoPanel />
+    <ErrorPanel/>
   </template>
 </template>
 
@@ -17,6 +18,7 @@
 import InfoPanel from "@/game/components/infopanel/InfoPanel.vue";
 import ResourcePanel from "@/game/components/game/ResourcePanel.vue";
 import NavigationPanel from "@/game/components/game/NavigationPanel.vue";
+import ErrorPanel from "@/game/components/game/ErrorPanel.vue";
 import {AssetManager} from "@/game/classes/assetManager";
 import { Loader } from "resource-loader";
 
@@ -28,7 +30,7 @@ import { Stockpile } from "shared/monolyth";
 import { computed } from "vue";
 
 export default defineComponent({
-  components:{ResourcePanel,InfoPanel,NavigationPanel},
+  components:{ResourcePanel,InfoPanel,NavigationPanel,ErrorPanel},
   setup() {
     const store = useStore();
     const resourcesLoaded = ref(false);
