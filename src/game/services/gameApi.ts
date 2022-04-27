@@ -1,12 +1,17 @@
-import { randomInt, randomItem, range, toMap } from 'shared/functions';
+import { countdown, countdownStr, randomInt, randomItem, range, toMap } from 'shared/functions';
 import { MAP_SIZE, randomText } from 'shared/mocks';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, FlowPeriodicity, Game, GameInstance, GlobalProperties, InstancePlayer, InstancePlayerStats, Media, Message, MessageType, Placeable, PlaceableInstance, Player, Resource, ResourceFlow, SearchResult, Stockpile, Technology, UIConfig, Vector } from 'shared/monolyth';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, FlowPeriodicity, Game, GameInstance, GlobalProperties, InstancePlayer, InstancePlayerStats, Media, Message, MessageType, Placeable, PlaceableInstance, Player, Resource, ResourceAmount, ResourceFlow, SearchResult, Stockpile, Technology, UIConfig, Vector } from 'shared/monolyth';
 import { ActivityAvailability, BuildingActivityTarget, DismantlingActivityTarget, ResearchActivityTarget, SpyActivityTarget } from '../classes/activities';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { EventEmitter, IEventEmitter } from '../classes/events';
 import { GameData } from '../classes/gameIndex';
 import { createGameList, createPlayer, createSinglePlayerMatch, getAssets} from './fakeServer';
 
+export interface ActivityCost{
+    resources:ResourceAmount[];
+    time:number;
+    duration?:string;
+}
 export interface Minimap{
     width:number;
     height:number;
@@ -85,7 +90,7 @@ const MESSAGES_PER_PAGE = 25;
 
 /**
  * Estima si los almacenes tendrán suficiente material para satisfacer
- * la demanda de un edificio.
+ * una demanda.
  * @param placeable 
  * @param stockpiles 
  * @returns 
@@ -155,7 +160,7 @@ export interface ILocalGameAPI{
     getResource(id:string):Resource;
     getPlaceable(id:string):Placeable;
     getActivity(type:ActivityType):Activity;
-    getActivityCosts(type:ActivityType,target?:ActivityTarget):ResourceFlow[];
+    getActivityCost(type:ActivityType,target?:ActivityTarget):ActivityCost;
     getPlaceablesUnderConstruction(cellInstanceId:number):PlaceableInstance[];
     getUIConfig(): UIConfig
     getWorldMap(query:WorldMapQuery):WorldMapSector;
@@ -375,6 +380,13 @@ class MockAPI extends EventEmitter implements IGameAPI {
         this.playerMessages.push(notification);
     }
     private onActivityCanceled(item:EnqueuedActivity):void{
+        // Primero, devolver el coste de la actividad
+        const stockPiles = toMap(this.getCurrentPlayer().stockpiles, sp => sp.resourceId);
+        item.investment.forEach(expense => {
+            stockPiles[expense.resourceId].amount+=expense.amount;
+            this.raise<Stockpile>(GameEvents.StockpileChanged,stockPiles[expense.resourceId]);
+        });
+
         if(item.type == ActivityType.Build){
             const target = item.target as BuildingActivityTarget;
             this.removePlaceableInstance(target.cellInstanceId,target.placeableInstanceId!);
@@ -558,16 +570,21 @@ class MockAPI extends EventEmitter implements IGameAPI {
         return this.currentGame.activities.get(type) || {
             type,
             media:unknownMedia('unknown activity'),
-            flows:[],
+            expenses:[],
             duration:0,
             properties:{}
         } ;
     }
-    getActivityCosts(type:ActivityType,target?:ActivityTarget):ResourceFlow[]{
+    getActivityCost(type:ActivityType,target?:ActivityTarget):ActivityCost{
         if(!this.currentGame) throw new Error('No se ha cargado el juego');
         // TODO El coste de la actividad puede (DEBE) depender del target
         // TIP: Añadir activityEffort a target?
-        return this.getActivity(type).flows;
+        const activity = this.getActivity(type);
+        return {
+            resources:activity.expenses,
+            time:activity.duration,
+            duration:countdownStr(countdown(0,activity.duration))
+        }
     }
 
     private getTechnologyDependencies(id:string):Technology[]{
@@ -599,10 +616,10 @@ class MockAPI extends EventEmitter implements IGameAPI {
         // Comprobamos que hay suficiente para empezar
         const stockPiles = toMap(this.getCurrentPlayer().stockpiles, sp => sp.resourceId);
         // No se puede construir si al menos un almacen tiene menos stock que lo que el flujo requiere
-        activity.flows.forEach( flow => {
-            if(flow.amount >= stockPiles[flow.resourceId].amount){
-                const resource = this.currentGame?.resources[flow.resourceId];
-                failedPreconditions.push('Faltan '+ (flow.amount-stockPiles[flow.resourceId].amount)+' de '+resource?.media.name);
+        activity.expenses.forEach( expense => {
+            if(expense.amount >= stockPiles[expense.resourceId].amount){
+                const resource = this.currentGame?.resources[expense.resourceId];
+                failedPreconditions.push('Faltan '+ (expense.amount-stockPiles[expense.resourceId].amount)+' de '+resource?.media.name);
             }
         });
         
@@ -651,31 +668,33 @@ class MockAPI extends EventEmitter implements IGameAPI {
     getQueueByType(type:ActivityType):EnqueuedActivity[]{
         return this.activityQueue.filter( item => item.type == type);
     }
-    startActivity(type:ActivityType,target:ActivityTarget):Promise<number>{
-        console.log('ff ffffffff')
-        const activity = this.getActivity(type);
-        const activityId = this.nextUUID();
-        const item:EnqueuedActivity = {
-            id:activityId,
-            target,
-            name:activity.media.name + ' ' + target.name,
-            enqueuedAt:Date.now(),
-            type,
-            elapsed:0,
-            remaining:activity.duration
-        };
-        
+    startActivity(type:ActivityType,target:ActivityTarget):Promise<number>{        
         return new Promise( (resolve,reject) => {
             const availability = this.checkActivityAvailability(type,target);
-            
             if(availability.available){
+                const activity = this.getActivity(type);
+                const cost = this.getActivityCost(type,target);
+
+                const activityId = this.nextUUID();
+                const item:EnqueuedActivity = {
+                    id:activityId,
+                    target,
+                    name:activity.media.name + ' ' + target.name,
+                    enqueuedAt:Date.now(),
+                    investment:cost.resources,
+                    type,
+                    elapsed:0,
+                    remaining:cost.time
+                };
+                
+                
                 this.activityQueue.push(item);
                 // Descontar el coste de la actividad
                 const stockPiles = toMap(this.getCurrentPlayer().stockpiles, sp => sp.resourceId);
                 
-                activity.flows.forEach(flow => {
-                    stockPiles[flow.resourceId].amount-=Math.abs(flow.amount);
-                    this.raise<Stockpile>(GameEvents.StockpileChanged,stockPiles[flow.resourceId]);
+                cost.resources.forEach(expense => {
+                    stockPiles[expense.resourceId].amount-=expense.amount;
+                    this.raise<Stockpile>(GameEvents.StockpileChanged,stockPiles[expense.resourceId]);
                 });
     
                 this.onActivityCreated(item);
@@ -699,6 +718,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
             }
 
             if(removedActivity){
+                this.onActivityCanceled(removedActivity);
                 resolve();    
             }else{
                 reject('No se ha encontrado la actividad en la cola');

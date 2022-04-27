@@ -40,7 +40,6 @@ export default defineComponent({
   setup() {
     const playersIcon = AssetManager.get(ConstantAssets.ICON_PLAYERS).url;
     const api = useGameAPI();
-    const apiChanged = ref<number>(Date.now());
     const canvasRef = ref<HTMLCanvasElement | null>(null);
     const mapHolder = ref<HTMLElement | null>(null);
     const playerFilter = ref<string>('');
@@ -101,6 +100,9 @@ export default defineComponent({
 
     onUnmounted(() => {
       window.removeEventListener("resize", onResizeCanvas);
+      if(wmc){
+        wmc.destroy();
+      }
     });
 
     return {

@@ -6,6 +6,12 @@ export function showInfoPanel2(target:InfopanelTarget|null){
     console.log('weee')
     store.commit("setTarget",target);
 }
+export function goBackInfoPanelHistory(){
+    store.commit('goBackInfoPanelHistory');
+}
+export function hasPrev() {
+    return store.state.targetHistory.length > 1;
+}
 export function closeInfoPanel(){
     store.commit('setTarget',null)
 }

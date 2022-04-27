@@ -1,4 +1,4 @@
-import { CellInstance, Media, Technology, Asset, Resource, InstancePlayer, Message, MessageType, PlaceableInstance } from "shared/monolyth";
+import { CellInstance, Media, Technology, Asset, Resource, InstancePlayer, Message, MessageType, PlaceableInstance, Placeable } from "shared/monolyth";
 import { IGameAPI, useGameAPI } from "../services/gameApi";
 import { AssetManager, ASSET_EMPTY, ConstantAssets } from "./assetManager";
 import { GameData } from "./gameIndex";
@@ -32,10 +32,30 @@ export class CellIPTarget extends InfopanelTarget{
     }
 }
 
+export class PlaceableIPTarget extends InfopanelTarget{
+    constructor(public placeable:Placeable){
+        super('placeable');
+        this.media = placeable.media;
+    }
+}
+
 export class ExistingPlaceableIPTarget extends InfopanelTarget{
     constructor(public cellInstance:CellInstance,public placeableInstance:PlaceableInstance){
-        super('placeable');
+        super('placeableInstance');
         this.media = this.gameData.placeables[placeableInstance.placeableId].media;
+    }
+}
+
+export class PickBuildingIPTarget extends InfopanelTarget{
+    placeables:Placeable[];
+    constructor(public cellInstance:CellInstance){
+        super('pickBuilding');
+        // Usamos los medios de la celda, pero cambiamos el nombre para
+        // adecuar el panel. Ojo, que hay que SOBREESCRIBIR SOLO EN ESTA
+        // instancia de media, de ahí la deconstrucción del objeto
+        this.media = {...this.gameData.cells[cellInstance.cellId].media};
+        this.media.name = "Seleccionar estructura";
+        this.placeables = this.gameData.cells[cellInstance.cellId].allowedPlaceableIds.map( pid => this.gameData.placeables[pid]);
     }
 }
 

@@ -4,7 +4,7 @@ BUGS
 o si es que alguien añade a store
 * Al arrastrar el mapa y salir del foco del canvas, cuando se vuelve el mapa se vuelve loco por los cambios. Habría que ver el uso
 de mouseleave para cancelar la acción
-
+* Las clases typescript no eliminan los listeners de la API, quedandose ahí para siempre.
 MEJORAS
 * Meter una colección de HexCells en MapController que sustituya a las celdas del jugador. Cada HexCell contendrá solo los datos
 de pintado y la info de estado (selección, etc). Así evitamos los tiempos de acceso absurdos a los proxies de vue

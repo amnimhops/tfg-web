@@ -1,139 +1,98 @@
 <template>
-    <ActivityConfirmation 
-        v-if="activityConfirmationModel" 
-        :model="activityConfirmationModel" 
-        @onCancel="closeActivityConfirmationDialog" 
-        @onAccept="startActivity"
-    />
-    <!--Resource flows-->
-    <UISection title="Edificios disponibles" class="ml-10">
-        <UIFlex padding="10" gap="10">
-            <ResourceFlowItem v-for="(flow,index) in incomes" :key="index" :flow="flow"/>
-        </UIFlex>
-    </UISection>
-    <UISection title="Recursos consumidos" class="ml-10">
-        <UIFlex padding="10" gap="10">
-            <ResourceFlowItem v-for="(flow,index) in expenses" :key="index" :flow="flow"/>
-        </UIFlex>
-    </UISection>
-    <!-- Sección de actividades actualmente en cola -->
-    <UISection title="En cola" class="ml-10" v-if="ongoingDismantling">
-        <UIFlex padding="10" gap="10">
-            <EnqueuedActivityInfo :data="ongoingDismantling" />
-        </UIFlex>
-    </UISection>
-    <UISection title="Actividades" class="ml-10">
-        <UIFlex padding="10" gap="10">
+    <UIFlex padding="10" gap="10" v-if="placeables.length==0">
+        <UILabel>No hay estructuras disponibles</UILabel>
+    </UIFlex>
+    <UIFlex v-for="(item,index) in placeables" :key="index" gap="10" padding="10">
+        <UIFlex>
+            <!--<UIFlex direction="row" gap="10" alignItems="center">
+                <UIIcon :src="item.placeable.media.icon.url" size="large"/>
+                <UILabel class="large bold" link @onClick="openPlaceable(item.placeable)">{{item.placeable.media.name}}</UILabel>
+            </UIFlex>-->
             <ActivityButton 
-                v-for="(activityInfo,index) in activities" 
-                :key="index" 
-                :type="activityInfo.type" 
-                :target="activityInfo.target" 
-                @onClick="activityInfo.callback(activityInfo)"/>
+                :type="item.type" 
+                :target="item.target" 
+                :title="item.placeable.media.name" 
+                :icon="item.placeable.media.icon.url"
+                :titleClickable="true"
+                @onStarted="goBackInfoPanelHistory"
+                @onTitleClicked="openPlaceable(item.placeable)"
+            />
         </UIFlex>
-    </UISection>
+        
+    </UIFlex>
 </template>
 
 <script lang="ts">
 import ResourceFlowItem from '../game/ResourceFlowItem.vue';
-import ActivityConfirmation from '../game/ActivityConfirmation.vue';
-import EnqueuedActivityInfo from '../game/EnqueuedActivityInfo.vue';
 import ActivityButton from '../game/ActivityButton.vue';
-import UISection from '../ui/UISection.vue';
-import UIFlex from '../ui/UIFlex.vue';
-import { ExistingPlaceableIPTarget } from '@/game/classes/info'
-import { GameEvents, useGameAPI } from '@/game/services/gameApi'
-import { ActivityType, EnqueuedActivity, ResourceFlow } from 'shared/monolyth';
+import {goBackInfoPanelHistory} from '@/game/controllers/ui'
+import { PickBuildingIPTarget, PlaceableIPTarget } from '@/game/classes/info'
+import { ActivityCost, GameEvents, useGameAPI } from '@/game/services/gameApi'
+import { ActivityType, Placeable, ResourceAmount } from 'shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
-import { ActivityInfo, DismantlingActivityTarget, useActivityConfirmation} from '../../classes/activities'
-import { closeInfoPanel } from '@/game/controllers/ui';
-
-
+import { BuildingActivityTarget} from '../../classes/activities'
+import * as UI from '@/game/components/ui/';
+import { AssetManager, ConstantAssets } from '@/game/classes/assetManager';
+import {timeIcon} from '../ui/icons'
+import { showInfoPanel2 } from '@/game/controllers/ui';
+interface BuildInfo{
+    type:ActivityType;
+    target:BuildingActivityTarget;
+    cost:ActivityCost;
+    placeable:Placeable;
+}
 export default defineComponent({
     props:{
-        target: Object as PropType<ExistingPlaceableIPTarget>
+        target: Object as PropType<PickBuildingIPTarget>
     },
-    components:{ResourceFlowItem,UISection,UIFlex,ActivityButton,ActivityConfirmation,EnqueuedActivityInfo},
+    components:{...UI,ActivityButton},
     setup(props) {
+        console.log(props.target!.placeables);
         const api = useGameAPI();
         const apiChanged = ref<number>(Date.now());
-        const gameData = api.getGameData();
-        const {activityConfirmationModel,openActivityConfirmationDialog,closeActivityConfirmationDialog,startActivity} = useActivityConfirmation();
-        const dismantle = () => {
-            openActivityConfirmationDialog('Comenzar investigación',ActivityType.Dismantle,{
-                cellInstanceId:props.target?.cellInstance.id,
-                placeableInstanceId:props.target?.placeableInstance.id,
-                name:props.target?.media?.name
-            } as DismantlingActivityTarget);
-        }
+        const buildIcon = AssetManager.get(ConstantAssets.ICON_BUILD).url;
 
-        const activities = computed<ActivityInfo[]>( ()=>{
+        const placeables = computed<BuildInfo[]>( ()=>{
             apiChanged.value;
             
-            const dismantleTarget:DismantlingActivityTarget = {
-                cellInstanceId:props.target!.cellInstance.id,
-                placeableInstanceId:props.target!.placeableInstance.id,
-                name:'Desmantelar '+props.target!.media!.name
-            };
+            return props.target!.placeables.map( placeable => {
+                const target = {
+                    cellInstanceId:props.target!.cellInstance.id,
+                    placeableId:placeable.id,
+                    name:placeable.media.name
+                } as BuildingActivityTarget;
+                const type = ActivityType.Build;
+                const cost = api.getActivityCost(ActivityType.Build,target);
 
-            // TODO Añadir el resto de actividades (si hubiera)
-            return [
-                {type:ActivityType.Dismantle,target:dismantleTarget,callback:dismantle}
-            ];
+                console.log(cost);
+
+                return {type,target,placeable,cost}
+            });
+            
         });
 
-        const apiTimerHandler = ()=>{
+
+        const openPlaceable = (item:Placeable) => {
+            showInfoPanel2(new PlaceableIPTarget(item));
+        }
+
+        const apiHandler = ()=>{
             apiChanged.value = Date.now();
         }
-        const onActivityFinished = (enqueuedActivity:EnqueuedActivity) => {
-            if(enqueuedActivity.type == ActivityType.Dismantle){
-                const target = enqueuedActivity.target as DismantlingActivityTarget;
-                if(target.cellInstanceId == props.target?.cellInstance.id && target.placeableInstanceId == props.target.placeableInstance.id){
-                    // Esta actividad se corresponde con esta celda, cerramos el panel pues ya no
-                    // existe el emplazable asociado.
-                    closeInfoPanel();
-                }
-            }
-        }
-        // Obtiene reactivamente la lista de actividades asociadas en curso
-        const ongoingDismantling = computed<EnqueuedActivity|undefined>( () => {
-            apiChanged.value;
-
-            // 1.- Desmantelamiento
-            const cellInstance = props.target!.cellInstance;
-            return api
-                .getQueueByType(ActivityType.Dismantle)
-                .find( ea => {
-                    const target = ea.target as DismantlingActivityTarget;
-                    return target.cellInstanceId == cellInstance.id && target.placeableInstanceId == props.target!.placeableInstance.id
-                });
-        });
-            
-        const incomes = computed<ResourceFlow[]>( () => {
-            const f = props.target?.placeableInstance.instanceFlows.filter( flow => flow.amount > 0) || [];
-            return f;
-        });
-        const expenses = computed<ResourceFlow[]>( () => {            
-            return props.target?.placeableInstance.instanceFlows.filter( flow => flow.amount < 0) || [];
-        });
        
         onMounted(()=>{
             // Temporizador de la api, para detectar variaciones en las actividades en curso
-            api.on(GameEvents.Timer,apiTimerHandler);
-            // Evento de finalización de actividad, para cerrar el panel si se completa 
-            // el desmantelamiento.
-            api.on(GameEvents.ActivityFinished,onActivityFinished);
+            api.on(GameEvents.Timer,apiHandler);
+
         })
         onUnmounted(()=>{
-            api.off(GameEvents.Timer,apiTimerHandler);
+            api.off(GameEvents.Timer,apiHandler);
         })
         
         return {
-            incomes,
-            expenses,
-            activities,
-            ongoingDismantling,
-            activityConfirmationModel,closeActivityConfirmationDialog,startActivity
+            buildIcon,timeIcon,
+            placeables,openPlaceable,
+            goBackInfoPanelHistory
         }
     },
 })

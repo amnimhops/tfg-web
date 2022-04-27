@@ -305,7 +305,7 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
             newPlayer.cells.push(ci.id);
             const cell = game.cells.find(c => c.id == ci.cellId);
             cell?.allowedPlaceableIds.forEach( pid => {
-                if(Math.random() > .75){
+                /*if(Math.random() > .75){
                     ci.placeables.push({
                         id:-1,
                         built:true,
@@ -315,7 +315,7 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
                         ],
                         placeableId:pid
                     })
-                }
+                }*/
             })
         }
     }

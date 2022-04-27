@@ -30,7 +30,7 @@ export class WorldMapController extends AbstractMapController{
     private pan:Vector;
     private zoomLevel:number;
     private mousePos:Vector;
-    private paintFn:()=>void;
+    private paintFn:(()=>void)|null;
     constructor(canvas:HTMLCanvasElement, api:IGameAPI){
         super(canvas);
         this.api = api;
@@ -133,6 +133,10 @@ export class WorldMapController extends AbstractMapController{
         context.rect(x+ox,y+oy,this.cellW,this.cellH);
         context.fill();
     }
+    destroy(): void {
+        super.destroy();
+        this.paintFn = null;
+    }
     protected paint(): void {
         this.clear();
         const context = this.getContext();
@@ -155,7 +159,6 @@ export class WorldMapController extends AbstractMapController{
         }
         
         this.paintCursor()
-        
-        requestAnimationFrame(this.paintFn);    
+        if(this.paintFn) requestAnimationFrame(this.paintFn);    
     }
 }

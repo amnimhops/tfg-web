@@ -28,8 +28,8 @@ import * as UI from '../ui/';
 import { ActivityAvailability, ActivityConfirmationModel, ActivityInfo } from '@/game/classes/activities'
 import ResourceFlowItem from './ResourceFlowItem.vue';
 import { computed, defineComponent, PropType, ref } from 'vue'
-import { GameEvents, useGameAPI } from '@/game/services/gameApi';
-import { ResourceFlow } from 'shared/monolyth';
+import { ActivityCost, GameEvents, useGameAPI } from '@/game/services/gameApi';
+import { ResourceAmount, ResourceFlow } from 'shared/monolyth';
 import {acceptIcon,closeIcon} from '../ui/icons'
 export default defineComponent({
     props:{
@@ -50,9 +50,9 @@ export default defineComponent({
          * Coste de la actividad, se recalcula cada segundo por vinculación
          * con el temporizador de la API
          */
-        const activityCosts = computed<ResourceFlow[]>(()=>{
+        const activityCosts = computed<ActivityCost>(()=>{
             apiChanged.value;
-            return api.getActivityCosts(props.model!.activityInfo.type,props.model?.activityInfo.target);
+            return api.getActivityCost(props.model!.activityInfo.type,props.model?.activityInfo.target);
         })
         /**
          * Disponibilidad para llevar a cabo la actividad,se recalcula 

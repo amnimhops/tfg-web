@@ -40,8 +40,6 @@ export default defineComponent({
             apiChanged.value = Date.now();
         }
 
-        api.on(GameEvents.Timer, handleApiChanges);
-
         const resourceStats = computed<ResourceStat[]|undefined>(()=>{
             apiChanged.value;
             const stats = api.calculateResourceStats();
@@ -75,6 +73,7 @@ export default defineComponent({
 
         onMounted( () => {
             console.log('Resource view mounted')
+            api.on(GameEvents.Timer, handleApiChanges);
             if(route.params.id){
                 const id = route.params.id as string;
                 console.log('Route id is',id)

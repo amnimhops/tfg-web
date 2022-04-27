@@ -11,6 +11,7 @@ import rightIcon from '@/assets/ui/icon-right.svg';
 import downIcon from '@/assets/ui/icon-down.svg';
 import caretUpIcon from '@/assets/ui/icon-caret-up.svg';
 import caretDownIcon from '@/assets/ui/icon-caret-down.svg';
+import timeIcon from '@/assets/ui/icon-time.svg';
 
 
 export  {
@@ -26,5 +27,6 @@ export  {
     rightIcon,
     downIcon,
     caretUpIcon,
-    caretDownIcon
+    caretDownIcon,
+    timeIcon
 }

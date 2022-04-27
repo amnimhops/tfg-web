@@ -17,19 +17,39 @@ import {  Stockpile } from 'shared/monolyth';
  */
 export interface GameStore {
   target:InfopanelTarget|null;
-  error:string|null,
+  targetHistory:InfopanelTarget[];
+  targetHistoryIndex:number|null,
+  error:string|null;
   gameLoaded:boolean;
 }
 
 export const store = createStore<GameStore>({
   state: {
     target:null,
+    targetHistory:[],
+    targetHistoryIndex:null,
     error:null,
     gameLoaded:false
   },
   mutations: {
     setTarget(store:GameStore,selection:InfopanelTarget|null){
-      store.target = selection;
+      if(selection == null){
+        store.targetHistory = [];
+        store.targetHistoryIndex = null;
+        store.target = null;
+      }else{
+        store.targetHistory = [...store.targetHistory,selection];
+        store.target = selection;
+        store.targetHistoryIndex = store.targetHistory.length-1;
+      }
+      
+    },
+    goBackInfoPanelHistory(store:GameStore){
+      if(store.targetHistory.length > 1){
+        const i = store.targetHistory.length -1;
+        store.targetHistory.splice(i,1);
+        store.target = store.targetHistory[i-1];
+      }
     },
     setError(store:GameStore,message:string|null){
       store.error = message;

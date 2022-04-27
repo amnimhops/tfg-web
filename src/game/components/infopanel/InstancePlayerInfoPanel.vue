@@ -1,28 +1,21 @@
 <template>
     <MessageForm :input="messageFormInput" v-if="messageFormInput" @onClose="sendMessage" />
-    <ActivityConfirmation 
-        v-if="activityConfirmationModel" 
-        :model="activityConfirmationModel" 
-        @onCancel="closeActivityConfirmationDialog" 
-        @onAccept="startActivity"
-    />
      <!-- Sección de actividades actualmente en curso -->
-    <UISection title="En cola" class="ml-10" v-if="ongoingActivities.length > 0">
-        <UIFlex padding="10" gap="10">
-            <EnqueuedActivityInfo v-for="(oa,index) in ongoingActivities" :key="index" :data="oa" />
-        </UIFlex>
-    </UISection>
-    <UISection title="Actividades" class="ml-10">
+    <UIFlex gap="20">
+        <UISection title="En cola" class="ml-10" v-if="ongoingActivities.length > 0">
+            <UIFlex padding="10" gap="10">
+                <EnqueuedActivityInfo v-for="(oa,index) in ongoingActivities" :key="index" :data="oa" />
+            </UIFlex>
+        </UISection>
+
         <UIFlex padding="10" gap="10">
             <ActivityButton 
                 v-for="(activityInfo,index) in activities" 
                 :key="index" 
                 :type="activityInfo.type" 
-                :target="activityInfo.target" 
-                @onClick="activityInfoCallback(activityInfo)"/>
+                :target="activityInfo.target" />
         </UIFlex>
-    </UISection>
-
+    </UIFlex>
 </template>
 
 <script lang="ts">
@@ -39,7 +32,7 @@ import { useMessageWriter } from '@/game/classes/messaging';
 import { ActivityInfo, AttackActivityTarget, SpyActivityTarget, useActivityConfirmation } from '@/game/classes/activities';
 
 export default defineComponent({
-    components:{...UI,MessageForm,ActivityConfirmation,EnqueuedActivityInfo,ActivityButton},
+    components:{...UI,MessageForm,EnqueuedActivityInfo,ActivityButton},
     props:{
         target:Object as PropType<InstancePlayerIPTarget>
     },
@@ -87,6 +80,8 @@ export default defineComponent({
         }
 
         const activities = computed<ActivityInfo[]>(()=>{
+            apiChanged.value;
+
             const opponentId = props.target!.player.playerId!;
             const name = props.target!.media!.name;
             const spyTarget:any= {instancePlayerId:opponentId,name};
@@ -107,8 +102,7 @@ export default defineComponent({
         return {
             activities,activityInfoCallback,
             messageFormInput,sendMessage,
-            ongoingActivities,
-            activityConfirmationModel,closeActivityConfirmationDialog,openActivityConfirmationDialog,startActivity
+            ongoingActivities
         }
     },
 })

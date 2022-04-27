@@ -24,7 +24,6 @@ export default defineComponent({
     const canvasRef = ref<HTMLCanvasElement | null>(null); // brujería!?
     const cellSelected = ref<CellInstance | null>(null);
     const api = useGameAPI();
-    const gameData = api.getGameData();
 
     let pmc: PlayerMapController;
 

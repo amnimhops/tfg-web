@@ -21,10 +21,17 @@
       <!--{{selection}}-->
       <CellInfoPanel v-if="selection.type=='cell'" :target="selection"/>
       <PlaceableInfoPanel v-if="selection.type=='placeable'" :target="selection"/>
+      <PlaceableInstanceInfoPanel v-if="selection.type=='placeableInstance'" :target="selection"/>
       <TechInfoPanel v-if="selection.type=='technology'" :target="selection"/>
       <InstancePlayerInfoPanel v-if="selection.type=='player'" :target="selection"/>
       <MessageInfoPanel v-if="selection.type=='message'" :target="selection"/>
+      <BuildListInfoPanel v-if="selection.type=='pickBuilding'" :target="selection"/>
+      
       <!-- -->
+      <UIFlex direction="row" justifyContent="flex-start" class="mt-10" v-if="showPrevLink" padding="10">
+        <UIButton @onClick="prev">
+          <UIIcon :src="leftIcon" size="medium" />Atrás</UIButton>
+      </UIFlex>
 
     </UIFlex>
 </UIPane>
@@ -37,18 +44,20 @@ import UIPane from '../ui/UIPane.vue'
 import UIIcon from '../ui/UIIcon.vue'
 import UIFlex from '../ui/UIFlex.vue'
 import UIButton from '../ui/UIButton.vue'
-import {closeIcon} from '@/game/components/ui/icons';
+import {closeIcon,leftIcon} from '@/game/components/ui/icons';
 import { computed, defineComponent } from 'vue'
 import { useStore } from '@/store';
 import { InfopanelTarget } from '@/game/classes/info'
-import { showInfoPanel2 } from '@/game/controllers/ui'
+import { hasPrev, goBackInfoPanelHistory, showInfoPanel2 } from '@/game/controllers/ui'
 import InfoPanelBreadcrumb from './InfoPanelBreadcrumb.vue';
 import CellInfoPanel from './CellInfoPanel.vue';
 import TechInfoPanel from './TechInfoPanel.vue';
 
+import PlaceableInstanceInfoPanel from './PlaceableInstanceInfoPanel.vue';
 import PlaceableInfoPanel from './PlaceableInfoPanel.vue';
 import InstancePlayerInfoPanel from './InstancePlayerInfoPanel.vue';
 import MessageInfoPanel from './MessageInfoPanel.vue';
+import BuildListInfoPanel from './BuildListInfoPanel.vue'
 
 const store = useStore();
 
@@ -56,9 +65,10 @@ export default defineComponent({
   components:{
     UIPane,UIIcon,UIFlex,UIButton,
     InfoPanelBreadcrumb,CellInfoPanel,
-    PlaceableInfoPanel,TechInfoPanel,
+    PlaceableInfoPanel,PlaceableInstanceInfoPanel,TechInfoPanel,
     InstancePlayerInfoPanel,
-    MessageInfoPanel
+    MessageInfoPanel,
+    BuildListInfoPanel
   },
   
   setup(){
@@ -70,7 +80,9 @@ export default defineComponent({
     const close = () => {
       showInfoPanel2(null);
     }
-
+    const prev = () => goBackInfoPanelHistory();
+    const showPrevLink = computed<boolean> ( () => hasPrev());
+   
     const selectionType = computed<string>( () => {
       if(store.state.target != null){
         return (store.state.target as any).constructor.name;
@@ -82,8 +94,8 @@ export default defineComponent({
     return {
       selectionType,
       selection,
-      closeIcon,
-      close
+      closeIcon,leftIcon,
+      close,prev,showPrevLink
     };
   }
 });

@@ -1,50 +1,43 @@
 <template>
-    <ActivityConfirmation 
-        v-if="activityConfirmationModel" 
-        :model="activityConfirmationModel" 
-        @onCancel="closeActivityConfirmationDialog" 
-        @onAccept="startActivity"
-    />
-
-    <!-- En curso -->
-    <UISection title="En cola" class="ml-10" v-if="inResearch">
-        <UIFlex padding="10">
-            <EnqueuedActivityInfo :data="inResearch" />
-        </UIFlex>
-    </UISection>
-    <!-- Más datos -->
-    <UISection title="Desbloquea" class="ml-10" v-if="unlockedTechs.length > 0">
-        <UIFlex padding="10" gap="5">
-            <UIFlex direction="row" v-for="(tech,index) in unlockedTechs" :key="index" alignItems="center" gap="15">
-                <UIIcon :src="tech.media.icon.url" size="large" />
-                <UILabel @onClick="navigate(tech)" :link="true">{{tech.media.name}}</UILabel>
-            </UIFlex>
-        </UIFlex>
-    </UISection>
-        <!-- Más datos -->
-    <UISection title="Necesita" class="ml-10" v-if="requiredTech">
-        <UIFlex direction="row" alignItems="center" gap="5" padding="10">
-            <UIIcon :src="requiredTech.media.icon.url" size="large" />
-            <UILabel @onClick="navigate(requiredTech)" :link="true">{{requiredTech.media.name}}</UILabel>
-        </UIFlex>
-    </UISection>
     <!-- Tecnología no investigada -->
     <!-- Se podría usar un ActivityButton, pero no hay más actividades -->
     <!-- de forma qe no se gana nada -->
-    <UISection title="Actividades" class="ml-10" v-if="!researched && !inResearch">
-        <UIFlex padding="10" gap="5">
-            <UIButton :borderless="true" grow @onClick="research">
-                <UIIcon :src="researchActivity.media.icon.url" size="large" />
-                <UILabel>{{researchActivity.media.name}}</UILabel>
-            </UIButton>
+    <UIFlex gap="20">
+        <UIFlex padding="10" v-if="!researched && !inResearch">
+            <ActivityButton 
+                :type="researchActivity.type" 
+                :target="researchActivity.target" 
+                :title="'Iniciar '+researchActivity.target.name"/>
         </UIFlex>
-    </UISection>
+        <!-- En curso -->
+        <UISection title="En cola" class="ml-10" v-if="inResearch">
+            <UIFlex padding="10">
+                <EnqueuedActivityInfo :data="inResearch" />
+            </UIFlex>
+        </UISection>
+        <!-- Más datos -->
+        <UISection title="Desbloquea" class="ml-10" v-if="unlockedTechs.length > 0">
+            <UIFlex padding="10" gap="5">
+                <UIFlex direction="row" v-for="(tech,index) in unlockedTechs" :key="index" alignItems="center" gap="15">
+                    <UIIcon :src="tech.media.icon.url" size="large" />
+                    <UILabel @onClick="navigate(tech)" :link="true">{{tech.media.name}}</UILabel>
+                </UIFlex>
+            </UIFlex>
+        </UISection>
+            <!-- Más datos -->
+        <UISection title="Necesita" class="ml-10" v-if="requiredTech">
+            <UIFlex direction="row" alignItems="center" gap="5" padding="10">
+                <UIIcon :src="requiredTech.media.icon.url" size="large" />
+                <UILabel @onClick="navigate(requiredTech)" :link="true">{{requiredTech.media.name}}</UILabel>
+            </UIFlex>
+        </UISection>
+    </UIFlex>
 </template>
 
 <script lang="ts">
 import * as UI from '../ui/';
-import ActivityConfirmation from '../game/ActivityConfirmation.vue'
-import { ResearchActivityTarget, useActivityConfirmation } from '@/game/classes/activities';
+import ActivityButton from '../game/ActivityButton.vue'
+import { ActivityInfo, ResearchActivityTarget, useActivityConfirmation } from '@/game/classes/activities';
 import { TechIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
 import { Activity, ActivityType, EnqueuedActivity, Technology } from 'shared/monolyth';
@@ -57,19 +50,12 @@ export default defineComponent({
     props:{
         target:Object as PropType<TechIPTarget>
     },
-    components:{...UI,EnqueuedActivityInfo,ActivityConfirmation},
+    components:{...UI,EnqueuedActivityInfo,ActivityButton},
     setup(props) {
         const api = useGameAPI();
         const apiChanged = ref<number>(Date.now());
         const gameData = api.getGameData();
         const router = useRouter();
-        const {activityConfirmationModel,openActivityConfirmationDialog,closeActivityConfirmationDialog,startActivity} = useActivityConfirmation();
-        const research = () => {
-            openActivityConfirmationDialog('Comenzar investigación',ActivityType.Research,{
-                name:props.target?.media?.name,
-                techId:props.target!.tech.id
-            } as ResearchActivityTarget);
-        }
         
         const handleApiChanges = ()=>{
             console.log('api change detected')
@@ -105,12 +91,16 @@ export default defineComponent({
             
         });
 
-        const researchActivity = computed<Activity|undefined>( ()=>{
+        const researchActivity = computed<ActivityInfo|undefined>( ()=>{
             apiChanged.value;
 
-            const activity = gameData.activities.get(ActivityType.Research);
-            console.log(activity);
-            return activity;
+            return {
+                type:ActivityType.Research,
+                target:{
+                    techId:props.target!.tech.id,
+                    name:props.target!.tech.media.name
+                }as ResearchActivityTarget
+            }
         });
 
         const navigate = (otherTech:Technology) => {
@@ -127,8 +117,7 @@ export default defineComponent({
         return {
             researchActivity,researched,inResearch,
             acceptIcon,closeIcon,
-            unlockedTechs,requiredTech,navigate,
-            activityConfirmationModel,research,closeActivityConfirmationDialog,startActivity
+            unlockedTechs,requiredTech,navigate
         };
     },
 })
