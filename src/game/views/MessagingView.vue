@@ -31,11 +31,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, watch } from 'vue'
+import { defineComponent, onMounted, onUnmounted, ref, watch } from 'vue'
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import * as UI from '../components/ui';
 import { showErrorPanel, showInfoPanel2 } from '../controllers/ui';
-import { useGameAPI } from '../services/gameApi';
+import { GameEvents, useGameAPI } from '../services/gameApi';
 import { Message, MessageType } from 'shared/monolyth';
 import { deleteIcon } from '../components/ui/icons'
 import {truncate} from 'shared/functions'
@@ -52,6 +52,7 @@ export default defineComponent({
     components:{...UI},
     setup() {
         const api = useGameAPI();
+        const apiChanged = ref<number>(Date.now());
         const iconMessage = AssetManager.get(ConstantAssets.ICON_MSG_MESSAGE).url
         const iconNotification = AssetManager.get(ConstantAssets.ICON_MSG_NOTIFICATION).url
         const iconReport = AssetManager.get(ConstantAssets.ICON_MSG_REPORT).url
@@ -77,6 +78,16 @@ export default defineComponent({
             section.value = newSection;
             page.value = 1;
         }
+        
+        // Handler que detecta la llegada de nuevos mensajes
+        const onNewMessage = (message:Message) => {
+            console.log('Ha entrado un nuevo mensaje')
+            // Por simplicidad, actualizamos la marca de tiempo
+            // del flag de la api y forzamos que se busquen los
+            // mensajes con el filtro establecido en el watcher
+            apiChanged.value = Date.now();
+        };
+
         
         const findMessages = (query:string,page:number,section:MessagingSection) => {
             console.log('Buscando mensajes en la api',query,section,page)
@@ -111,13 +122,17 @@ export default defineComponent({
             findMessages(query.value,page.value,section.value);
         }
 
-        watch([query,page,section], ([nextQuery,nextPage,nextSection],[prevQuery,prevPage,prevSection])=>{
+        watch([query,page,section,apiChanged], ([nextQuery,nextPage,nextSection],[prevQuery,prevPage,prevSection])=>{
             findMessages(query.value,page.value,section.value);
         });
 
         onMounted( async () => {
+            api.on(GameEvents.IncomingMessage,onNewMessage);
             changeSection(sections[0]);
             await findMessages(query.value,page.value,sections[0]);
+        })
+        onUnmounted(()=>{
+            api.off(GameEvents.IncomingMessage,onNewMessage);
         })
         return {
             query,page,section,sections,messages,pageCount,

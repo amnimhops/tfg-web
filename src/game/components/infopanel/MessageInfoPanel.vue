@@ -24,7 +24,7 @@ import { AssetManager, ConstantAssets } from '@/game/classes/assetManager';
 import { MessageIPTarget } from '@/game/classes/info'
 import { useGameAPI } from '@/game/services/gameApi'
 import { Media,MessageType } from 'shared/monolyth'
-import { defineComponent, PropType, ref } from 'vue'
+import { computed, defineComponent, PropType, ref } from 'vue'
 
 import * as UI from '../ui';
 import { useMessageWriter } from '@/game/classes/messaging';
@@ -42,7 +42,13 @@ export default defineComponent({
         const api = useGameAPI();
         const {messageFormInput,openMessageForm,sendMessage} = useMessageWriter();
         const replyIcon = AssetManager.get(ConstantAssets.ICON_MSG_MESSAGE).url;
-        const paragraphs = ref<string[]>(props.target!.message.message.split("\r\n") || []);
+        const paragraphs = computed<string[]>(()=>{
+            if(props.target?.message.type == MessageType.Report){
+                return [JSON.stringify(props.target.message.message as any).toString()]
+            }else{
+                return props.target!.message.message.split("\r\n") || []
+            }
+        });
         const reply = () => {
             openMessageForm(props.target!.message.srcPlayerId!,'Re:'+props.target?.message.subject);
         }

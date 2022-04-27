@@ -1,4 +1,4 @@
-import { ActivityTarget, ActivityType, Technology } from "shared/monolyth";
+import { ActivityTarget, ActivityType, ResourceAmount, Technology } from "shared/monolyth";
 import { ref } from "vue";
 import { showErrorPanel } from "../controllers/ui";
 import { useGameAPI } from "../services/gameApi";
@@ -99,4 +99,11 @@ export interface ResearchActivityTarget extends ActivityTarget{
 export interface DismantlingActivityTarget extends ActivityTarget{
     cellInstanceId:number;
     placeableInstanceId:number;
+}
+
+export interface SpyActivityTarget extends ActivityTarget{
+    instancePlayerId:string;
+}
+export interface AttackActivityTarget extends ActivityTarget{
+    instancePlayerId:string;
 }

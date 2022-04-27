@@ -1,4 +1,4 @@
-import { ActivityType, Asset, FlowPeriodicity, Game, GameInstance, Media, Player, Technology, Vector } from "shared/monolyth";
+import { ActivityType, Asset, FlowPeriodicity, Game, GameInstance, InstancePlayer, Media, Player, Technology, Vector } from "shared/monolyth";
 import {players, games, gameInstances, randomName, MAP_SIZE, randomMedia, randomText} from "shared/mocks/";
 import { randomInt, randomItem, range } from "shared/functions";
 import { ConstantAssets } from "../classes/assetManager";
@@ -273,7 +273,7 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
     const game = games.filter(game => instance.gameId == game.id)[0];
     randomizeGameAssets(game);
     // Añadir el jugador
-    instance.players.push({
+    const newPlayer:InstancePlayer = {
         playerId:player.id!,
         stockpiles:game.resources.map( resource => ({resourceId:resource.id,amount:100}) ),
         queue:[],
@@ -281,9 +281,15 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
         technologies:game.technologies.filter(tech => tech.parent == null).map(tech=>tech.id),
         properties:{
             queueCapacity:5,
-            queueParallelActivities:1
-        }
-    });
+            queueParallelActivities:1,
+            attackAbility:50,
+            counterSpyAbility:50,
+            defenceAbility:50,
+            spyAbility:150
+        },
+        cells:[]
+    }
+    instance.players.push(newPlayer);
     // Ajustar los medios de los jugadores
     instance.players.forEach( player => {
         player.media.name = 'Player '+randomName()
@@ -296,7 +302,7 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
         for(let y = 0; y<areaSize; y++){
             const ci = instance.cells[ (y+startPos.y)*MAP_SIZE + (x+startPos.x)];
             ci.playerId = player.id||null;
-
+            newPlayer.cells.push(ci.id);
             const cell = game.cells.find(c => c.id == ci.cellId);
             cell?.allowedPlaceableIds.forEach( pid => {
                 if(Math.random() > .75){

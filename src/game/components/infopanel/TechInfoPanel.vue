@@ -29,6 +29,8 @@
         </UIFlex>
     </UISection>
     <!-- Tecnología no investigada -->
+    <!-- Se podría usar un ActivityButton, pero no hay más actividades -->
+    <!-- de forma qe no se gana nada -->
     <UISection title="Actividades" class="ml-10" v-if="!researched && !inResearch">
         <UIFlex padding="10" gap="5">
             <UIButton :borderless="true" grow @onClick="research">
@@ -42,14 +44,14 @@
 <script lang="ts">
 import * as UI from '../ui/';
 import ActivityConfirmation from '../game/ActivityConfirmation.vue'
-import { ActivityConfirmationModel, ResearchActivityTarget, useActivityConfirmation } from '@/game/classes/activities';
+import { ResearchActivityTarget, useActivityConfirmation } from '@/game/classes/activities';
 import { TechIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
-import { Activity, ActivityType, Technology } from 'shared/monolyth';
+import { Activity, ActivityType, EnqueuedActivity, Technology } from 'shared/monolyth';
 import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
 import { useRouter } from 'vue-router';
 import {acceptIcon,closeIcon} from '../ui/icons'
-import EnqueuedActivityInfo,{ EnqueuedActivityInfoModel } from '../game/EnqueuedActivityInfo.vue';
+import EnqueuedActivityInfo from '../game/EnqueuedActivityInfo.vue';
 
 export default defineComponent({
     props:{
@@ -82,22 +84,13 @@ export default defineComponent({
             return api.getResearchedTechnologies().some( tech=> tech.id == props.target?.tech.id);
         });
         
-        const inResearch = computed<EnqueuedActivityInfoModel|null>( () => {
+        const inResearch = computed<EnqueuedActivity|undefined>( () => {
             apiChanged.value;
 
-            const activity = api.getQueueByType(ActivityType.Research).find( activity => {
+            return api.getQueueByType(ActivityType.Research).find( activity => {
                 const target = activity.target as ResearchActivityTarget;
                 return target.techId == props.target?.tech.id;
             });
-
-            if(activity) {
-                return {
-                    activity,
-                    media:props.target!.media!
-                };
-            }else{
-                return null;
-            }
         });
 
         const unlockedTechs = computed<Technology[]>( () => {

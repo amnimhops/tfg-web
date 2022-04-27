@@ -45,14 +45,14 @@ import ActivityConfirmation from "../game/ActivityConfirmation.vue";
 import {deleteIcon} from '../ui/icons';
 import { CellIPTarget, ExistingPlaceableIPTarget } from '@/game/classes/info'
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
-import { ActivityType, Media, WithMedia, PlaceableInstance, Placeable } from 'shared/monolyth'
+import { ActivityType, Media, WithMedia, PlaceableInstance, Placeable, EnqueuedActivity } from 'shared/monolyth'
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import { showInfoPanel2 } from '@/game/controllers/ui'
 import { AssetManager, ConstantAssets } from '@/game/classes/assetManager'
 import { BuildingActivityTarget, useActivityConfirmation } from '@/game/classes/activities'
 
 import * as UI from '../ui/';
-import EnqueuedActivityInfo, { EnqueuedActivityInfoModel } from '../game/EnqueuedActivityInfo.vue';
+import EnqueuedActivityInfo from '../game/EnqueuedActivityInfo.vue';
 
 type PlaceableInstanceView = PlaceableInstance & {
     media:Media;
@@ -93,7 +93,7 @@ export default defineComponent({
         const showStructurePicker: (value:boolean) => void = (value:boolean)=> picker.value = value;
         
         // Cambia el panel a la ficha del edificio asociado al emplazable seleccionado
-        const openBuilding = (model:WithMedia<PlaceableInstance>) => {
+        const openBuilding = (model:PlaceableInstance) => {
             if(props.target){
                 showInfoPanel2(new ExistingPlaceableIPTarget(props.target.cellInstance,model));
             }  
@@ -114,25 +114,13 @@ export default defineComponent({
             })) || [];
         });
         // Obtiene reactivamente la lista de actividades asociadas en curso
-        const buildActivities = computed<EnqueuedActivityInfoModel[]>( () => {
+        const buildActivities = computed<EnqueuedActivity[]>( () => {
             apiChanged.value;
 
             const cellInstance = props.target!.cellInstance;
-            const placeables:EnqueuedActivityInfoModel[] = [];
-            const buildingActivities = api
+            return api
                 .getQueueByType(ActivityType.Build)
                 .filter( ea => (ea.target as BuildingActivityTarget).cellInstanceId == cellInstance.id);
-
-            buildingActivities.forEach( ea => {
-                const target = ea.target as BuildingActivityTarget;
-                const pInstance = cellInstance.placeables.find( pi => pi.id == target.placeableInstanceId);
-                if(pInstance){
-                    const media = gameData.placeables[pInstance.placeableId].media;
-                    placeables.push({activity:ea,media});
-                }
-            });
-            
-            return placeables;
         })
 
         onMounted(()=>{

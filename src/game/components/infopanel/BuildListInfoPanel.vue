@@ -6,7 +6,7 @@
         @onAccept="startActivity"
     />
     <!--Resource flows-->
-    <UISection title="Recursos generados" class="ml-10">
+    <UISection title="Edificios disponibles" class="ml-10">
         <UIFlex padding="10" gap="10">
             <ResourceFlowItem v-for="(flow,index) in incomes" :key="index" :flow="flow"/>
         </UIFlex>

@@ -1,7 +1,7 @@
 import { randomInt, randomItem, range, toMap } from 'shared/functions';
 import { MAP_SIZE, randomText } from 'shared/mocks';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, FlowPeriodicity, Game, GameInstance, InstancePlayer, Media, Message, MessageType, Placeable, PlaceableInstance, Player, Resource, ResourceFlow, SearchResult, Stockpile, Technology, UIConfig, Vector } from 'shared/monolyth';
-import { ActivityAvailability, BuildingActivityTarget, ResearchActivityTarget } from '../classes/activities';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, FlowPeriodicity, Game, GameInstance, GlobalProperties, InstancePlayer, InstancePlayerStats, Media, Message, MessageType, Placeable, PlaceableInstance, Player, Resource, ResourceFlow, SearchResult, Stockpile, Technology, UIConfig, Vector } from 'shared/monolyth';
+import { ActivityAvailability, BuildingActivityTarget, DismantlingActivityTarget, ResearchActivityTarget, SpyActivityTarget } from '../classes/activities';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { EventEmitter, IEventEmitter } from '../classes/events';
 import { GameData } from '../classes/gameIndex';
@@ -176,7 +176,7 @@ export interface IRemoteGameAPI{
     cancelActivity(id:number):Promise<void>;
     getMessages(text:string, type: MessageType, page: number): Promise<SearchResult<Message>>;
     sendMessage(dstPlayerId:string,subject:string,message:string):Promise<Message>;
-    deleteMessage(id:string):Promise<void>;
+    deleteMessage(id:number):Promise<void>;
 }
 
 export interface IGameAPI extends ILocalGameAPI, IRemoteGameAPI, IEventEmitter{
@@ -188,6 +188,7 @@ export const GameEvents = {
     ActivityFinished:'activity_finished',
     CellInstanceUpdated:'cell_instance_updated',
     TechnologyResearched:'technology_researched',
+    IncomingMessage:'incoming_message',
     Timer:'timer'
 }
 
@@ -314,6 +315,8 @@ class MockAPI extends EventEmitter implements IGameAPI {
              this.buildInactivePlaceable(item.target as BuildingActivityTarget);
         }else if(item.type == ActivityType.Dismantle){
             // Ningun disparador previo
+        }else if(item.type == ActivityType.Spy){
+            // Ningun disparador previo
         }
     }
     private onActivityFinished(item:EnqueuedActivity):void{
@@ -322,7 +325,54 @@ class MockAPI extends EventEmitter implements IGameAPI {
             this.activatePlaceable(item.target as BuildingActivityTarget);
         }else if(item.type == ActivityType.Research){
             this.finishResearch(item.target as ResearchActivityTarget);
+        }else if(item.type == ActivityType.Spy){
+            this.createSpyReport(item.target as SpyActivityTarget);
+        }else if(item.type == ActivityType.Dismantle){
+            this.dismantleBuilding(item.target as DismantlingActivityTarget);
         }
+    }
+
+    private dismantleBuilding(target:DismantlingActivityTarget){
+        this.removePlaceableInstance(target.cellInstanceId,target.placeableInstanceId);
+    }
+
+    private createSpyReport(target:SpyActivityTarget){
+        const self = this.currentInstancePlayer;
+        const opponent = this.currentInstance?.players.find(ip => ip.playerId = target.instancePlayerId);
+        const success = self!.properties.spyAbility; // TODO Esto debe estar PRECALCULADO en la instancia
+        const fail = opponent!.properties.spyAbility; // TODO Esto debe estar PRECALCULADO en la instancia
+
+        // Es una comprobación un poco naive, pero es mejor no complicarse innecesariamente
+        let report = {};
+
+        if(success > fail){
+            // Creamos el informe
+            report = {
+                success:true,
+                properties : opponent!.properties,
+                cells:opponent!.cells,
+                technologies:opponent!.technologies,
+                stockpiles:opponent!.stockpiles
+            }
+        }else{
+            report = {
+                success:false
+            }
+            console.log('Espionaje fracaso, no ves un pijo');
+        }
+
+        const notification:Message = {
+            srcPlayerId:null,
+            dstPlayerId:self!.playerId,
+            subject:'Informe de espionaje a '+opponent!.media.name,
+            type:MessageType.Report,
+            sendAt:Date.now(),
+            id:this.nextUUID(),
+            senderName:self!.media.name,
+            message:report
+        }
+
+        this.playerMessages.push(notification);
     }
     private onActivityCanceled(item:EnqueuedActivity):void{
         if(item.type == ActivityType.Build){
@@ -375,15 +425,37 @@ class MockAPI extends EventEmitter implements IGameAPI {
      */
     private removePlaceableInstance(cellInstanceId:number,placeableInstanceId:number){
         const cellInstance = this.currentInstance!.cells[cellInstanceId];
+        const placeableInstance = cellInstance.placeables.find( pi => pi.id == placeableInstanceId);
+        const placeable = this.currentGame?.placeables[placeableInstance!.placeableId];
 
         for(let i = 0; i <cellInstance.placeables.length; i++){
             if(cellInstance.placeables[i].id == placeableInstanceId){
                 const deleted = cellInstance.placeables.splice(i,1);
+                // 1.- Notificación de actualización de celda
+                this.raise(GameEvents.CellInstanceUpdated,cellInstance);
+                
+                this.sendMessageToPlayer({
+                    srcPlayerId:null,
+                    dstPlayerId:this.currentInstancePlayer!.playerId,
+                    message:'El emplazable '+placeable?.media.name+' ha sido desmantelado.',
+                    subject:'Actividad finalizada',
+                    type:MessageType.Notification,
+                    sendAt:Date.now()
+                });
+                
                 console.log('Se han eliminado los emplazables',deleted);
+                break;
             }
         }
     }
 
+    private sendMessageToPlayer(message:Message){
+        // TODO En la API de servidor quitar el jugador local, 
+        if(message.dstPlayerId == this.currentInstancePlayer!.playerId){
+            this.playerMessages.push(message);
+            this.raise(GameEvents.IncomingMessage,message.subject);
+        }
+    }
     authenticate(email:string,pass:string):Promise<Player>{
         return new Promise( (resolve) => {
             this.currentPlayer = createPlayer();
@@ -483,7 +555,13 @@ class MockAPI extends EventEmitter implements IGameAPI {
     }
     getActivity(type:ActivityType):Activity{
         if(!this.currentGame) throw new Error('No se ha cargado el juego');
-        return this.currentGame.activities.get(type) || {type,media:unknownMedia('unknown activity'),flows:[],duration:0} ;
+        return this.currentGame.activities.get(type) || {
+            type,
+            media:unknownMedia('unknown activity'),
+            flows:[],
+            duration:0,
+            properties:{}
+        } ;
     }
     getActivityCosts(type:ActivityType,target?:ActivityTarget):ResourceFlow[]{
         if(!this.currentGame) throw new Error('No se ha cargado el juego');
@@ -530,7 +608,6 @@ class MockAPI extends EventEmitter implements IGameAPI {
         
         // Si es una tecnología concreta:
         if(type == ActivityType.Research){
-
             // Debe estar sin investigar
             const techId = (target as ResearchActivityTarget).techId;
             if(this.currentInstancePlayer?.technologies.some( t => t == techId)){
@@ -544,6 +621,19 @@ class MockAPI extends EventEmitter implements IGameAPI {
             const depTree = this.getTechnologyDependencies(techId);
             if(depTree.some( dep => this.currentInstancePlayer?.technologies.indexOf(dep.id) == -1)){
                 failedPreconditions.push('Es necesario investigar una tecnología previa');
+            }
+        }else if(type == ActivityType.Dismantle){
+            // El emplazable no debe estar involucrado en otra actividad de desmantelamiento
+            const dismantlingTarget = (target as DismantlingActivityTarget);
+            const beingDismantled = this.getQueueByType(ActivityType.Dismantle).find( ea => {
+                const eaTarget = ea.target as DismantlingActivityTarget;
+                if(eaTarget.cellInstanceId == dismantlingTarget.cellInstanceId && eaTarget.placeableInstanceId == eaTarget.placeableInstanceId){
+                    return ea;
+                }
+            });
+
+            if(beingDismantled){
+                failedPreconditions.push('El emplazable ya está siendo desmantelado');
             }
         }
 
@@ -707,11 +797,11 @@ class MockAPI extends EventEmitter implements IGameAPI {
         if(this.playerMessages.length == 0){
             // Asignamos unos cuantos aleatorios
             // TODO En el backend esto deb recuperar los DE VERDAD
-            range(randomInt(500)).forEach( i => {
+            /*range(randomInt(500)).forEach( i => {
                 const emitter = randomItem(this.currentInstance!.players);
                 const type = randomItem([MessageType.Message,MessageType.Notification,MessageType.Report]);
                 this.playerMessages.push({
-                    id:`message-${i}`,
+                    id:this.nextUUID(),
                     dstPlayerId:this.currentInstancePlayer!.playerId,
                     message:randomText(100),
                     senderName:emitter.media.name,
@@ -721,7 +811,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
                     subject:`msg ${i} of type ${type}`+randomText(10),
                     type:type
                 });
-            })
+            })*/
         }
         console.log('Buscando mensajes de jugador',text,type,page)
         const offset = MESSAGES_PER_PAGE * (page-1); // aunque el cliente usa el rango [1,n], la api usa [0,n) o [0,n-1]
@@ -737,6 +827,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
             resolve(result);
         });
     }
+
     sendMessage(dstPlayerId:string,subject:string,message:string):Promise<Message>{
         if(!this.currentInstancePlayer) throw new Error('No se ha cargado la sesión del jugador');
         const msg:Message = {
@@ -752,7 +843,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
         return new Promise( (resolve,reject) => resolve(msg));
     }
     
-    deleteMessage(id:string):Promise<void>{
+    deleteMessage(id:number):Promise<void>{
         return new Promise( (resolve,reject) => {
             for(let i = 0; i< this.playerMessages.length; i++){
                 if(this.playerMessages[i].id == id){
