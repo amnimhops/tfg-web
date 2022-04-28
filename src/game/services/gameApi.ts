@@ -1,6 +1,6 @@
 import { countdown, countdownStr, randomInt, randomItem, range, toMap } from 'shared/functions';
 import { MAP_SIZE, randomText } from 'shared/mocks';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, FlowPeriodicity, Game, GameInstance, GlobalProperties, InstancePlayer, InstancePlayerStats, Media, Message, MessageType, Placeable, PlaceableInstance, Player, Resource, ResourceAmount, ResourceFlow, SearchResult, Stockpile, Technology, UIConfig, Vector } from 'shared/monolyth';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, FlowPeriodicity, Game, GameInstance, GlobalProperties, InstancePlayer, InstancePlayerStats, Media, Message, MessageType, Placeable, PlaceableInstance, Player, Resource, ResourceAmount, ResourceFlow, SearchResult, Stockpile, Technology, TradingAgreement, UIConfig, Vector } from 'shared/monolyth';
 import { ActivityAvailability, BuildingActivityTarget, DismantlingActivityTarget, ResearchActivityTarget, SpyActivityTarget } from '../classes/activities';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { EventEmitter, IEventEmitter } from '../classes/events';
@@ -180,6 +180,9 @@ export interface IRemoteGameAPI{
     startActivity(type:ActivityType,target:ActivityTarget):Promise<number|ActivityAvailability>;
     cancelActivity(id:number):Promise<void>;
     getMessages(text:string, type: MessageType, page: number): Promise<SearchResult<Message>>;
+    sendTradeAgreement(agreement:TradingAgreement):Promise<number>;
+    cancelTradeAgreement(id:number):Promise<void>;
+    aceptTradeAgreement(id:number):Promise<void>;
     sendMessage(dstPlayerId:string,subject:string,message:string):Promise<Message>;
     deleteMessage(id:number):Promise<void>;
 }
@@ -811,6 +814,41 @@ class MockAPI extends EventEmitter implements IGameAPI {
             .map( resource => new ResourceStat(resource,stockpiles[resource.id],builtPlaceables));
 
         return stats;
+    }
+
+    sendTradeAgreement(agreement:TradingAgreement):Promise<number>{
+        return new Promise( (resolve,reject) => {
+            // TODO Esto es una funcionalidad integra del servidor
+            
+            // 1.- Añadir a la lista de tratos comerciales pendientes de aceptar en la instancia
+            agreement.id = this.nextUUID();
+            this.currentInstance?.pendingTradingAgreements.push(agreement);
+            
+            // 2.- Generar la notificación para el oponente
+            // TODO Esto no está siquiera disponible en el cliente
+            // 3.- Generar la notificación para el emisor
+            this.sendMessageToPlayer({
+                id:this.nextUUID(),
+                message:agreement,
+                dstPlayerId:this.currentInstancePlayer!.playerId,
+                type:MessageType.Notification,
+                subject:"Nuevo tratado comercial",
+                srcPlayerId:null
+            });
+
+            resolve( agreement.id );
+        });
+    }
+
+    cancelTradeAgreement(id:number):Promise<void>{
+        return new Promise( (resolve,reject) => {
+            reject('POR HACER');
+        })
+    }
+    aceptTradeAgreement(id:number):Promise<void>{
+        return new Promise( (resolve,reject) => {
+            reject('POR HACER');
+        })
     }
 
     getMessages(text:string, type: MessageType, page: number): Promise<SearchResult<Message>> {

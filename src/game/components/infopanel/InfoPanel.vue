@@ -1,5 +1,6 @@
 <template>
 <UIPane v-if="selection">
+  <UIFlex alignItems="space-between" class="info-content">
     <UIFlex gap="5" v-if="selection!=null" class="pane-content">
       <!--Title-->
       <UIFlex direction="row" gap="10" padding="10" alignItems="center">
@@ -19,21 +20,22 @@
       
       <!-- Specific panel -->      
       <!--{{selection}}-->
-      <CellInfoPanel v-if="selection.type=='cell'" :target="selection"/>
-      <PlaceableInfoPanel v-if="selection.type=='placeable'" :target="selection"/>
-      <PlaceableInstanceInfoPanel v-if="selection.type=='placeableInstance'" :target="selection"/>
-      <TechInfoPanel v-if="selection.type=='technology'" :target="selection"/>
-      <InstancePlayerInfoPanel v-if="selection.type=='player'" :target="selection"/>
-      <MessageInfoPanel v-if="selection.type=='message'" :target="selection"/>
-      <BuildListInfoPanel v-if="selection.type=='pickBuilding'" :target="selection"/>
-      
+      <CellInfoPanel v-if="selection.type==InfoPanelType.CellPane" :target="selection"/>
+      <PlaceableInfoPanel v-if="selection.type==InfoPanelType.PlaceablePane" :target="selection"/>
+      <PlaceableInstanceInfoPanel v-if="selection.type==InfoPanelType.PlaceableInstancePane" :target="selection"/>
+      <TechInfoPanel v-if="selection.type==InfoPanelType.TechnologyPane" :target="selection"/>
+      <InstancePlayerInfoPanel v-if="selection.type==InfoPanelType.PlayerPane" :target="selection"/>
+      <MessageInfoPanel v-if="selection.type==InfoPanelType.MessagePane" :target="selection"/>
+      <BuildListInfoPanel v-if="selection.type==InfoPanelType.PickBuildingPane" :target="selection"/>
+      <ActivityInfoPanel v-if="selection.type==InfoPanelType.ActivityPane" :target="selection" />
+      <TradeOptionsInfoPanel v-if="selection.type==InfoPanelType.TradeOptionsPane" :target="selection" />
       <!-- -->
-      <UIFlex direction="row" justifyContent="flex-start" class="mt-10" v-if="showPrevLink" padding="10">
-        <UIButton @onClick="prev">
-          <UIIcon :src="leftIcon" size="medium" />Atrás</UIButton>
-      </UIFlex>
-
     </UIFlex>
+    <!--<UIFlex direction="row" justifyContent="flex-start" class="mt-10" v-if="showPrevLink" padding="10">
+        
+      </UIFlex>-->
+    <UIButton @onClick="prev" :rounded="false" :borderless="true" justify="center" class="mt-20"><UIIcon :src="leftIcon" size="medium" />Atrás</UIButton>
+  </UIFlex>
 </UIPane>
 
 </template>
@@ -47,7 +49,7 @@ import UIButton from '../ui/UIButton.vue'
 import {closeIcon,leftIcon} from '@/game/components/ui/icons';
 import { computed, defineComponent } from 'vue'
 import { useStore } from '@/store';
-import { InfopanelTarget } from '@/game/classes/info'
+import { InfopanelTarget, InfoPanelType } from '@/game/classes/info'
 import { hasPrev, goBackInfoPanelHistory, showInfoPanel2 } from '@/game/controllers/ui'
 import InfoPanelBreadcrumb from './InfoPanelBreadcrumb.vue';
 import CellInfoPanel from './CellInfoPanel.vue';
@@ -58,7 +60,8 @@ import PlaceableInfoPanel from './PlaceableInfoPanel.vue';
 import InstancePlayerInfoPanel from './InstancePlayerInfoPanel.vue';
 import MessageInfoPanel from './MessageInfoPanel.vue';
 import BuildListInfoPanel from './BuildListInfoPanel.vue'
-
+import ActivityInfoPanel from './ActivityInfoPanel.vue'
+import TradeOptionsInfoPanel from './TradeOptionsInfoPanel.vue'
 const store = useStore();
 
 export default defineComponent({
@@ -68,7 +71,9 @@ export default defineComponent({
     PlaceableInfoPanel,PlaceableInstanceInfoPanel,TechInfoPanel,
     InstancePlayerInfoPanel,
     MessageInfoPanel,
-    BuildListInfoPanel
+    BuildListInfoPanel,
+    ActivityInfoPanel,
+    TradeOptionsInfoPanel
   },
   
   setup(){
@@ -90,12 +95,13 @@ export default defineComponent({
         return null;
       }
     });
-
+    
     return {
       selectionType,
       selection,
       closeIcon,leftIcon,
-      close,prev,showPrevLink
+      close,prev,showPrevLink,
+      InfoPanelType  
     };
   }
 });
@@ -114,6 +120,12 @@ export default defineComponent({
       scrollbar-width: 5px;
       scrollbar-color: $ui-control-border-color;
    }    
+   .info-content{
+     height:100%;
+   }
+   .pane-content{
+     flex-grow:1;
+   }
    @media(min-width:768px){
      .ui-pane{
        width:400px;

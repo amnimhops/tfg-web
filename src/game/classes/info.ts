@@ -1,4 +1,4 @@
-import { CellInstance, Media, Technology, Asset, Resource, InstancePlayer, Message, MessageType, PlaceableInstance, Placeable } from "shared/monolyth";
+import { CellInstance, Media, Technology, Asset, Resource, InstancePlayer, Message, MessageType, PlaceableInstance, Placeable, ActivityType, ActivityTarget, Activity } from "shared/monolyth";
 import { IGameAPI, useGameAPI } from "../services/gameApi";
 import { AssetManager, ASSET_EMPTY, ConstantAssets } from "./assetManager";
 import { GameData } from "./gameIndex";
@@ -9,7 +9,7 @@ export interface IPBreacrumbLink{
 }
 
 export interface IPActionCallback{
-    (cmd:string,data?:any):void;
+    ():void;
 }
 
 export class InfopanelTarget{
@@ -25,23 +25,36 @@ export class InfopanelTarget{
     }    
 }
 
+export const InfoPanelType = {
+    CellPane:'cell',
+    PlaceablePane:'placeable',
+    PlaceableInstancePane:'placeableInstance',
+    PickBuildingPane:'pickBuilding',
+    TechnologyPane:'technology',
+    ResourcePane:'resource',
+    PlayerPane:'player',
+    MessagePane:'message',
+    ActivityPane:'activity',
+    TradeOptionsPane:'trade'
+};
+
 export class CellIPTarget extends InfopanelTarget{
     constructor(public cellInstance:CellInstance){
-        super('cell');
+        super(InfoPanelType.CellPane);
         this.media = this.gameData.cells[cellInstance.cellId].media;
     }
 }
 
 export class PlaceableIPTarget extends InfopanelTarget{
     constructor(public placeable:Placeable){
-        super('placeable');
+        super(InfoPanelType.PlaceablePane);
         this.media = placeable.media;
     }
 }
 
 export class ExistingPlaceableIPTarget extends InfopanelTarget{
     constructor(public cellInstance:CellInstance,public placeableInstance:PlaceableInstance){
-        super('placeableInstance');
+        super(InfoPanelType.PlaceableInstancePane);
         this.media = this.gameData.placeables[placeableInstance.placeableId].media;
     }
 }
@@ -49,7 +62,7 @@ export class ExistingPlaceableIPTarget extends InfopanelTarget{
 export class PickBuildingIPTarget extends InfopanelTarget{
     placeables:Placeable[];
     constructor(public cellInstance:CellInstance){
-        super('pickBuilding');
+        super(InfoPanelType.PickBuildingPane);
         // Usamos los medios de la celda, pero cambiamos el nombre para
         // adecuar el panel. Ojo, que hay que SOBREESCRIBIR SOLO EN ESTA
         // instancia de media, de ahí la deconstrucción del objeto
@@ -61,28 +74,28 @@ export class PickBuildingIPTarget extends InfopanelTarget{
 
 export class TechIPTarget extends InfopanelTarget{
     constructor(public tech:Technology){
-        super('technology');
+        super(InfoPanelType.TechnologyPane);
         this.media = this.gameData.technologies[tech.id].media;
     }
 }
 
 export class ResourceIPTarget extends InfopanelTarget{
     constructor(public resource:Resource){
-        super('resource');
+        super(InfoPanelType.ResourcePane);
         this.media = resource.media;
     }
 }
 
 export class InstancePlayerIPTarget extends InfopanelTarget{
     constructor(public player:Partial<InstancePlayer>){
-        super('player');
+        super(InfoPanelType.PlayerPane);
         this.media = player.media;
     }
 }
 
 export class MessageIPTarget extends InfopanelTarget{
     constructor(public message:Message,public remotePlayer:Partial<InstancePlayer>){
-        super('message');
+        super(InfoPanelType.MessagePane);
         /**
          * Al contrario que el resto de targets del panel, los mensajes
          * de jugadores no tienen información de medios propia. En su lugar
@@ -104,5 +117,21 @@ export class MessageIPTarget extends InfopanelTarget{
         }else{
             return AssetManager.get(ConstantAssets.MESSAGING_REPORT)
         }
+    }
+}
+
+export class ActivityIPTarget extends InfopanelTarget{
+    activity:Activity;
+    constructor(public activityType:ActivityType,public target:ActivityTarget, public callback?:IPActionCallback){
+        super(InfoPanelType.ActivityPane);
+        this.activity = this.api.getActivity(activityType);
+        this.media = this.activity.media;
+    }
+}
+
+export class TradeIPTarget extends InfopanelTarget{
+    constructor(public player:Partial<InstancePlayer>){
+        super(InfoPanelType.TradeOptionsPane);
+        this.media = player.media;
     }
 }

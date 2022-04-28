@@ -2,13 +2,13 @@
     <div class="ui-dropdown" :class="classes" @mouseleave="close" @keydown="key" @click="toggle">
         <div class="header">
             <div class="ui-dropdown-item selected" >
-                <slot v-bind="selected"></slot>
+                <slot name="selected" v-bind="selected"></slot>
             </div>
             <div class="chevron"></div>
         </div>
         <div class="items">
             <div class="ui-dropdown-item" v-for="(item,ndx) in data" :key="ndx" @click.stop="select(ndx)">
-                <slot v-if="ndx!=selectedIndex" v-bind="item"></slot>
+                <slot v-if="ndx!=selectedIndex" name="item" v-bind="item"></slot>
             </div>
         </div>
     </div>
@@ -97,7 +97,9 @@ export default {
             visibility: hidden;
         }
         &.opened .items{
-            display:block;
+            display:flex;
+            flex-flow: column nowrap;
+            gap:10px;
             visibility: visible;
         }        
 

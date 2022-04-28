@@ -137,7 +137,7 @@ input,select,textarea{
     font-family:$ui-control-font-family;
 }
     
-input[type=search],input[type=text]{
+input[type=search],input[type=text],input[type=number]{
     height:50px;
     border-radius: $ui-control-border-radius;
     padding-left:15px;

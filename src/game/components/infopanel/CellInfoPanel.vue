@@ -2,7 +2,7 @@
     <!-- Buildings -->
     <UISection title="Construcciones" class="ml-10" v-if="builtPlaceables.length > 0">
         <UIFlex padding="10">
-            <UIButton v-for="(placeable,index) in builtPlaceables" :key="index" :borderless="true" :rounded="false" grow @onClick="openBuilding(placeable)">
+            <UIButton v-for="(placeable,index) in builtPlaceables" :key="index" :borderless="true" grow @onClick="openBuilding(placeable)">
                 <UIIcon :src="placeable.media.icon.url" size="large" />
                 <UILabel>{{placeable.media.name}}</UILabel>
             </UIButton>

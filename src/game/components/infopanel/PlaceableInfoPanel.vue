@@ -1,13 +1,13 @@
 <template>
     <!--Resource flows-->
-    <UISection title="Recursos generados" class="ml-10" v-if="incomes.length">
+    <UISection title="Produce" class="ml-10" v-if="incomes.length">
         <UIFlex padding="10" gap="10">
-            <ResourceFlowItem v-for="(flow,index) in incomes" :key="index" :flow="flow"/>
+            <ResourceFlowItem v-for="(flow,index) in incomes" :key="index" :flow="flow" type="income"/>
         </UIFlex>
     </UISection>
-    <UISection title="Recursos consumidos" class="ml-10" v-if="expenses.length">
+    <UISection title="Consume" class="ml-10" v-if="expenses.length">
         <UIFlex padding="10" gap="10">
-            <ResourceFlowItem v-for="(flow,index) in expenses" :key="index" :flow="flow"/>
+            <ResourceFlowItem v-for="(flow,index) in expenses" :key="index" :flow="flow" type="expense"/>
         </UIFlex>
     </UISection>
 </template>

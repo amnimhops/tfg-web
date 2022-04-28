@@ -18,7 +18,6 @@ import {  Stockpile } from 'shared/monolyth';
 export interface GameStore {
   target:InfopanelTarget|null;
   targetHistory:InfopanelTarget[];
-  targetHistoryIndex:number|null,
   error:string|null;
   gameLoaded:boolean;
 }
@@ -27,7 +26,6 @@ export const store = createStore<GameStore>({
   state: {
     target:null,
     targetHistory:[],
-    targetHistoryIndex:null,
     error:null,
     gameLoaded:false
   },
@@ -35,12 +33,10 @@ export const store = createStore<GameStore>({
     setTarget(store:GameStore,selection:InfopanelTarget|null){
       if(selection == null){
         store.targetHistory = [];
-        store.targetHistoryIndex = null;
         store.target = null;
       }else{
         store.targetHistory = [...store.targetHistory,selection];
         store.target = selection;
-        store.targetHistoryIndex = store.targetHistory.length-1;
       }
       
     },

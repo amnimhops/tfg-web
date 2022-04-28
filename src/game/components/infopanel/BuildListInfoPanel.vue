@@ -3,29 +3,30 @@
         <UILabel>No hay estructuras disponibles</UILabel>
     </UIFlex>
     <UIFlex v-for="(item,index) in placeables" :key="index" gap="10" padding="10">
-        <UIFlex>
-            <!--<UIFlex direction="row" gap="10" alignItems="center">
-                <UIIcon :src="item.placeable.media.icon.url" size="large"/>
-                <UILabel class="large bold" link @onClick="openPlaceable(item.placeable)">{{item.placeable.media.name}}</UILabel>
-            </UIFlex>-->
-            <ActivityButton 
+        <!--<UIFlex direction="row" gap="10" alignItems="center">
+            <UIIcon :src="item.placeable.media.icon.url" size="large"/>
+            <UILabel class="large bold" link @onClick="openPlaceable(item.placeable)">{{item.placeable.media.name}}</UILabel>
+        </UIFlex>-->
+        <UIFlex direction="row" gap="10" alignItems="center">
+            <UIIcon :src="item.placeable.media.icon.url" size="large"/>
+            <UILabel class="large bold" link @onClick="openPlaceable(item.placeable)">{{item.placeable.media.name}}</UILabel>
+        </UIFlex>            
+        <UISection>
+            <UIFlex class="ml-5">
+                <ActivityButton 
                 :type="item.type" 
                 :target="item.target" 
-                :title="item.placeable.media.name" 
-                :icon="item.placeable.media.icon.url"
-                :titleClickable="true"
-                @onStarted="goBackInfoPanelHistory"
-                @onTitleClicked="openPlaceable(item.placeable)"
-            />
-        </UIFlex>
-        
+                @onStarted="goBackToCell"
+                />
+            </UIFlex>
+        </UISection>
     </UIFlex>
 </template>
 
 <script lang="ts">
 import ResourceFlowItem from '../game/ResourceFlowItem.vue';
 import ActivityButton from '../game/ActivityButton.vue';
-import {goBackInfoPanelHistory} from '@/game/controllers/ui'
+import {getHistoryTarget, goBackInfoPanelHistory} from '@/game/controllers/ui'
 import { PickBuildingIPTarget, PlaceableIPTarget } from '@/game/classes/info'
 import { ActivityCost, GameEvents, useGameAPI } from '@/game/services/gameApi'
 import { ActivityType, Placeable, ResourceAmount } from 'shared/monolyth';
@@ -51,7 +52,7 @@ export default defineComponent({
         const api = useGameAPI();
         const apiChanged = ref<number>(Date.now());
         const buildIcon = AssetManager.get(ConstantAssets.ICON_BUILD).url;
-
+        
         const placeables = computed<BuildInfo[]>( ()=>{
             apiChanged.value;
             
@@ -71,7 +72,12 @@ export default defineComponent({
             
         });
 
-
+        /* Target del paso anterior, para volver cuando finalice la construcción */
+        /* El valor de este target se fija a la hora de crear el componente y será fijo */
+        const prevTarget = getHistoryTarget(-1);
+        const goBackToCell = ()=>{
+            showInfoPanel2(prevTarget);
+        }
         const openPlaceable = (item:Placeable) => {
             showInfoPanel2(new PlaceableIPTarget(item));
         }
@@ -92,7 +98,7 @@ export default defineComponent({
         return {
             buildIcon,timeIcon,
             placeables,openPlaceable,
-            goBackInfoPanelHistory
+            goBackToCell
         }
     },
 })

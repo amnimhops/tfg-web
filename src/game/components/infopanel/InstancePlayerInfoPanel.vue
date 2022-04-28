@@ -13,7 +13,18 @@
                 v-for="(activityInfo,index) in activities" 
                 :key="index" 
                 :type="activityInfo.type" 
-                :target="activityInfo.target" />
+                :target="activityInfo.target" 
+                @onStarted="returnHere"
+            />
+            <!-- Estos dos no son técnicamente actividades...-->
+            <UIButton @onClick="composeMessage" borderless :rounded="false" grow>
+                <UIIcon :src="message.media.icon.url" size="large" />
+                <span>{{message.media.name}}</span>
+            </UIButton>
+            <UIButton borderless :rounded="false" grow @onClick="showTradingOptions">
+                <UIIcon :src="trade.media.icon.url" size="large" />
+                <span>{{trade.media.name}}</span>
+            </UIButton>
         </UIFlex>
     </UIFlex>
 </template>
@@ -23,13 +34,14 @@ import MessageForm from '../game/MessageForm.vue'
 import EnqueuedActivityInfo from '../game/EnqueuedActivityInfo.vue'
 import ActivityButton from '../game/ActivityButton.vue';
 import ActivityConfirmation from '../game/ActivityConfirmation.vue'
-import { InstancePlayerIPTarget } from '@/game/classes/info';
+import { InstancePlayerIPTarget, TradeIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
 import { Activity, ActivityType, EnqueuedActivity } from 'shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import * as UI from '../ui';
 import { useMessageWriter } from '@/game/classes/messaging';
 import { ActivityInfo, AttackActivityTarget, SpyActivityTarget, useActivityConfirmation } from '@/game/classes/activities';
+import { goBackInfoPanelHistory, showInfoPanel2 } from '@/game/controllers/ui';
 
 export default defineComponent({
     components:{...UI,MessageForm,EnqueuedActivityInfo,ActivityButton},
@@ -40,9 +52,6 @@ export default defineComponent({
         const api = useGameAPI();
         const apiChanged = ref<number>(Date.now());
         const {messageFormInput,openMessageForm,sendMessage} = useMessageWriter();
-        const {activityConfirmationModel,openActivityConfirmationDialog,closeActivityConfirmationDialog,startActivity} = useActivityConfirmation();
-        const attack = api.getActivity(ActivityType.Attack);
-        const spy = api.getActivity(ActivityType.Spy);
         const trade = api.getActivity(ActivityType.Trade);
         const message = api.getActivity(ActivityType.Message);
         
@@ -75,9 +84,11 @@ export default defineComponent({
             return enqueued;
         })
             
-        const activityInfoCallback = (activityInfo:ActivityInfo) => {
-            openActivityConfirmationDialog('Iniciar actividad',activityInfo.type,activityInfo.target);
+        const composeMessage = () => {
+            openMessageForm(props.target!.player.playerId!,'','');
         }
+
+        const returnHere = () => goBackInfoPanelHistory();
 
         const activities = computed<ActivityInfo[]>(()=>{
             apiChanged.value;
@@ -92,6 +103,9 @@ export default defineComponent({
             ]
         });
 
+        const showTradingOptions = ()=>{
+            showInfoPanel2(new TradeIPTarget(props.target!));
+        }
         onMounted(()=>{
             api.on(GameEvents.Timer,apiHandler);
         })
@@ -100,9 +114,9 @@ export default defineComponent({
         })
 
         return {
-            activities,activityInfoCallback,
-            messageFormInput,sendMessage,
-            ongoingActivities
+            activities,message,trade,showTradingOptions,
+            messageFormInput,composeMessage,sendMessage,
+            ongoingActivities,returnHere
         }
     },
 })

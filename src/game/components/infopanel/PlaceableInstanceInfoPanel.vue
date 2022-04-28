@@ -6,14 +6,14 @@
         @onAccept="startActivity"
     />
     <!--Resource flows-->
-    <UISection title="Recursos generados" class="ml-10" v-if="incomes.length">
+    <UISection title="Genera" class="ml-10" v-if="incomes.length">
         <UIFlex padding="10" gap="10">
-            <ResourceFlowItem v-for="(flow,index) in incomes" :key="index" :flow="flow"/>
+            <ResourceFlowItem v-for="(flow,index) in incomes" :key="index" :flow="flow" type="income"/>
         </UIFlex>
     </UISection>
-    <UISection title="Recursos consumidos" class="ml-10" v-if="expenses.length">
+    <UISection title="Consume" class="ml-10" v-if="expenses.length">
         <UIFlex padding="10" gap="10">
-            <ResourceFlowItem v-for="(flow,index) in expenses" :key="index" :flow="flow"/>
+            <ResourceFlowItem v-for="(flow,index) in expenses" :key="index" :flow="flow" type="expense"/>
         </UIFlex>
     </UISection>
     <!-- Sección de actividades actualmente en cola -->
@@ -23,13 +23,16 @@
         </UIFlex>
     </UISection>
     
-    <UIFlex gap="10">
-        <ActivityButton 
-            v-for="(activityInfo,index) in activities" 
-            :key="index" 
-            :type="activityInfo.type" 
-            :target="activityInfo.target" />
-    </UIFlex>
+    <UISection title="Actividades" class="ml-10" v-if="!ongoingDismantling">
+        <UIFlex gap="10" padding="10">
+            <ActivityButton 
+                v-for="(activityInfo,index) in activities" 
+                :key="index" 
+                :type="activityInfo.type" 
+                :target="activityInfo.target" 
+                @onStarted="goBackInfoPanelHistory"/>
+        </UIFlex>
+    </UISection>
 </template>
 
 <script lang="ts">
@@ -44,7 +47,7 @@ import { GameEvents, useGameAPI } from '@/game/services/gameApi'
 import { ActivityType, EnqueuedActivity, ResourceFlow } from 'shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import { ActivityInfo, DismantlingActivityTarget, useActivityConfirmation} from '../../classes/activities'
-import { closeInfoPanel } from '@/game/controllers/ui';
+import { closeInfoPanel, goBackInfoPanelHistory } from '@/game/controllers/ui';
 
 
 export default defineComponent({
@@ -131,6 +134,7 @@ export default defineComponent({
             expenses,
             activities,
             ongoingDismantling,
+            goBackInfoPanelHistory,
             activityConfirmationModel,closeActivityConfirmationDialog,startActivity
         }
     },
