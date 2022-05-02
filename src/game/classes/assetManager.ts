@@ -31,7 +31,7 @@ export const ConstantAssets = {
     ICON_MESSAGE:'icon-message',
     /* Map / Cells */
     HEX_SELECTED:'hex-selected',
-    HEX_UNKNOWN:'hex-unknown',
+    HEX_UNEXPLORED:'hex-unexplored',
     
     /* Section icons */
     ICON_SECTION_AREA:'icon-section-area',
@@ -57,7 +57,10 @@ export const ConstantAssets = {
     /* Messaging section assets */
     MESSAGING_MESSAGE : 'messaging-message-image',
     MESSAGING_NOTIFICATION : 'messaging-notification-image',
-    MESSAGING_REPORT : 'messaging-report-image'
+    MESSAGING_REPORT : 'messaging-report-image',
+
+    /* Elementos desconocidos */
+    UNKNOWN_IMAGE:'unknown_image'
 }
 
 export const ASSET_EMPTY:Asset = {

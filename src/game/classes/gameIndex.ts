@@ -11,7 +11,6 @@ export class GameData{
     technologies:Record<string,Technology>;
     activities:Map<ActivityType,Activity>;
     
-    
     constructor(game:Game){
         this.cells = toMap(game.cells, (cell) => cell.id);
         this.placeables = toMap(game.placeables, (placeable) => placeable.id);

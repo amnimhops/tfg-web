@@ -113,3 +113,9 @@ export interface TradingActivityTarget extends ActivityTarget{
     send:ResourceAmount[];
     receive:ResourceAmount[];
 }
+export interface ExplorationActivityTarget extends ActivityTarget{
+    cellInstanceId:number;
+}
+export interface ClaimActivityTarget extends ActivityTarget{
+    cellInstanceId:number;
+}

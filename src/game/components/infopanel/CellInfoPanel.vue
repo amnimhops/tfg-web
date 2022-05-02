@@ -10,19 +10,35 @@
             </UIFlex>
         </UISection>
         <!-- Sección de elementos actualmente en construcción -->
-        <UISection title="En cola" class="ml-10" v-if="buildActivities.length > 0">
+        <UISection title="En cola" class="ml-10" v-if="runningActivities.length > 0">
             <UIFlex padding="10" gap="10">
-                <EnqueuedActivityInfo v-for="(ba,index) in buildActivities" :key="index" :data="ba" />
+                <EnqueuedActivityInfo v-for="(ba,index) in runningActivities" :key="index" :data="ba" />
             </UIFlex>
         </UISection>
         <!-- Activities -->
         <UISection title="Actividades" class="ml-10">
             <UIFlex padding="10">
-                <UIButton :borderless="true" grow @onClick="showBuildingList">
+                <UIButton :borderless="true" grow @onClick="showBuildingList" v-if="owned">
                     <UIIcon :src="buildIcon" size="large" />
                     <UILabel>Construir</UILabel>
                 </UIButton>
             </UIFlex>
+            <UIFlex padding="10" v-if="!explored">
+                 <ActivityButton 
+                    :type="explorationActivity.type" 
+                    :target="explorationTarget" 
+                    @onStarted="goBackInfoPanelHistory"
+                />
+            </UIFlex>
+             <UIFlex padding="10" v-if="explored && !owned">
+                 <ActivityButton 
+                    :type="claimActivity.type" 
+                    :target="claimTarget" 
+                    @onStarted="goBackInfoPanelHistory"
+                />
+            </UIFlex>
+            
+            
         </UISection>
     </UIFlex>
 </template>
@@ -31,12 +47,12 @@
 import {deleteIcon} from '../ui/icons';
 import { CellIPTarget, ExistingPlaceableIPTarget, PickBuildingIPTarget } from '@/game/classes/info'
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
-import { ActivityType, Media, PlaceableInstance, EnqueuedActivity } from 'shared/monolyth'
+import { ActivityType, Media, PlaceableInstance, EnqueuedActivity, CellInstance } from 'shared/monolyth'
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
-import { showInfoPanel2 } from '@/game/controllers/ui'
+import { goBackInfoPanelHistory, showInfoPanel2 } from '@/game/controllers/ui'
 import { AssetManager, ConstantAssets } from '@/game/classes/assetManager'
-import { BuildingActivityTarget } from '@/game/classes/activities'
-
+import { BuildingActivityTarget, ClaimActivityTarget, ExplorationActivityTarget } from '@/game/classes/activities'
+import ActivityButton from '../game/ActivityButton.vue';
 import * as UI from '../ui/';
 import EnqueuedActivityInfo from '../game/EnqueuedActivityInfo.vue';
 
@@ -48,7 +64,7 @@ type PlaceableInstanceView = PlaceableInstance & {
 }
 
 export default defineComponent({
-    components:{...UI,EnqueuedActivityInfo},
+    components:{...UI,EnqueuedActivityInfo,ActivityButton},
     props:{
         target:Object as PropType<CellIPTarget>
     },
@@ -58,10 +74,38 @@ export default defineComponent({
         const gameData = api.getGameData();
         const buildIcon = AssetManager.get(ConstantAssets.ICON_BUILD).url;
 
+        const explorationActivity = api.getActivity(ActivityType.Explore);
+        const claimActivity = api.getActivity(ActivityType.Claim);
+        const explorationTarget = computed<ExplorationActivityTarget>(()=>{
+            apiChanged.value;
+
+            return {
+                cellInstanceId:props.target!.cellInstance.id
+            }as ExplorationActivityTarget
+        });
+        const claimTarget = computed<ExplorationActivityTarget>(()=>{
+            apiChanged.value;
+
+            return {
+                cellInstanceId:props.target!.cellInstance.id
+            }as ExplorationActivityTarget
+        });
+        const owned = computed<boolean>(()=>{
+            apiChanged.value;
+
+            const player = api.getCurrentPlayer();
+            return player.playerId == props.target!.cellInstance!.playerId;
+        });
+        const explored = computed<boolean>(()=>{
+            apiChanged.value;
+
+            const player = api.getCurrentPlayer();
+            return player.exploredCells!.some( id => id == props.target!.cellInstance.id)
+        });
         const showBuildingList = ()=>{
             showInfoPanel2(new PickBuildingIPTarget(props.target!.cellInstance));
         }
-       
+
         // Cambia el panel a la ficha del edificio asociado al emplazable seleccionado
         const openBuilding = (model:PlaceableInstance) => {
             if(props.target){
@@ -72,6 +116,10 @@ export default defineComponent({
         // Actualiza el flag de cambios del API
         const handleApiChanges = ()=>{
             apiChanged.value = Date.now();
+        }
+
+        const handleCellChanges = (e:CellInstance)=> {
+            console.log(e)
         }
 
         // Obtiene reactivamente la listsa de edificios construidos
@@ -86,31 +134,49 @@ export default defineComponent({
         });
         
         // Obtiene reactivamente la lista de actividades asociadas en curso
-        const buildActivities = computed<EnqueuedActivity[]>( () => {
+        const runningActivities = computed<EnqueuedActivity[]>( () => {
             apiChanged.value;
 
             const cellInstance = props.target!.cellInstance;
-            return api
+            const activities = [];
+            activities.push(...api
                 .getQueueByType(ActivityType.Build)
-                .filter( ea => (ea.target as BuildingActivityTarget).cellInstanceId == cellInstance.id);
+                .filter( ea => (ea.target as BuildingActivityTarget).cellInstanceId == cellInstance.id)
+            );
+            activities.push(...api
+                .getQueueByType(ActivityType.Claim)
+                .filter( ea=> (ea.target as ClaimActivityTarget).cellInstanceId == cellInstance.id)
+            );
+            activities.push(...api
+                .getQueueByType(ActivityType.Explore)
+                .filter( ea=> (ea.target as ExplorationActivityTarget).cellInstanceId == cellInstance.id)
+            );
+
+            return activities;
         })
 
         onMounted(()=>{
             // Conectamos el componente con el temporizador de la API
             api.on(GameEvents.Timer, handleApiChanges);
+            // Hay que escuchar también los cambios sobre las celdas
+            api.on(GameEvents.CellInstanceUpdated,handleCellChanges);
         })
         onUnmounted(()=>{
             // Desonectamos el componente del temporizador de la API
             api.off(GameEvents.Timer,handleApiChanges);
+            api.off(GameEvents.CellInstanceUpdated,handleCellChanges);
         })
 
         return {
             /* Iconos */
             buildIcon,deleteIcon,
             /* Datos */
-            buildActivities,builtPlaceables,
+            runningActivities,builtPlaceables,
+            explorationActivity,explorationTarget,
+            claimActivity,claimTarget,
+            owned,explored,
             /* Acciones */
-            showBuildingList,openBuilding
+            showBuildingList,openBuilding,goBackInfoPanelHistory
         }
     },
 })

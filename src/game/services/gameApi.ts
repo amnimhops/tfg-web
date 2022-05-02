@@ -2,7 +2,7 @@ import { Instance } from '@popperjs/core';
 import { countdown, countdownStr, randomInt, randomItem, range, toMap } from 'shared/functions';
 import { MAP_SIZE, randomText } from 'shared/mocks';
 import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, ConstantProperties, EnqueuedActivity, FlowPeriodicity, Game, GameInstance, InstancePlayer, Media, Message, MessageContentType, MessageType, Placeable, PlaceableInstance, Player, Properties, Resource, ResourceAmount, ResourceFlow, SearchResult, SpyReport, Stockpile, Technology, TradingAgreement, UIConfig, Vector, WithAmount } from 'shared/monolyth';
-import { ActivityAvailability, AttackActivityTarget, BuildingActivityTarget, DismantlingActivityTarget, ResearchActivityTarget, SpyActivityTarget } from '../classes/activities';
+import { ActivityAvailability, AttackActivityTarget, BuildingActivityTarget, ClaimActivityTarget, DismantlingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget, SpyActivityTarget } from '../classes/activities';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { CombatPlayer, CombatResult, CombatUnit, CombatUnitInfo, createCombatSummary } from '../classes/combat';
 import { EventEmitter, IEventEmitter } from '../classes/events';
@@ -422,7 +422,39 @@ class MockAPI extends EventEmitter implements IGameAPI {
             this.dismantleBuilding(item.target as DismantlingActivityTarget);
         }else if(item.type == ActivityType.Attack){
             this.attackPlayer(item.target as AttackActivityTarget);
+        }else if(item.type == ActivityType.Explore){
+            this.exploreCell(item.target as ExplorationActivityTarget);
+        }else if(item.type == ActivityType.Claim){
+            this.claimCell(item.target as ClaimActivityTarget);
         }
+    }
+
+    private claimCell(target:ClaimActivityTarget){
+        const cell = this.currentInstance!.cells[target.cellInstanceId];
+        if(cell.playerId == null){
+            // Palante
+            cell.playerId = this.currentInstancePlayer!.playerId;
+            this.raise<CellInstance>(GameEvents.CellInstanceUpdated,cell);
+        }else{
+            // Es posible que alguien se haya hecho con la celda antes que el jugador
+            this.sendMessageToPlayer({
+                srcPlayerId:null,
+                dstPlayerId:this.currentInstancePlayer!.playerId,
+                contentType:MessageContentType.Plain,
+                subject:'La reclamación ha fallado',
+                type:MessageType.Notification,
+                id:this.nextUUID(),
+                message:'La misión de reclamación de la celda ha fallado, otro jugador la ha ocupado antes de llegar.',
+                sendAt:Date.now()
+            })
+        }
+    }
+
+    private exploreCell(target:ExplorationActivityTarget){
+        const cell = this.currentInstance!.cells[target.cellInstanceId];
+        this.currentInstancePlayer!.exploredCells?.push(target.cellInstanceId);
+        this.raise<CellInstance>(GameEvents.CellInstanceUpdated,cell);
+        
     }
 
     private dismantleBuilding(target:DismantlingActivityTarget){
@@ -739,7 +771,47 @@ class MockAPI extends EventEmitter implements IGameAPI {
                 if(!this.currentInstance) {
                     reject('La instancia no está cargada')
                 }else{
-                    resolve(this.currentInstance.cells.filter( cell => cell.playerId == this.currentInstancePlayer?.playerId))
+                    /**
+                     * Las celdas visibles para el jugador serán:
+                     * - Las de su propiedad
+                     * - Las que se encuentren a un radio x de la celda principal
+                     * El radio aumenta con la tecnología adecuada
+                     * Solo se pueden explorar y reclamar celdas en el area de influencia
+                     */
+                    const player = this.currentInstancePlayer!;
+                    const mainCell = this.currentInstance.cells[player.cells[0]];
+                    const visibleCells:CellInstance[] = [];
+                    const props = this.calculatePlayerProperties(player.playerId);
+                    const radius = props[ConstantProperties.InfluenceRadius];
+                    for(let y = mainCell.position.y-radius;y < mainCell.position.y+radius;y++){
+                        for(let x = mainCell.position.x-radius;x < mainCell.position.x+radius;x++){
+                            if(x >= 0 && y >= 0 && x < MAP_SIZE && y < MAP_SIZE){
+                                if(new Vector(x,y).distance(mainCell.position) <= radius){
+                                    const cell = this.currentInstance.cells[y*MAP_SIZE+x];
+                                    if(cell.playerId == player.playerId){
+                                        // Damos toda la info
+                                        visibleCells.push(cell);
+                                    }else{
+                                        if(player.exploredCells?.some( cid => cid == cell.id)){
+                                            // Esta celda ya había sido explorada, devolvemos todos los datos
+                                            visibleCells.push(cell);
+                                        }else{
+                                            // Esta celda no se ha explorado, ocultamos terreno, props, etc
+                                            visibleCells.push({
+                                                position:cell.position,
+                                                id:cell.id,
+                                                cellId:this.internalGame!.config.unknownCellId,
+                                                placeables:[],
+                                                playerId:null
+                                            })
+                                        }
+                                    }
+                                }
+                            }
+                        }    
+                    }
+                    //resolve(this.currentInstance.cells.filter( cell => cell.playerId == this.currentInstancePlayer?.playerId))
+                    resolve(visibleCells);
                 }
              } ,1000);
         } );
@@ -1057,7 +1129,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
             for(let x = query.p1.x; x < query.p2.x; x++){
                 // Referencia a la instancia de celda sobre la que se itera
                 // en caso de que esté dentro de los limites del mapa
-                if(x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE){
+                if(y >= 0 && x >= 0 && x < MAP_SIZE &&  y < MAP_SIZE){
                     const cell = this.currentInstance.cells[y*MAP_SIZE+x];
                     // Si la celda que cae en el sector tiene propietario, este
                     // debe aparecer en la lista de jugadores

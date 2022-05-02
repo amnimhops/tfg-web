@@ -37,7 +37,7 @@ export class PlayerMapController extends ManagedMapController{
      * Callback invocado al recibir las celdas del servidor.
      * @param playerMap Objeto IPlayerMap que controla la gestión de cambios remotos
      */
-    onCellsReceived(cells:CellInstance[]){
+     onCellsReceived(cells:CellInstance[]){
         console.log('Map controller connected to server');
         const gameData = this.api.getGameData();
         this.cells = cells.map( cell => new HexCell(cell));
@@ -66,10 +66,17 @@ export class PlayerMapController extends ManagedMapController{
         // Notifica a super() que estamos listos para pintar
         this.readyToPaint = true;
         
+        this.centerTo(this.cells[0].drawPos);
         this.api.on(GameEvents.CellInstanceUpdated,(ci:CellInstance)=>{
             this.cells.forEach( hexcell => {
                 if(hexcell.cellInstance.id == ci.id){
                     hexcell.cellInstance = ci;
+                    // Si la celda en cuestión estaba seleccionada
+                    // lanzamos de nuevo onSelect() para informar 
+                    // de los cambios
+                    if(this.selected == hexcell){
+                        this.raise(PlayerMapEvents.CELL_SELECTED,this.selected?.cellInstance);
+                    }
                 }
             })
         });
@@ -88,7 +95,6 @@ export class PlayerMapController extends ManagedMapController{
                 this.selected = cell;
             }
         }
-        if(this.selected) console.log("xxxx",this.selected.drawPos,this.getPos())
         this.raise(PlayerMapEvents.CELL_SELECTED,this.selected?.cellInstance);
     }
     
@@ -96,6 +102,7 @@ export class PlayerMapController extends ManagedMapController{
         const cellDef = this.api.getCell(cell.cellInstance.cellId);
         return AssetManager.get(cellDef.texture.id).data;
     }
+
     private getBuildingTexture(cell:HexCell):HTMLImageElement|undefined{
         const cellDef = this.api.getCell(cell.cellInstance.cellId).media.image.data;
         const numBuildings = cell.cellInstance.placeables.length;

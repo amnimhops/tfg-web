@@ -6,7 +6,7 @@ import { CellIPTarget } from "../classes/info";
 
 
 const hexSelected = require("@/assets/resources/hex-selected.png");
-const hexUnknwon = require("@/assets/resources/hex-unknown.png");
+const hexUnexplored = require("@/assets/resources/hex-unexplored.png");
 
 const ui_ok = require("@/assets/ui/icon-accept.svg");
 const ui_cancel = require("@/assets/ui/icon-close.svg");
@@ -94,8 +94,8 @@ const msgReportImage = require("@/assets/images/image-messaging-report.webp")
 const msgMessageImage = require("@/assets/images/image-messaging-message.png")
 const msgNotificationImage = require("@/assets/images/image-messaging-notification.png")
 
-//const gameConfigJson = require("@/assets/data/gamedata.json");
-
+// Cosas desconocidas
+const imgUnknown = require("@/assets/images/image-unknown.webp");
 
 const assets:Asset[] = [];
 let game:Game;
@@ -107,7 +107,7 @@ function createAsset(id:string,type:'image'|'sound'|'text'|'json',url:string,dat
 function defineAssets(){
     assets.push(
         createAsset(ConstantAssets.HEX_SELECTED,'image',hexSelected),
-        createAsset(ConstantAssets.HEX_UNKNOWN,'image',hexUnknwon),
+        createAsset(ConstantAssets.HEX_UNEXPLORED,'image',hexUnexplored),
         createAsset(ConstantAssets.UI_OK,'image',ui_ok),
         createAsset(ConstantAssets.UI_ADD,'image',ui_add),
         createAsset(ConstantAssets.UI_DELETE,'image',ui_delete),
@@ -198,7 +198,9 @@ function defineAssets(){
         createAsset('user-profile-3','image',userProfile3),
         createAsset('user-profile-4','image',userProfile4),
         createAsset('user-profile-5','image',userProfile5),
-        createAsset('user-profile-6','image',userProfile6)
+        createAsset('user-profile-6','image',userProfile6),
+
+        createAsset(ConstantAssets.UNKNOWN_IMAGE,'image',imgUnknown)
     );
 }
 
@@ -213,8 +215,11 @@ function randomizeMediaAssets(media:Media){
 export function randomizeGameAssets(game:Game){
     game.cells.forEach( cell => {
         randomizeMediaAssets(cell.media)
-        cell.texture = randomItem(assets.filter( asset => asset.id.startsWith('cell-texture')));
-
+        if(cell.id != game.config.unknownCellId){
+            cell.texture = randomItem(assets.filter( asset => asset.id.startsWith('cell-texture')));
+        }else{
+            cell.texture = assets.find( asset => asset.id == ConstantAssets.HEX_UNEXPLORED)!;
+        }
     });
     game.placeables.forEach( placeable => {
         randomizeMediaAssets(placeable.media)
@@ -271,6 +276,7 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
     const instance = randomItem(gameInstances);
     
     const game = games.filter(game => instance.gameId == game.id)[0];
+
     randomizeGameAssets(game);
     // Añadir el jugador
     const newPlayer:InstancePlayer = {
@@ -282,9 +288,11 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
         properties:{
             'queueCapacity':10,
             'queueNumProcesses':1,
+            'influenceRadius':2,
             'spySucceed':100000
         },
-        cells:[]
+        cells:[],
+        exploredCells:[]
     }
     instance.players.push(newPlayer);
     // Ajustar los medios de los jugadores
@@ -294,7 +302,10 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
     });
     // Asignar celdas iniciales
     const [x,y] = [randomInt(MAP_SIZE),randomInt(MAP_SIZE)];
-    instance.cells[y*MAP_SIZE+x].playerId = player.id!;
+    const cell = instance.cells[y*MAP_SIZE+x];
+    cell.playerId = player.id!;
+    newPlayer.cells.push(cell.id);
+    newPlayer.exploredCells?.push(cell.id);
     // for(let x = 0; x< areaSize; x++){
     //     for(let y = 0; y<areaSize; y++){
     //         const ci = instance.cells[ (y+startPos.y)*MAP_SIZE + (x+startPos.x)];
