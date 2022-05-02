@@ -29,6 +29,7 @@
       <BuildListInfoPanel v-if="selection.type==InfoPanelType.PickBuildingPane" :target="selection"/>
       <ActivityInfoPanel v-if="selection.type==InfoPanelType.ActivityPane" :target="selection" />
       <TradeOptionsInfoPanel v-if="selection.type==InfoPanelType.TradeOptionsPane" :target="selection" />
+      <AttackOptionsInfoPanel v-if="selection.type==InfoPanelType.AttackOptionsPane" :target="selection" />
       <!-- -->
     </UIFlex>
     <!--<UIFlex direction="row" justifyContent="flex-start" class="mt-10" v-if="showPrevLink" padding="10">
@@ -62,6 +63,7 @@ import MessageInfoPanel from './MessageInfoPanel.vue';
 import BuildListInfoPanel from './BuildListInfoPanel.vue'
 import ActivityInfoPanel from './ActivityInfoPanel.vue'
 import TradeOptionsInfoPanel from './TradeOptionsInfoPanel.vue'
+import AttackOptionsInfoPanel from './AttackOptionsInfoPanel.vue'
 const store = useStore();
 
 export default defineComponent({
@@ -73,7 +75,8 @@ export default defineComponent({
     MessageInfoPanel,
     BuildListInfoPanel,
     ActivityInfoPanel,
-    TradeOptionsInfoPanel
+    TradeOptionsInfoPanel,
+    AttackOptionsInfoPanel
   },
   
   setup(){

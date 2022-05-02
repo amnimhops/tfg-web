@@ -140,21 +140,25 @@ export class WorldMapController extends AbstractMapController{
     protected paint(): void {
         this.clear();
         const context = this.getContext();
-        
+        context.lineWidth = 1;
+        context.strokeStyle='#0a0a0a';//this.colorMap[cell.cellId]
+        context.fillStyle='#a0a0a0';
+                
         for(let i = 0; i < this.sector.map.length; i++ ){
             const x = (i % this.size) * this.cellW +this.pan.x+this.pos.x%this.cellW;
             const y = Math.floor(i / this.size) * this.cellH +this.pos.y%this.cellH+this.pan.y
             
             const cell = this.sector.map[i];
-            if(cell.cellId){
-                context.strokeStyle=this.colorMap[cell.cellId]
-                context.fillStyle = context.strokeStyle;
+            if(cell.playerId){
+                //context.fillStyle = context.strokeStyle;
                 context.beginPath();
-                context.rect(x,y,this.cellW,this.cellH);
-                context.fill();
+                context.fillRect(x,y,this.cellW,this.cellH);
+                context.strokeRect(x,y,this.cellW,this.cellH);
                // 
                 //context.fillStyle = 'black'
                 //context.fillText(cell.position.x+","+cell.position.y+","+this.colorMap[cell.cellId],x,y+10)
+            }else{
+                context.strokeRect(x,y,this.cellW,this.cellH);
             }
         }
         

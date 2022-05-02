@@ -13,7 +13,8 @@
         <UIFlex class="messages" v-if="messages" padding="10" gap="10">
             <UIFlex class="message" v-for="(message,index) in messages" :key="index">
                 <span class="xs-12 hidden-xl-up label">De</span>
-                <UILabel class="xs-12 xl-3 from" link @onClick="onPlayerSelected(message.srcPlayerId)">{{message.senderName}}</UILabel>
+                <UILabel v-if="message.srcPlayerId" class="xs-12 xl-3 from" link @onClick="onPlayerSelected(message.srcPlayerId)">{{message.senderName}}</UILabel>
+                <UILabel v-else class="xs-12 xl-3 from">Sistema</UILabel>
                 <span class="xs-12 hidden-xl-up label">Fecha</span>
                 <span class="xs-12 xl-1 date">{{new Date(message.sendAt).toLocaleDateString()}}</span>
                 <span class="xs-12 hidden-xl-up label">Asunto</span>
@@ -24,7 +25,7 @@
                 </UIFlex>
             </UIFlex>
             <UIFlex direction="row" justifyContent="space-around">
-                <UIPager :page="page" :pages="pageCount" @onChange="changePage"/>
+                <UIPager :page="page" :pages="pageCount" @onChange="changePage" v-if="pageCount>1"/>
             </UIFlex>
         </UIFlex>        
     </UIPane>
@@ -107,12 +108,12 @@ export default defineComponent({
             // el ID del jugador, habrá que recuperar sus datos vía
             // API
             const playerDetails = await api.getInstancePlayer(id);
+            console.log(playerDetails.media)
             showInfoPanel2(new InstancePlayerIPTarget(playerDetails));
         }
 
-        const openMessage = async (message:Message) => {
-            const remotePlayer = await api.getInstancePlayer(message.srcPlayerId!);
-            showInfoPanel2(new MessageIPTarget(message,remotePlayer));
+        const openMessage = (message:Message) => {
+            showInfoPanel2(new MessageIPTarget(message));
         }
 
         const deleteMessage = async (message:Message) => {

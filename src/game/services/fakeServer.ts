@@ -1,6 +1,6 @@
 import { ActivityType, Asset, FlowPeriodicity, Game, GameInstance, InstancePlayer, Media, Player, Technology, Vector } from "shared/monolyth";
 import {players, games, gameInstances, randomName, MAP_SIZE, randomMedia, randomText} from "shared/mocks/";
-import { randomInt, randomItem, range } from "shared/functions";
+import { randomInt, randomItem, randomProbability, range } from "shared/functions";
 import { ConstantAssets } from "../classes/assetManager";
 import { CellIPTarget } from "../classes/info";
 
@@ -255,7 +255,7 @@ export function createPlayer():Player{
         name:randomName(),
         password:'',
         surname:randomName(),
-        id:'generated-plyaer-'+randomInt(100)
+        id:'generated-player-'+Date.now()
     }
 }
 
@@ -280,12 +280,9 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
         media:randomMedia(),
         technologies:game.technologies.filter(tech => tech.parent == null).map(tech=>tech.id),
         properties:{
-            queueCapacity:5,
-            queueParallelActivities:1,
-            attackAbility:50,
-            counterSpyAbility:50,
-            defenceAbility:50,
-            spyAbility:150
+            'queueCapacity':10,
+            'queueNumProcesses':1,
+            'spySucceed':100000
         },
         cells:[]
     }
@@ -295,31 +292,42 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
         player.media.name = 'Player '+randomName()
         player.media.image = randomItem(assets.filter(asset => asset.id.startsWith('user-profile')));
     });
-    // Asignar unas celdas
-    const areaSize = 50;
-    const startPos:Vector = new Vector(0,0);//new Vector(areaSize+randomInt(MAP_SIZE - areaSize),areaSize+randomInt(MAP_SIZE - areaSize));
-    for(let x = 0; x< areaSize; x++){
-        for(let y = 0; y<areaSize; y++){
-            const ci = instance.cells[ (y+startPos.y)*MAP_SIZE + (x+startPos.x)];
-            ci.playerId = player.id||null;
-            newPlayer.cells.push(ci.id);
-            const cell = game.cells.find(c => c.id == ci.cellId);
-            cell?.allowedPlaceableIds.forEach( pid => {
-                /*if(Math.random() > .75){
-                    ci.placeables.push({
-                        id:-1,
-                        built:true,
-                        instanceFlows: [
-                            {amount:Math.random()*100,periodicity:FlowPeriodicity.PerSecond,resourceId:randomItem(game.resources).id}, // IRREALES, FALSOS, NO SE CORRESPPONDEN CON EL ORIGINAL
-                            {amount:-Math.random()*88,periodicity:FlowPeriodicity.PerSecond,resourceId:randomItem(game.resources).id}
-                        ],
-                        placeableId:pid
-                    })
-                }*/
-            })
-        }
-    }
-
+    // Asignar celdas iniciales
+    const [x,y] = [randomInt(MAP_SIZE),randomInt(MAP_SIZE)];
+    instance.cells[y*MAP_SIZE+x].playerId = player.id!;
+    // for(let x = 0; x< areaSize; x++){
+    //     for(let y = 0; y<areaSize; y++){
+    //         const ci = instance.cells[ (y+startPos.y)*MAP_SIZE + (x+startPos.x)];
+    //         ci.playerId = player.id||null;
+    //         newPlayer.cells.push(ci.id);
+    //         const cell = game.cells.find(c => c.id == ci.cellId);
+    //         cell?.allowedPlaceableIds.forEach( pid => {
+    //             /*if(Math.random() > .75){
+    //                 ci.placeables.push({
+    //                     id:-1,
+    //                     built:true,
+    //                     instanceFlows: [
+    //                         {amount:Math.random()*100,periodicity:FlowPeriodicity.PerSecond,resourceId:randomItem(game.resources).id}, // IRREALES, FALSOS, NO SE CORRESPPONDEN CON EL ORIGINAL
+    //                         {amount:-Math.random()*88,periodicity:FlowPeriodicity.PerSecond,resourceId:randomItem(game.resources).id}
+    //                     ],
+    //                     placeableId:pid
+    //                 })
+    //             }*/
+    //         })
+    //     }
+    // }
+    /* Emplazables gratis para todos */
+    /*instance.cells.forEach( cell=>{
+        if(randomProbability(0.1)) cell.placeables.push({
+            id:-1,
+            built:true,
+            instanceFlows: [
+                {amount:Math.random()*100,periodicity:FlowPeriodicity.PerSecond,resourceId:randomItem(game.resources).id}, // IRREALES, FALSOS, NO SE CORRESPPONDEN CON EL ORIGINAL
+                {amount:-Math.random()*88,periodicity:FlowPeriodicity.PerSecond,resourceId:randomItem(game.resources).id}
+            ],
+            placeableId:randomItem(game.cells.find( c => c.id == cell.cellId)!.allowedPlaceableIds)
+        });
+    })*/
     console.log('Tamaño de la instancia:',JSON.stringify(instance).length)
     return [instance,game];
 }

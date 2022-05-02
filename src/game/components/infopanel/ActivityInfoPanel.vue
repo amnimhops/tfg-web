@@ -26,8 +26,8 @@
 <script lang="ts">
 import { ActivityIPTarget } from '@/game/classes/info';
 import { goBackInfoPanelHistory, showErrorPanel } from '@/game/controllers/ui';
-import { ActivityCost, useGameAPI } from '@/game/services/gameApi';
-import { computed, defineComponent, PropType } from 'vue'
+import { ActivityCost, GameEvents, useGameAPI } from '@/game/services/gameApi';
+import { computed, defineComponent, onMounted, PropType, ref } from 'vue'
 import ResourceFlowItem from '../game/ResourceFlowItem.vue'
 import {timeIcon} from '../ui/icons'
 
@@ -42,12 +42,19 @@ export default defineComponent({
     },
     setup(props,{emit}) {
         const api = useGameAPI();
+        const apiChanged = ref<number>(Date.now());
+
+        const apiHandler = ()=>{
+            apiChanged.value = Date.now();
+        }
+        
         const cost = computed<ActivityCost>(()=>{
             const i= api.getActivityCost(props.target!.activityType!,props.target!.target);
                 console.log(i);
             return i;
         });
         const availability = computed<ActivityAvailability>(()=>{
+            apiChanged.value;
             console.log('Checking availability of',props.target);
             return api.checkActivityAvailability(props.target!.activityType,props.target!.target);
         });
@@ -63,6 +70,9 @@ export default defineComponent({
                 showErrorPanel(err as string);
             }
         }
+        onMounted(()=>{
+            api.on(GameEvents.Timer,apiHandler);
+        })
 
         return {timeIcon,start,cost,availability};
     },

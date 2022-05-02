@@ -7,7 +7,8 @@
             <ActivityButton 
                 :type="researchActivity.type" 
                 :target="researchActivity.target" 
-                :title="'Iniciar '+researchActivity.target.name"/>
+                :title="'Iniciar '+researchActivity.target.name"
+                @onStarted="returnHere"/>
         </UIFlex>
         <!-- En curso -->
         <UISection title="En cola" class="ml-10" v-if="inResearch">
@@ -45,6 +46,7 @@ import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
 import { useRouter } from 'vue-router';
 import {acceptIcon,closeIcon} from '../ui/icons'
 import EnqueuedActivityInfo from '../game/EnqueuedActivityInfo.vue';
+import { goBackInfoPanelHistory } from '@/game/controllers/ui';
 
 export default defineComponent({
     props:{
@@ -63,6 +65,8 @@ export default defineComponent({
         }
 
         api.on(GameEvents.Timer, handleApiChanges);
+
+        const returnHere = () => goBackInfoPanelHistory();
 
         const researched = computed<boolean|null>( () => {
             apiChanged.value; 
@@ -117,7 +121,8 @@ export default defineComponent({
         return {
             researchActivity,researched,inResearch,
             acceptIcon,closeIcon,
-            unlockedTechs,requiredTech,navigate
+            unlockedTechs,requiredTech,navigate,
+            returnHere
         };
     },
 })

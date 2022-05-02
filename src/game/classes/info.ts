@@ -35,7 +35,8 @@ export const InfoPanelType = {
     PlayerPane:'player',
     MessagePane:'message',
     ActivityPane:'activity',
-    TradeOptionsPane:'trade'
+    TradeOptionsPane:'trade',
+    AttackOptionsPane:'attack'
 };
 
 export class CellIPTarget extends InfopanelTarget{
@@ -94,7 +95,7 @@ export class InstancePlayerIPTarget extends InfopanelTarget{
 }
 
 export class MessageIPTarget extends InfopanelTarget{
-    constructor(public message:Message,public remotePlayer:Partial<InstancePlayer>){
+    constructor(public message:Message){
         super(InfoPanelType.MessagePane);
         /**
          * Al contrario que el resto de targets del panel, los mensajes
@@ -132,6 +133,12 @@ export class ActivityIPTarget extends InfopanelTarget{
 export class TradeIPTarget extends InfopanelTarget{
     constructor(public player:Partial<InstancePlayer>){
         super(InfoPanelType.TradeOptionsPane);
-        this.media = player.media;
+        this.media = this.api.getActivity(ActivityType.Trade).media;//player.media;
+    }
+}
+export class AttackIPTarget extends InfopanelTarget{
+    constructor(public player:Partial<InstancePlayer>){
+        super(InfoPanelType.AttackOptionsPane);
+        this.media = this.api.getActivity(ActivityType.Attack).media;//player.media;
     }
 }

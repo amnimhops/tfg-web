@@ -1,28 +1,30 @@
 <template>
-    <!-- Buildings -->
-    <UISection title="Construcciones" class="ml-10" v-if="builtPlaceables.length > 0">
-        <UIFlex padding="10">
-            <UIButton v-for="(placeable,index) in builtPlaceables" :key="index" :borderless="true" grow @onClick="openBuilding(placeable)">
-                <UIIcon :src="placeable.media.icon.url" size="large" />
-                <UILabel>{{placeable.media.name}}</UILabel>
-            </UIButton>
-        </UIFlex>
-    </UISection>
-    <!-- Sección de elementos actualmente en construcción -->
-    <UISection title="En cola" class="ml-10" v-if="buildActivities.length > 0">
-        <UIFlex padding="10" gap="10">
-            <EnqueuedActivityInfo v-for="(ba,index) in buildActivities" :key="index" :data="ba" />
-        </UIFlex>
-    </UISection>
-    <!-- Activities -->
-    <UISection title="Actividades" class="ml-10">
-        <UIFlex padding="10">
-            <UIButton :borderless="true" grow @onClick="showBuildingList">
-                <UIIcon :src="buildIcon" size="large" />
-                <UILabel>Construir</UILabel>
-            </UIButton>
-        </UIFlex>
-    </UISection>
+    <UIFlex gap="20">
+        <!-- Buildings -->
+        <UISection title="Construcciones" class="ml-10" v-if="builtPlaceables.length > 0">
+            <UIFlex padding="10" gap="10">
+                <UIFlex direction="row" v-for="(placeable,index) in builtPlaceables" :key="index" alignItems="center" gap="10">
+                    <UIIcon :src="placeable.media.icon.url" size="large" />
+                    <UILabel @onClick="openBuilding(placeable)" link>{{placeable.media.name}}</UILabel>
+                </UIFlex>
+            </UIFlex>
+        </UISection>
+        <!-- Sección de elementos actualmente en construcción -->
+        <UISection title="En cola" class="ml-10" v-if="buildActivities.length > 0">
+            <UIFlex padding="10" gap="10">
+                <EnqueuedActivityInfo v-for="(ba,index) in buildActivities" :key="index" :data="ba" />
+            </UIFlex>
+        </UISection>
+        <!-- Activities -->
+        <UISection title="Actividades" class="ml-10">
+            <UIFlex padding="10">
+                <UIButton :borderless="true" grow @onClick="showBuildingList">
+                    <UIIcon :src="buildIcon" size="large" />
+                    <UILabel>Construir</UILabel>
+                </UIButton>
+            </UIFlex>
+        </UISection>
+    </UIFlex>
 </template>
 
 <script lang="ts">

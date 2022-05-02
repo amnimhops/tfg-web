@@ -17,9 +17,6 @@ function getAmount(amount:ResourceAmount):string{
 function getProductionSpeed(flow:ResourceFlow):string {
     let unit = '';
     switch(flow.periodicity){
-        case FlowPeriodicity.Once:
-            unit = 'unidades';
-            break;
         case FlowPeriodicity.PerSecond:
             unit = '/ segundo';
             break;

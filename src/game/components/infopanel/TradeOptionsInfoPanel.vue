@@ -37,7 +37,7 @@
         <UIFlex direction="row" justifyContent="space-between" v-for="(item,index) in sortedDeal" :key="index" alignItems="center">
           <UIFlex direction="row" justifyContent="flex-start"  alignItems="center" gap="10">
             <UIIcon :src="item.resource.media.icon.url" size="medium"/>
-            <UILabel :class="item.type">{{item.type=='offer'?'Recibir':'Enviar'}} {{fmtResourceAmount(item.amount)}} {{item.resource.media.name}}</UILabel>
+            <UILabel :class="item.type">{{item.type=='offer'?'Enviar':'Recibir'}} {{fmtResourceAmount(item.amount)}} {{item.resource.media.name}}</UILabel>
           </UIFlex>
           <UIButton justify="center" @onClick="deleteItem(index)">
             <UIIcon :src="deleteIcon" size="medium" />
@@ -54,7 +54,7 @@
 
 <script lang="ts">
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
-import { Resource, ResourceAmount, TradingAgreement } from 'shared/monolyth';
+import { Resource, ResourceAmount, TradingAgreement, WithAmount } from 'shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, Ref, ref } from 'vue'
 import UIDropdown from '../ui/UIDropdown.vue';
 import * as UI from '../ui/';
@@ -64,9 +64,6 @@ import {deleteIcon} from '../ui/icons'
 import { TradeIPTarget } from '@/game/classes/info';
 import { goBackInfoPanelHistory, showErrorPanel } from '@/game/controllers/ui';
 
-type WithAmount<T> = T & {
-  amount:number;
-}
 interface DealItem {
   resource:Resource;
   amount:number;
@@ -150,10 +147,11 @@ export default defineComponent({
 
     const sendTradingDeal = async ()=>{
       const srcPlayer = api.getCurrentPlayer();
-      const dstPlayer = props.target;
+      const dstPlayer = props.target!.player;
+      console.log(dstPlayer)
       const agreement:TradingAgreement = {
         srcPlayerId:srcPlayer.playerId,
-        dstPlayerId:props.target!.player.playerId!,
+        dstPlayerId:dstPlayer.playerId!,
         offer:deal.value.filter( item => item.type == 'offer').map( item => ({resourceId:item.resource.id,amount:item.amount} as ResourceAmount)),
         request:deal.value.filter( item => item.type == 'request').map( item => ({resourceId:item.resource.id,amount:item.amount} as ResourceAmount)),
       }

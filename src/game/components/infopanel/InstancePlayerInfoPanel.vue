@@ -16,12 +16,17 @@
                 :target="activityInfo.target" 
                 @onStarted="returnHere"
             />
+            <!-- El ataque va por su cuenta -->
+            <UIButton @onClick="prepareAttack" borderless grow>
+                <UIIcon :src="attack.media.icon.url" size="large" />
+                <span>{{attack.media.name}}</span>
+            </UIButton>
             <!-- Estos dos no son técnicamente actividades...-->
-            <UIButton @onClick="composeMessage" borderless :rounded="false" grow>
+            <UIButton @onClick="composeMessage" borderless grow>
                 <UIIcon :src="message.media.icon.url" size="large" />
                 <span>{{message.media.name}}</span>
             </UIButton>
-            <UIButton borderless :rounded="false" grow @onClick="showTradingOptions">
+            <UIButton borderless grow @onClick="showTradingOptions">
                 <UIIcon :src="trade.media.icon.url" size="large" />
                 <span>{{trade.media.name}}</span>
             </UIButton>
@@ -34,7 +39,7 @@ import MessageForm from '../game/MessageForm.vue'
 import EnqueuedActivityInfo from '../game/EnqueuedActivityInfo.vue'
 import ActivityButton from '../game/ActivityButton.vue';
 import ActivityConfirmation from '../game/ActivityConfirmation.vue'
-import { InstancePlayerIPTarget, TradeIPTarget } from '@/game/classes/info';
+import { AttackIPTarget, InstancePlayerIPTarget, TradeIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
 import { Activity, ActivityType, EnqueuedActivity } from 'shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
@@ -54,16 +59,7 @@ export default defineComponent({
         const {messageFormInput,openMessageForm,sendMessage} = useMessageWriter();
         const trade = api.getActivity(ActivityType.Trade);
         const message = api.getActivity(ActivityType.Message);
-        
-        /*const performActivity = (activity:Activity) => {
-            if(activity.type == ActivityType.Message){
-                openMessageForm(props.target!.player.playerId!,'');
-            }else if(activity.type == ActivityType.Spy){
-                openActivityConfirmationDialog('Iniciar espionaje',ActivityType.Spy,{
-                    instancePlayerId:props.target?.player.playerId
-                } as SpyActivityTarget);
-            }
-        };*/
+        const attack = api.getActivity(ActivityType.Attack);
 
         const apiHandler = ()=>{
             apiChanged.value = Date.now();
@@ -99,12 +95,15 @@ export default defineComponent({
             
             return [
                 {type:ActivityType.Spy,target:spyTarget as SpyActivityTarget},
-                {type:ActivityType.Attack,target:spyTarget  as AttackActivityTarget}
             ]
         });
 
+        const prepareAttack = ()=>{
+            showInfoPanel2(new AttackIPTarget(props.target!.player));
+        }
+
         const showTradingOptions = ()=>{
-            showInfoPanel2(new TradeIPTarget(props.target!));
+            showInfoPanel2(new TradeIPTarget(props.target!.player));
         }
         onMounted(()=>{
             api.on(GameEvents.Timer,apiHandler);
@@ -114,9 +113,9 @@ export default defineComponent({
         })
 
         return {
-            activities,message,trade,showTradingOptions,
+            activities,message,trade,attack,showTradingOptions,
             messageFormInput,composeMessage,sendMessage,
-            ongoingActivities,returnHere
+            prepareAttack,ongoingActivities,returnHere
         }
     },
 })

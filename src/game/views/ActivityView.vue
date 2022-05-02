@@ -19,9 +19,9 @@
                         <span class="label-countdown">{{summary.countdown}}</span>
                     </UILabel>
                     <UIFlex direction="row" gap="10" class="xs-12 lg-3" justifyContent="flex-end">
-                        <UIButton :disabled="summary.started || index == 1"><UIIcon :src="caretUpIcon" size="medium" /></UIButton>
-                        <UIButton :disabled="summary.started || index == summaries.length-1"><UIIcon :src="caretDownIcon" size="medium" /></UIButton>
-                        <UIButton><UIIcon :src="deleteIcon" size="medium" /></UIButton>
+                        <UIButton @onClick="changePriority(summary,-1)" :disabled="summary.started"><UIIcon :src="caretUpIcon" size="medium" /></UIButton>
+                        <UIButton @onClick="changePriority(summary,1)" :disabled="summary.started || index == summaries.length-1"><UIIcon :src="caretDownIcon" size="medium" /></UIButton>
+                        <UIButton @onClick="cancel(summary)"><UIIcon :src="deleteIcon" size="medium" /></UIButton>
                     </UIFlex>
                 </UIFlex>   
             </UIFlex>
@@ -38,11 +38,12 @@ import { computed, defineComponent, onMounted, ref } from 'vue'
 import { GameEvents, useGameAPI } from '../services/gameApi'
 import {countdown,countdownStr} from 'shared/functions'
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
-import { showInfoPanel2 } from '../controllers/ui';
+import { showErrorPanel, showInfoPanel2 } from '../controllers/ui';
 import { CellIPTarget, ExistingPlaceableIPTarget, InfopanelTarget, IPActionCallback, TechIPTarget } from '../classes/info';
 import { BuildingActivityTarget, ResearchActivityTarget } from '../classes/activities';
 
 interface ActivitySummary{
+    id:number;
     name:string;
     activity:Activity;
     target:ActivityTarget;
@@ -68,6 +69,7 @@ export default defineComponent({
                 const activity = api.getActivity(type);
                 
                 return {
+                    id:item.id,
                     name:item.name,
                     activity,
                     target,
@@ -98,6 +100,23 @@ export default defineComponent({
             if(ipTarget) showInfoPanel2(ipTarget);
 
         }
+
+        const changePriority = async(summary:ActivitySummary,offset:number) => {
+            try{
+                await api.changeActivityOrder(summary.id,offset);
+            }catch(err){
+                showErrorPanel(err as string);
+            }
+        }
+
+        const cancel = async(summary:ActivitySummary) => {
+            try{
+                await api.cancelActivity(summary.id);
+            }catch(err){
+                showErrorPanel(err as string);
+            }
+        };
+
         onMounted(()=>{
             api.on(GameEvents.Timer,() => {
                 apiChanged.value = Date.now();
@@ -105,7 +124,7 @@ export default defineComponent({
         });
         return {
             summaries,
-            viewDetails,
+            viewDetails,cancel,
             bgImage,deleteIcon,caretUpIcon,caretDownIcon}
     },
 })

@@ -106,6 +106,7 @@ export interface SpyActivityTarget extends ActivityTarget{
 }
 export interface AttackActivityTarget extends ActivityTarget{
     instancePlayerId:string;
+    resources:ResourceAmount[];
 }
 export interface TradingActivityTarget extends ActivityTarget{
     instancePlayerId:string;
