@@ -1,7 +1,7 @@
 import { Instance } from '@popperjs/core';
-import { countdown, countdownStr, randomInt, randomItem, range, toMap } from 'shared/functions';
-import { MAP_SIZE, randomText } from 'shared/mocks';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, ConstantProperties, EnqueuedActivity, FlowPeriodicity, Game, GameInstance, InstancePlayer, Media, Message, MessageContentType, MessageType, Placeable, PlaceableInstance, Player, Properties, Resource, ResourceAmount, ResourceFlow, SearchResult, SpyReport, Stockpile, Technology, TradingAgreement, UIConfig, Vector, WithAmount } from 'shared/monolyth';
+import { countdown, countdownStr, randomInt, randomItem, range, toMap } from '@/shared/functions';
+import { MAP_SIZE, randomText } from '@/shared/mocks';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, ConstantProperties, EnqueuedActivity, FlowPeriodicity, Game, GameEvents, GameInstance, InstancePlayer, Media, Message, MessageContentType, MessageType, Placeable, PlaceableInstance, Player, Properties, Resource, ResourceAmount, ResourceFlow, SearchResult, SpyReport, Stockpile, Technology, TradingAgreement, UIConfig, Vector, WithAmount } from '@/shared/monolyth';
 import { ActivityAvailability, AttackActivityTarget, BuildingActivityTarget, ClaimActivityTarget, DismantlingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget, SpyActivityTarget } from '../classes/activities';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { CombatPlayer, CombatResult, CombatUnit, CombatUnitInfo, createCombatSummary } from '../classes/combat';
@@ -10,6 +10,9 @@ import { fmtResourceAmount } from '../classes/formatters';
 import { GameData } from '../classes/gameIndex';
 import { createGameList, createPlayer, createSinglePlayerMatch, getAssets} from './fakeServer';
 
+export {GameEvents} from '@/shared/monolyth';
+
+const apiEndpoint = 'http://localhost:3000/';
 
 interface PropertyCalculationParams{
     cells:boolean;
@@ -191,7 +194,8 @@ export interface ILocalGameAPI{
 }
 /**
  * Esta interfaz define las operaciones que se llevan a cabo
- * en el lado del servidor
+ * en el lado del servidor, serán implementadas por el cliente
+ * de comunicaciones.
  */
 export interface IRemoteGameAPI{
     authenticate(email:string,pass:string):Promise<Player>;
@@ -213,22 +217,6 @@ export interface IRemoteGameAPI{
 
 export interface IGameAPI extends ILocalGameAPI, IRemoteGameAPI, IEventEmitter{
     
-}
-
-export const GameEvents = {
-    StockpilesChanged:'stockpiles_changed',
-    ActivityFinished:'activity_finished',
-    ActivityCanceled:'activity_canceled',
-    ActivityStarted:'activity_started',
-    TradingCreated:'trading_created',
-    TradingRejected:'trading_rejected',
-    TradingAccepted:'trading_accepted',
-    CellInstanceUpdated:'cell_instance_updated',
-    TechnologyResearched:'technology_researched',
-    IncomingMessage:'incoming_message',
-    PlaceableFinished:'placeable_finished',
-    ResearchCompleted:'research_completed',
-    Timer:'timer'
 }
 
 class MockAPI extends EventEmitter implements IGameAPI {
@@ -742,6 +730,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
             this.currentPlayer = createPlayer();
             resolve(this.currentPlayer);
         });
+        
     }
     joinGame(id:string):Promise<Asset[]>{
         return new Promise((resolve) =>{

@@ -15,14 +15,14 @@
 </template>
 
 <script lang="ts">
-import { EnqueuedActivity, Media } from 'shared/monolyth';
+import { EnqueuedActivity, Media } from '@/shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import {deleteIcon} from '../ui/icons';
 import UILabel from '../ui/UILabel.vue';
 import UIFlex from '../ui/UIFlex.vue';
 import UIButton from '../ui/UIButton.vue';
 import UIIcon from '../ui/UIIcon.vue';
-import { countdown, countdownStr } from 'shared/functions';
+import { countdown, countdownStr } from '@/shared/functions';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
 
 export default defineComponent({

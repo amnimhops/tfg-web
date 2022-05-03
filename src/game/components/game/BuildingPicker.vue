@@ -46,7 +46,7 @@ import UILabel from '@/game/components/ui/UILabel.vue'
 import ResourceFlowItem from '@/game/components/game/ResourceFlowItem.vue'
 import {acceptIcon} from '@/game/components/ui/icons'
 import { useGameAPI } from '@/game/services/gameApi'
-import { ActivityType, CellInstance, Placeable } from 'shared/monolyth'
+import { ActivityType, CellInstance, Placeable } from '@/shared/monolyth'
 import {computed, defineComponent, ref} from 'vue';
 import { BuildingActivityTarget } from '@/game/classes/activities'
 

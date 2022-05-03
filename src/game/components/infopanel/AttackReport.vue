@@ -26,7 +26,7 @@
 
 <script lang="ts">
 import { useGameAPI } from '@/game/services/gameApi';
-import { Placeable, Resource, ResourceAmount, SpyReport, Technology, WithAmount } from 'shared/monolyth';
+import { Placeable, Resource, ResourceAmount, SpyReport, Technology, WithAmount } from '@/shared/monolyth';
 import { computed, defineComponent, PropType } from 'vue'
 import {fmtResourceAmount} from '../../classes/formatters';
 import * as UI from '../ui/';

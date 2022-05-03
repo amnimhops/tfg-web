@@ -41,7 +41,7 @@ import ActivityButton from '../game/ActivityButton.vue'
 import { ActivityInfo, ResearchActivityTarget, useActivityConfirmation } from '@/game/classes/activities';
 import { TechIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
-import { Activity, ActivityType, EnqueuedActivity, Technology } from 'shared/monolyth';
+import { Activity, ActivityType, EnqueuedActivity, Technology } from '@/shared/monolyth';
 import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
 import { useRouter } from 'vue-router';
 import {acceptIcon,closeIcon} from '../ui/icons'

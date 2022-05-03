@@ -33,10 +33,10 @@
 <script lang="ts">
 import * as UI from '../components/ui/';
 import {deleteIcon,caretUpIcon,caretDownIcon} from '../components/ui/icons';
-import { Activity, ActivityTarget, ActivityType } from 'shared/monolyth';
+import { Activity, ActivityTarget, ActivityType } from '@/shared/monolyth';
 import { computed, defineComponent, onMounted, ref } from 'vue'
 import { GameEvents, useGameAPI } from '../services/gameApi'
-import {countdown,countdownStr} from 'shared/functions'
+import {countdown,countdownStr} from '@/shared/functions'
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { showErrorPanel, showInfoPanel2 } from '../controllers/ui';
 import { CellIPTarget, ExistingPlaceableIPTarget, InfopanelTarget, IPActionCallback, TechIPTarget } from '../classes/info';

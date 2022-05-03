@@ -18,8 +18,7 @@
     "paths": {
       "@/*": [
         "src/*"
-      ],
-      "shared/*":["../shared/*"]
+      ]
     },
     "lib": [
       "esnext",
@@ -35,7 +34,7 @@
     "tests/**/*.ts",
     "tests/**/*.tsx",
     /* Modelos de datos compartidos con el servidor */
-    "../shared/*.ts",
+    //"../server/src/models/*.ts",
     /* svgs */
     "src/custom.d.ts"
   ],

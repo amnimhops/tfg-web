@@ -1,7 +1,7 @@
 import { createStore, Store } from 'vuex'
 import { InjectionKey } from 'vue'
 import {  InfopanelTarget } from '@/game/classes/info';
-import {  Stockpile } from 'shared/monolyth';
+import {  Stockpile } from '@/shared/monolyth';
 
 /**
  * Nota: Este módulo exporta por un lado store y key, por otro useStore; todos hacen lo mismo.

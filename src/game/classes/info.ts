@@ -1,4 +1,4 @@
-import { CellInstance, Media, Technology, Asset, Resource, InstancePlayer, Message, MessageType, PlaceableInstance, Placeable, ActivityType, ActivityTarget, Activity } from "shared/monolyth";
+import { CellInstance, Media, Technology, Asset, Resource, InstancePlayer, Message, MessageType, PlaceableInstance, Placeable, ActivityType, ActivityTarget, Activity } from "@/shared/monolyth";
 import { IGameAPI, useGameAPI } from "../services/gameApi";
 import { AssetManager, ASSET_EMPTY, ConstantAssets } from "./assetManager";
 import { GameData } from "./gameIndex";

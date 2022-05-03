@@ -1,5 +1,5 @@
-import { toMap } from "shared/functions";
-import { Activity, ActivityType, Cell, Game, Placeable, Resource, Technology } from "shared/monolyth";
+import { toMap } from "@/shared/functions";
+import { Activity, ActivityType, Cell, Game, Placeable, Resource, Technology } from "@/shared/monolyth";
 
 /**
  * Construye un índice consultable a partir de un descriptor de juego

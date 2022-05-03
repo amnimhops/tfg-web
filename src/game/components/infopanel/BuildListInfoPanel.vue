@@ -29,7 +29,7 @@ import ActivityButton from '../game/ActivityButton.vue';
 import {getHistoryTarget, goBackInfoPanelHistory} from '@/game/controllers/ui'
 import { PickBuildingIPTarget, PlaceableIPTarget } from '@/game/classes/info'
 import { ActivityCost, GameEvents, useGameAPI } from '@/game/services/gameApi'
-import { ActivityType, Placeable, ResourceAmount } from 'shared/monolyth';
+import { ActivityType, Placeable, ResourceAmount } from '@/shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import { BuildingActivityTarget} from '../../classes/activities'
 import * as UI from '@/game/components/ui/';

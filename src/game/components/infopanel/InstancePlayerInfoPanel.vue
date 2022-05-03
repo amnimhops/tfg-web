@@ -41,7 +41,7 @@ import ActivityButton from '../game/ActivityButton.vue';
 import ActivityConfirmation from '../game/ActivityConfirmation.vue'
 import { AttackIPTarget, InstancePlayerIPTarget, TradeIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
-import { Activity, ActivityType, EnqueuedActivity } from 'shared/monolyth';
+import { Activity, ActivityType, EnqueuedActivity } from '@/shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import * as UI from '../ui';
 import { useMessageWriter } from '@/game/classes/messaging';

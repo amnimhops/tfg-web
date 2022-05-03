@@ -23,7 +23,7 @@ import {closeIcon,timeIcon} from "../ui/icons"
 import * as UI from "../ui/";
 import { GameEvents, useGameAPI } from "@/game/services/gameApi";
 import { ref } from "vue";
-import { ActivityType, EnqueuedActivity, Message, MessageType, PlaceableInstance } from "shared/monolyth";
+import { ActivityType, EnqueuedActivity, Message, MessageType, PlaceableInstance } from "@/shared/monolyth";
 import { AssetManager, ConstantAssets } from "@/game/classes/assetManager";
 import { showInfoPanel2 } from "@/game/controllers/ui";
 import { ExistingPlaceableIPTarget, MessageIPTarget, TechIPTarget } from "@/game/classes/info";

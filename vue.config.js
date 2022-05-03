@@ -14,9 +14,9 @@ module.exports = defineConfig({
   /* Configuración necesaria para que webpack cargue las librerias compartidas con el servidor */
   configureWebpack:{
     resolve:{
-      alias:{
+      /*alias:{
         'shared': path.resolve(__dirname, '../shared/'),
-      }
+      }*/
     }
   }
   

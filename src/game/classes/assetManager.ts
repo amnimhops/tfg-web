@@ -1,4 +1,4 @@
-import { Asset } from "shared/monolyth";
+import { Asset } from "@/shared/monolyth";
 
 export class AssetManager {
     private static assets:{[name:string]:Asset} = {};

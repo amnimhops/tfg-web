@@ -1,5 +1,5 @@
-import { randomItem } from "shared/functions";
-import { ConstantProperties,GameInstance,InstancePlayer,Placeable,Properties, ResourceAmount, WithAmount } from "shared/monolyth";
+import { randomItem } from "@/shared/functions";
+import { ConstantProperties,GameInstance,InstancePlayer,Placeable,Properties, ResourceAmount, WithAmount } from "@/shared/monolyth";
 import { IGameAPI } from "../services/gameApi";
 import { GameData } from "./gameIndex";
 

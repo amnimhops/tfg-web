@@ -1,6 +1,6 @@
-import { ActivityType, Asset, FlowPeriodicity, Game, GameInstance, InstancePlayer, Media, Player, Technology, Vector } from "shared/monolyth";
-import {players, games, gameInstances, randomName, MAP_SIZE, randomMedia, randomText} from "shared/mocks/";
-import { randomInt, randomItem, randomProbability, range } from "shared/functions";
+import { ActivityType, Asset, FlowPeriodicity, Game, GameInstance, InstancePlayer, Media, Player, Technology, Vector } from "@/shared/monolyth";
+import {players, games, gameInstances, randomName, MAP_SIZE, randomMedia, randomText} from "@/shared/mocks";
+import { randomInt, randomItem, randomProbability, range } from "@/shared/functions";
 import { ConstantAssets } from "../classes/assetManager";
 import { CellIPTarget } from "../classes/info";
 
@@ -292,6 +292,7 @@ export function createSinglePlayerMatch(player:Player):[GameInstance,Game]{
             'spySucceed':100000
         },
         cells:[],
+        instanceId:'',
         exploredCells:[]
     }
     instance.players.push(newPlayer);

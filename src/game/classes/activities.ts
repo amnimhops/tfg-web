@@ -1,4 +1,4 @@
-import { ActivityTarget, ActivityType, ResourceAmount, Technology } from "shared/monolyth";
+import { ActivityTarget, ActivityType, ResourceAmount, Technology } from "@/shared/monolyth";
 import { ref } from "vue";
 import { showErrorPanel } from "../controllers/ui";
 import { useGameAPI } from "../services/gameApi";

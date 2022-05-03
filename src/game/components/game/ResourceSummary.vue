@@ -23,7 +23,7 @@
 
 <script lang="ts">
 import { ResourceStat } from '@/game/services/gameApi';
-import { Placeable } from 'shared/monolyth';
+import { Placeable } from '@/shared/monolyth';
 import { defineComponent, PropType } from 'vue'
 import { useRouter } from 'vue-router';
 import { fmtResourceAmount } from '../../classes/formatters';

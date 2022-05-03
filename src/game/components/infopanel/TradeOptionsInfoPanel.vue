@@ -54,11 +54,11 @@
 
 <script lang="ts">
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
-import { Resource, ResourceAmount, TradingAgreement, WithAmount } from 'shared/monolyth';
+import { Resource, ResourceAmount, TradingAgreement, WithAmount } from '@/shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, Ref, ref } from 'vue'
 import UIDropdown from '../ui/UIDropdown.vue';
 import * as UI from '../ui/';
-import { toMap } from 'shared/functions';
+import { toMap } from '@/shared/functions';
 import { fmtResourceAmount } from '@/game/classes/formatters';
 import {deleteIcon} from '../ui/icons'
 import { TradeIPTarget } from '@/game/classes/info';

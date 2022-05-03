@@ -46,8 +46,8 @@
 <script lang="ts">
 import {deleteIcon} from '../ui/icons';
 import { CellIPTarget, ExistingPlaceableIPTarget, PickBuildingIPTarget } from '@/game/classes/info'
-import { GameEvents, useGameAPI } from '@/game/services/gameApi'
-import { ActivityType, Media, PlaceableInstance, EnqueuedActivity, CellInstance } from 'shared/monolyth'
+import { useGameAPI } from '@/game/services/gameApi'
+import { GameEvents, ActivityType, Media, PlaceableInstance, EnqueuedActivity, CellInstance } from '@/shared/monolyth'
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import { goBackInfoPanelHistory, showInfoPanel2 } from '@/game/controllers/ui'
 import { AssetManager, ConstantAssets } from '@/game/classes/assetManager'

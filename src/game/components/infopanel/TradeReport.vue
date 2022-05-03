@@ -28,8 +28,8 @@
 
 <script lang="ts">
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
-import { toMap } from 'shared/functions';
-import { Resource, ResourceAmount, SpyReport, Technology, TradingAgreement, WithAmount, WithMedia } from 'shared/monolyth';
+import { toMap } from '@/shared/functions';
+import { Resource, ResourceAmount, SpyReport, Technology, TradingAgreement, WithAmount, WithMedia } from '@/shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import {fmtResourceAmount} from '../../classes/formatters';
 import * as UI from '../ui';

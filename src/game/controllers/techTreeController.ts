@@ -1,8 +1,8 @@
-import { Technology, UIConfig, Vector } from 'shared/monolyth';
+import { Technology, UIConfig, Vector } from '@/shared/monolyth';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { GameEvents, IGameAPI } from '../services/gameApi';
 import { ManagedMapController } from './canvasController';
-import { toMap } from 'shared/functions';
+import { toMap } from '@/shared/functions';
 
 interface TechTreeNode{
     tech:Technology;

@@ -31,7 +31,7 @@ import AttackReport from './AttackReport.vue';
 import { AssetManager, ConstantAssets } from '@/game/classes/assetManager';
 import { MessageIPTarget } from '@/game/classes/info'
 import { useGameAPI } from '@/game/services/gameApi'
-import { Media,MessageType,MessageContentType } from 'shared/monolyth'
+import { Media,MessageType,MessageContentType } from '@/shared/monolyth'
 import { computed, defineComponent, PropType, ref } from 'vue'
 
 import * as UI from '../ui';

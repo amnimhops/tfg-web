@@ -29,7 +29,7 @@ import { useStore } from '@/store';
 import { defineComponent, onMounted, ref } from "@vue/runtime-core";
 import { GameEvents, useGameAPI } from "./services/gameApi";
 import { InfopanelTarget } from "./classes/info";
-import { Stockpile } from "shared/monolyth";
+import { Stockpile } from "@/shared/monolyth";
 import { computed } from "vue";
 import { closeInfoPanel } from "./controllers/ui";
 import UIModal from './components/ui/UIModal.vue'

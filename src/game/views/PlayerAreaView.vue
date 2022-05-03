@@ -10,7 +10,7 @@ import {
   PlayerMapController,
   PlayerMapEvents,
 } from "@/game/controllers/playerMapController";
-import { CellInstance } from "shared/monolyth";
+import { CellInstance } from "@/shared/monolyth";
 import { defineComponent, onMounted, onUnmounted, ref } from "vue";
 import { useGameAPI } from "../services/gameApi";
 import { CellIPTarget } from "../classes/info";

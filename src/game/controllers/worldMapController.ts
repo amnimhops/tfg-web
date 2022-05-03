@@ -1,5 +1,5 @@
-import { limit, randomInt, range } from "shared/functions";
-import { Cell, Vector } from "shared/monolyth";
+import { limit, randomInt, range } from "@/shared/functions";
+import { Cell, Vector } from "@/shared/monolyth";
 import { IGameAPI, WorldMapSector } from "../services/gameApi";
 import { AbstractMapController } from "./canvasController";
 
