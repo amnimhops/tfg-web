@@ -43,8 +43,12 @@ export default defineComponent({
     (window as any).api = api;
     (window as any).closeInfoPanel = closeInfoPanel;
     onMounted( async () => {
+      console.log('Comenzando')
+
       const player = await api.authenticate("fu","bar");
-      const assets = await api.joinGame("TODO_GAMEID_HERE");
+      const gameList = await api.getGameList();
+      const assets = await api.joinGame(gameList[0].id!);
+      
       
       
       // Agregar el asset al manager, con el contenido inicialmente vacio
@@ -57,13 +61,14 @@ export default defineComponent({
       let loaded = 0;
       loader.onProgress.add( (loader: Loader, resource: Resource)=>{
         console.log(loaded++,'de',assets.length);
+        console.log(resource.url)
       });
         
       loader.load( (loader, resources) => {
           for (let id in resources) {
             // Agregar el contenido a cada definición de asset
             AssetManager.get(id).data = resources[id]!.data; 
-            console.log("Added", id);
+            console.log("Added", id,resources[id]!.url);
           }
           resourcesLoaded.value = true;
       });

@@ -1,6 +1,6 @@
 import { limit, randomInt, range } from "@/shared/functions";
-import { Cell, Vector } from "@/shared/monolyth";
-import { IGameAPI, WorldMapSector } from "../services/gameApi";
+import { Cell, Vector, WorldMapSector } from "@/shared/monolyth";
+import { IGameAPI } from "../services/gameApi";
 import { AbstractMapController } from "./canvasController";
 
 function createFalseColorMap(map:Record<string,Cell>):Record<string,string>{
@@ -19,7 +19,7 @@ export const WorldMapEvents = {
     PLAYER_SELECTED : 'player:selected'
 }
 
-const SIZE = 50
+const SIZE = 25
 export class WorldMapController extends AbstractMapController{
     private sector:WorldMapSector;
     private playerId:string;
@@ -74,13 +74,15 @@ export class WorldMapController extends AbstractMapController{
         return this.zoomLevel;
     }
     private recalculateMapSector(){
-        this.sector = this.api.getWorldMap({
+        console.log('Buscando sección del mapa');
+        this.api.getWorldMap({
             p1:this.mapPos.copy(),
             p2:this.mapPos.copy().add(new Vector(this.size,this.size))
-        })
-        console.log(this.sector)
-        this.raise(WorldMapEvents.PLAYERS_AVAILABLE,this.sector.players);
-
+        }).then( sector =>{
+            this.sector = sector;
+            console.log(this.sector)
+            this.raise(WorldMapEvents.PLAYERS_AVAILABLE,this.sector.players);
+        });
     }
     protected select(pos: Vector): void {
         const [ox,oy] = [this.offsetX,this.offsetY];
@@ -143,14 +145,19 @@ export class WorldMapController extends AbstractMapController{
         context.lineWidth = 1;
         context.strokeStyle='#0a0a0a';//this.colorMap[cell.cellId]
         context.fillStyle='#a0a0a0';
-                
+        const currentPlayer = this.api.getCurrentPlayer();
+
         for(let i = 0; i < this.sector.map.length; i++ ){
             const x = (i % this.size) * this.cellW +this.pan.x+this.pos.x%this.cellW;
             const y = Math.floor(i / this.size) * this.cellH +this.pos.y%this.cellH+this.pan.y
             
             const cell = this.sector.map[i];
             if(cell.playerId){
-                //context.fillStyle = context.strokeStyle;
+                if(cell.playerId == currentPlayer.playerId){
+                    context.fillStyle='blue';
+                }else{
+                    context.fillStyle='#a0a0a0';
+                }
                 context.beginPath();
                 context.fillRect(x,y,this.cellW,this.cellH);
                 context.strokeRect(x,y,this.cellW,this.cellH);

@@ -73,6 +73,8 @@ export class TechTreeController extends ManagedMapController{
     uiConfig:UIConfig;
     constructor(canvas:HTMLCanvasElement,api:IGameAPI){
         super(canvas,api);
+        console.log('Technology tree started');
+        
         const techs = api.getTechnologyList();
         const roots = techs.filter( tech => tech.parent == null).map( tech => ({children:[],tech} as TechTreeNode));
         roots.forEach( root => findHierarchy(root,techs));

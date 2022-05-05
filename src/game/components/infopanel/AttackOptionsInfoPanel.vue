@@ -69,7 +69,7 @@
 </template>
 
 <script lang="ts">
-import { ActivityCost, GameEvents, useGameAPI } from '@/game/services/gameApi'
+import { GameEvents, useGameAPI } from '@/game/services/gameApi'
 import { ActivityType, Resource, ResourceAmount, TradingAgreement, WithAmount } from '@/shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, Ref, ref } from 'vue'
 import ResourceFlowItem from '../game/ResourceFlowItem.vue';
@@ -80,7 +80,7 @@ import { fmtResourceAmount } from '@/game/classes/formatters';
 import {deleteIcon,timeIcon} from '../ui/icons'
 import { AttackIPTarget, TradeIPTarget } from '@/game/classes/info';
 import { closeInfoPanel, goBackInfoPanelHistory, showErrorPanel } from '@/game/controllers/ui';
-import { ActivityAvailability, AttackActivityTarget } from '@/game/classes/activities';
+import { ActivityAvailability, ActivityCost, AttackActivityTarget } from '@/game/classes/activities';
 
 export default defineComponent({
   components:{...UI,UIDropdown,ResourceFlowItem},

@@ -26,13 +26,13 @@
 <script lang="ts">
 import { ActivityIPTarget } from '@/game/classes/info';
 import { goBackInfoPanelHistory, showErrorPanel } from '@/game/controllers/ui';
-import { ActivityCost, GameEvents, useGameAPI } from '@/game/services/gameApi';
+import { GameEvents, useGameAPI } from '@/game/services/gameApi';
 import { computed, defineComponent, onMounted, PropType, ref } from 'vue'
 import ResourceFlowItem from '../game/ResourceFlowItem.vue'
 import {timeIcon} from '../ui/icons'
 
 import * as UI from '../ui/';
-import { ActivityAvailability } from '@/game/classes/activities';
+import { ActivityAvailability, ActivityCost } from '@/game/classes/activities';
 
 
 export default defineComponent({

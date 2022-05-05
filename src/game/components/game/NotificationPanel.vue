@@ -2,13 +2,13 @@
   <div class="notification-panel">
     <UIFlex gap="20" padding="10">
       <UIPane v-for="(notification,index) in notifications" :key="index" :class="`notification-${index}`">
-        <UIFlex gap="5" padding="5" >
+        <UIFlex gap="5" padding="5" class="ml-10">
           <UIFlex direction="row" alignItems="center" justifyContent="space-between">
             <UILabel class="bold" :link="notification.callback != undefined" @onClick="navigate(notification)">{{notification.title}}</UILabel>
             <UIButton borderless @onClick="discard(notification)"><UIIcon :src="closeIcon" size="medium" /></UIButton>
           </UIFlex>
           <UIFlex direction="row" gap="10" justifyContent="flex-start" alignItems="center">
-            <UIIcon v-if="notification.icon" :src="notification.icon" />
+            <UIIcon v-if="notification.icon" :src="notification.icon" class="notification-icon"/>
             <p>{{notification.message}}</p>
           </UIFlex>
         </UIFlex>
@@ -26,8 +26,8 @@ import { ref } from "vue";
 import { ActivityType, EnqueuedActivity, Message, MessageType, PlaceableInstance } from "@/shared/monolyth";
 import { AssetManager, ConstantAssets } from "@/game/classes/assetManager";
 import { showInfoPanel2 } from "@/game/controllers/ui";
-import { ExistingPlaceableIPTarget, MessageIPTarget, TechIPTarget } from "@/game/classes/info";
-import { BuildingActivityTarget, ResearchActivityTarget } from "@/game/classes/activities";
+import { CellIPTarget, ExistingPlaceableIPTarget, MessageIPTarget, TechIPTarget } from "@/game/classes/info";
+import { BuildingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget } from "@/game/classes/activities";
 
 interface SystemNotification{
     id:number;
@@ -89,7 +89,20 @@ export default defineComponent({
 
         const title = 'Actividad completada';
         const icon = AssetManager.get(placeable.media.icon.id).url;
-        const message = 'Se ha completdo la construcción de '+placeable.media.name;
+        const message = 'Se ha completado la construcción de '+placeable.media.name;
+        addNotification({id:nextNotificationId++,title,icon,message,callback});
+    }
+
+    const notifyExplorationFinished = (target : ExplorationActivityTarget) => {
+        const cellInstance = api.getCellInstance(target.cellInstanceId)!;
+        const cell = gameData.cells[cellInstance.cellId];
+        const callback = ()=> {   
+            showInfoPanel2(new CellIPTarget(cellInstance));
+        };
+
+        const title = 'Actividad completada';
+        const icon = AssetManager.get(cell.media.icon.id).url;
+        const message = 'Se ha completado una misión de exploración';
         addNotification({id:nextNotificationId++,title,icon,message,callback});
     }
 
@@ -105,6 +118,8 @@ export default defineComponent({
             notifyResearchCompleted(ea.target as ResearchActivityTarget);
         }else if(ea.type == ActivityType.Build){
             notifyBuildingCompleted(ea.target as BuildingActivityTarget);
+        }else if(ea.type == ActivityType.Explore){
+            notifyExplorationFinished(ea.target as ExplorationActivityTarget);
         }
     }
     const incomingMessageHandler = (message:Message) => {
@@ -139,7 +154,7 @@ export default defineComponent({
     onUnmounted(()=>{
         api.off(GameEvents.IncomingMessage,incomingMessageHandler);
         api.off(GameEvents.ActivityFinished,activityFinishedHandler);
-        api.on(GameEvents.ActivityCanceled,activityCanceledHandler);
+        api.off(GameEvents.ActivityCanceled,activityCanceledHandler);
     });
 
     (window as any).addNotification = addNotification;
@@ -162,10 +177,12 @@ export default defineComponent({
       border-radius: $ui-control-border-radius;
       box-shadow: 3px 3px 3px $ui-control-shadow-color;
   }
-  
+  .notification-icon{
+      @include invisible;
+  }
   p{
       margin:0px;
-      padding:0px;
+      padding:0px 0px 10px 0px;
   }
 }
 </style>

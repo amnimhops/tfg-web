@@ -1,12 +1,46 @@
+
+export interface Minimap{
+    width:number;
+    height:number;
+    cells:number[];
+}
+
+export interface WorldMapQuery{
+    p1:Vector;
+    p2:Vector;
+}
+
+export interface WorldMapCell{
+    position:Vector;
+    cellId?:string;
+    playerId?:string;
+}
+
+export interface WorldPlayer{
+    media:Media;
+    playerId:string;
+    techLevel?:number;
+    buildings?:number;
+    stockpiles?:Stockpile[];
+}
+export interface WorldMapSector{
+    width:number;
+    height:number;
+    map:WorldMapCell[];
+    players:WorldPlayer[]
+}
+
 export const GameEvents = {
     StockpilesChanged:'stockpiles_changed',
     ActivityFinished:'activity_finished',
     ActivityCanceled:'activity_canceled',
-    ActivityStarted:'activity_started',
+    ActivityEnqueued:'activity_enqueued',
+    ActivityUpdated:'activity_updated',
     TradingCreated:'trading_created',
     TradingRejected:'trading_rejected',
     TradingAccepted:'trading_accepted',
     CellInstanceUpdated:'cell_instance_updated',
+    PlayerInstanceUpdated:'player_instance_updated',
     TechnologyResearched:'technology_researched',
     IncomingMessage:'incoming_message',
     PlaceableFinished:'placeable_finished',
@@ -306,6 +340,7 @@ export interface Message{
 
 export interface SpyReport {
     success:boolean;
+    probability:string;
     playerId?:string,
     playerName?:string,
     cells?:number;

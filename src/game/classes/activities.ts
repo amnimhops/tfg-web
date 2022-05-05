@@ -2,6 +2,12 @@ import { ActivityTarget, ActivityType, ResourceAmount, Technology } from "@/shar
 import { ref } from "vue";
 import { showErrorPanel } from "../controllers/ui";
 import { useGameAPI } from "../services/gameApi";
+
+export interface ActivityCost{
+    resources:ResourceAmount[];
+    time:number;
+    duration?:string;
+}
 /**
  * Datos de entrada del modal de confirmación de actividad
  */

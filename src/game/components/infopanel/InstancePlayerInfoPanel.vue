@@ -38,14 +38,13 @@
 import MessageForm from '../game/MessageForm.vue'
 import EnqueuedActivityInfo from '../game/EnqueuedActivityInfo.vue'
 import ActivityButton from '../game/ActivityButton.vue';
-import ActivityConfirmation from '../game/ActivityConfirmation.vue'
 import { AttackIPTarget, InstancePlayerIPTarget, TradeIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
-import { Activity, ActivityType, EnqueuedActivity } from '@/shared/monolyth';
+import { ActivityType, EnqueuedActivity } from '@/shared/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import * as UI from '../ui';
 import { useMessageWriter } from '@/game/classes/messaging';
-import { ActivityInfo, AttackActivityTarget, SpyActivityTarget, useActivityConfirmation } from '@/game/classes/activities';
+import { ActivityInfo, AttackActivityTarget, SpyActivityTarget } from '@/game/classes/activities';
 import { goBackInfoPanelHistory, showInfoPanel2 } from '@/game/controllers/ui';
 
 export default defineComponent({

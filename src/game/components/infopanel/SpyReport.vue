@@ -1,6 +1,7 @@
 <template>
     <UIFlex gap="20">
         <UILabel :class="report.success?'success':'failure'">{{ report.success?'Misión finalizada con éxito':'La misión ha fracasado'}}</UILabel>
+        <UILabel >La probabilidad de éxito era de un {{report.probability}}%</UILabel>
         <UISection title="Origen">
             <UILabel @onClick="openPlayer" link>{{report.playerName}}</UILabel>
         </UISection>

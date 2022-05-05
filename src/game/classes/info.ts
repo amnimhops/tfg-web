@@ -109,6 +109,7 @@ export class MessageIPTarget extends InfopanelTarget{
             description:'',
             image:this.getImageAsset(message.type)
         }
+        console.log(this.media);
     }
     private getImageAsset(type:MessageType):Asset{
         if(type == MessageType.Message){

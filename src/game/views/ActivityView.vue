@@ -59,7 +59,7 @@ export default defineComponent({
         const bgImage = AssetManager.get(ConstantAssets.ACTIVITY_BACKGROUND).url;
         const summaries = computed<ActivitySummary[]>( ()=>{
             apiChanged.value;
-            console.log('cosas')
+            
             const enqueuedActivities = api.getQueue();
             const activityDetails:ActivitySummary[] = [];
            
@@ -124,7 +124,7 @@ export default defineComponent({
         });
         return {
             summaries,
-            viewDetails,cancel,
+            viewDetails,cancel,changePriority,
             bgImage,deleteIcon,caretUpIcon,caretDownIcon}
     },
 })

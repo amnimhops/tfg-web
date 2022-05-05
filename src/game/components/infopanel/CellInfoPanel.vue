@@ -125,7 +125,6 @@ export default defineComponent({
         // Obtiene reactivamente la listsa de edificios construidos
         const builtPlaceables = computed<PlaceableInstanceView[]>( ()=> {
             apiChanged.value;
-
             return props.target?.cellInstance.placeables.filter( pInstance => pInstance.built == true).map( pInstance => ({
                 ...pInstance,
                 underConstruction: false,

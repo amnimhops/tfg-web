@@ -25,10 +25,10 @@
 <script lang="ts">
 
 import * as UI from '../ui/';
-import { ActivityAvailability, ActivityConfirmationModel, ActivityInfo } from '@/game/classes/activities'
+import { ActivityAvailability, ActivityConfirmationModel, ActivityCost, ActivityInfo } from '@/game/classes/activities'
 import ResourceFlowItem from './ResourceFlowItem.vue';
 import { computed, defineComponent, PropType, ref } from 'vue'
-import { ActivityCost, useGameAPI } from '@/game/services/gameApi';
+import { useGameAPI } from '@/game/services/gameApi';
 import { GameEvents } from '@/shared/monolyth';
 import {acceptIcon,closeIcon} from '../ui/icons'
 export default defineComponent({

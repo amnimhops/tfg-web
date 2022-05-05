@@ -18,7 +18,8 @@
 </template>
 
 <script lang="ts">
-import { WorldPlayer } from '@/game/services/gameApi'
+
+import { WorldPlayer } from '@/shared/monolyth';
 import { defineComponent, PropType } from 'vue';
 import * as UI from '../ui/'
 export default defineComponent({
