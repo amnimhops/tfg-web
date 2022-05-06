@@ -1,7 +1,9 @@
 <template>
     <MenuComponent />
     <div class="layout">
-        <div class="content"><HomeView /></div>
+        <div class="content">
+            <router-view></router-view>
+        </div>
         <FooterComponent />
     </div>
 </template>
@@ -12,7 +14,7 @@ import MenuComponent from '@/site/components/MenuComponent.vue'
 import FooterComponent from '@/site/components/FooterComponent.vue'
 
 export default {
-    components:{HomeView, MenuComponent, FooterComponent}
+    components:{MenuComponent, FooterComponent}
 };
 
 </script>

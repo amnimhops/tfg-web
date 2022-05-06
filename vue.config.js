@@ -1,6 +1,12 @@
 const { defineConfig } = require('@vue/cli-service')
+const Dotenv = require('dotenv-webpack');
 const path = require('path');
 
+/**
+ * https://stackoverflow.com/questions/55510326/vue-cli-3-environment-variables-all-undefined
+ * La maldita documentación no especifica que hay que cargar a mano los archivos de variables
+ * de entorno...
+ */
 module.exports = defineConfig({
   transpileDependencies: true,
   publicPath: process.env.NODE_ENV === "production" ? "/" : "/",
@@ -17,7 +23,10 @@ module.exports = defineConfig({
       /*alias:{
         'shared': path.resolve(__dirname, '../shared/'),
       }*/
-    }
+    },
+    plugins: [
+      new Dotenv()
+    ]
   }
   
 })

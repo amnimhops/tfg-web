@@ -136,7 +136,7 @@ export interface IGameAPI extends ILocalGameAPI, IEventEmitter{
     
 }
 
-class MockAPI extends EventEmitter implements IGameAPI {
+class LocalGameAPI extends EventEmitter implements IGameAPI {
     private currentInstancePlayer?:InstancePlayer;
     private cells:Map<number,CellInstance> = new Map();
     private currentGame?:GameData;
@@ -152,7 +152,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
     constructor(){
         super();
         this.timer = 0;       
-        this.remoteApi = new RemoteApiClient('http://localhost:3000');
+        this.remoteApi = new RemoteApiClient(process.env.VUE_APP_REST_ENDPOINT);
     }
 
     processQueue(){
@@ -166,7 +166,7 @@ class MockAPI extends EventEmitter implements IGameAPI {
         this.raise(GameEvents.Timer,{});
     }
     connectWS(token:string){
-        this.ws = new WebSocket('ws://localhost:3000/websocket/?token='+token);
+        this.ws = new WebSocket(process.env.VUE_APP_WS_ENDPOINT+'?token='+token);
 
         this.ws.onopen = (event)=>{
             console.log('Websocket abierto',event);
@@ -525,11 +525,18 @@ class MockAPI extends EventEmitter implements IGameAPI {
 }
 
 let api:IGameAPI|null;
+let config:{
+    restEndpoint:string,
+    wsEndpoint:string
+}
 
 export function useGameAPI(){
     if(!api){
-        api = new MockAPI();
+        api = new LocalGameAPI();
     }
-
+    // Por algun motivo que desconozco, las variables de entorno inyectadas
+    // desde vue/webpack no son visibles en el depurador. Tres horas perdidas
+    // de mi vida...
+    console.log(process.env.VUE_APP_REST_ENDPOINT,process.env.VUE_APP_WS_ENDPOINT);
     return api;
 }

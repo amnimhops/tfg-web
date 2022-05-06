@@ -7,7 +7,7 @@ export class RemoteApiClient implements IRemoteGameAPI{
     private apiToken?:string;
     
 
-    constructor(private url:string){}
+    constructor(private restUrl:string){}
     private remoteApiCall<Expected>(resource:string,data?:any,method='GET',remoteContentType:'text'|'json'='json'):Promise<Expected>{
         const Authorization = this.apiToken || '';
         
@@ -21,10 +21,14 @@ export class RemoteApiClient implements IRemoteGameAPI{
             }
         }
         
-        return fetch(this.url+resource,config)
+        return fetch(this.restUrl+resource,config)
         .then( response => { 
             // Algunas respuestas pueden ser texto plano 
-            return remoteContentType == 'json' ? response.json() : response.text() 
+            if(response.ok){
+                return remoteContentType == 'json' ? response.json() : response.text() 
+            }else{
+                throw new Error(response.statusText);
+            }
         }).then( data => data as Expected);
     }
     authenticate(email: string, pass: string): Promise<string> {

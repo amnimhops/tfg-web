@@ -9,11 +9,21 @@ import WorldMapView from '@/game/views/WorldMapView.vue';
 import MessagingView from '@/game/views/MessagingView.vue';
 import ActivityView from '@/game/views/ActivityView.vue';
 
+import LoginView from '@/site/views/LoginView.vue';
+import HomeView from '@/site/views/HomeView.vue';
+
+/**
+ * Nota mental: no puede haber dos rutas hijas
+ * con el mismo nombre, la app empieza a quejarse
+ * argumentando que no hay coincidencia.Por ejemplo:
+ *   site/home
+ *   game/home
+ */
 const routes = [
     { 
         path: '/game', component: GameApp,
         children:[
-            {path:'home',name:'home',component:PlayerAreaView},
+            {path:'area',name:'area',component:PlayerAreaView},
             {path:'technology/:id?',name:'technology',component:TechnologyView},
             {path:'resource/:id?',name:'resource',component:ResourceView},
             {path:'world/:id?',name:'world',component:WorldMapView},
@@ -21,7 +31,13 @@ const routes = [
             {path:'activity/:id?',name:'activity',component:ActivityView}
         ]
     },
-    { path: '/', component: WebsiteApp }
+    { 
+        path: '/', component: WebsiteApp,
+        children:[
+            {path:'',name:'home',component:HomeView},
+            {path:'game/:id/login',name:'login',component:LoginView}
+        ]
+    }
 ]
 
 export const router = createRouter({

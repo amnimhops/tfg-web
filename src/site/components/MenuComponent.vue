@@ -8,7 +8,7 @@
           <a href="#" @click="menuVisible = true" class="menu-opener"
             ><fa icon="bars"
           /></a>
-          <a href="vendor.com" class="brand">vendor<span>.com</span></a>
+          <a href="/" class="brand">vendor<span>.com</span></a>
         </div>
         <Transition>
           <div class="side-menu" v-if="menuVisible">

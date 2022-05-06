@@ -19,6 +19,7 @@ import { closeInfoPanel, showInfoPanel2 } from "../controllers/ui";
 export default defineComponent({
   components: {},
   setup() {
+    
     const mapHolder = ref<HTMLElement | null>(null);
 
     const canvasRef = ref<HTMLCanvasElement | null>(null); // brujería!?

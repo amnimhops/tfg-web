@@ -24,6 +24,7 @@ $ui-resource-flow-negative:$ui-danger;
 
 $site-background-color-dark: #303030;
 $site-background-color-light: #888888;
+$site-danger:rgb(232, 64, 64);
 $site-front-color:white;
 $site-primary-color:#ffb300;
 $site-secondary-color:#1ffbb0;
@@ -137,11 +138,12 @@ input,select,textarea{
     font-family:$ui-control-font-family;
 }
     
-input[type=search],input[type=text],input[type=number]{
+input[type=search],input[type=text],input[type=number],input[type=password]{
     height:50px;
     border-radius: $ui-control-border-radius;
     padding-left:15px;
 }
+
 textarea{
     border-radius: $ui-control-border-radius;
     padding-left:15px;

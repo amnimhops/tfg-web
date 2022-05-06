@@ -1,6 +1,6 @@
 <template>
   <template v-if="resourcesLoaded">
-    
+    <div class="veil">{{progress}}</div>
     <div class="header">
       <NavigationPanel />
       <ResourcePanel />
@@ -39,15 +39,15 @@ export default defineComponent({
     const store = useStore();
     const resourcesLoaded = ref(false);
     const api = useGameAPI();
+
     // TODO Quitar esto para producción
     (window as any).api = api;
     (window as any).closeInfoPanel = closeInfoPanel;
+    
     onMounted( async () => {
-      console.log('Comenzando')
+      console.log('Enviando petición join() a juego',store.state.gameId);
 
-      const player = await api.authenticate("fu","bar");
-      const gameList = await api.getGameList();
-      const assets = await api.joinGame(gameList[0].id!);
+      const assets = await api.joinGame(store.state.gameId!);
       
       
       

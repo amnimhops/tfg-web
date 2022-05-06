@@ -9,4 +9,9 @@
     &:hover{
         background-color:$site-secondary-color;
     }
+
+    &.disabled{
+        pointer-events:none;
+        background-color:$site-background-color-light;
+    }
 }

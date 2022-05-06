@@ -4,10 +4,10 @@
       <div class="content">
         <div class="game-info">
           <div class="title">
-            <h1>{{ selected.name }}</h1>
+            <h1>{{ selected.media.name }}</h1>
           </div>
-          <div class="description">{{ selected.description }}</div>
-          <div class="enter"><a href="#" class="button">Entrar</a></div>
+          <div class="description">{{ selected.media.description }}</div>
+          <div class="enter"><a href="#" class="button" @click="joinGame">Entrar</a></div>
         </div>
       </div>
       <div class="left">
@@ -15,7 +15,7 @@
       </div>
       <div class="center" v-if="games">
         <div class="balls">
-          <a class="nav"  href="#" v-for="(game, index) in games" :key="index" :class="{selected:index==selectedIndex}">
+          <a class="nav"  href="#" v-for="(game, index) in games" :key="index" :class="{selected:index==selectedIndex}" @click="select(index)">
             <fa icon="circle" />
           </a>
         </div>
@@ -30,43 +30,59 @@
   </div>
 </template>
 
-<script>
-import { getGameList } from "@/game/services/gameApi";
+<script lang="ts">
+import { computed, defineComponent, onMounted, ref } from 'vue'
+import {Game} from 'src/shared/monolyth';
+import { useGameAPI } from '@/game/services/gameApi';
+import {useStore} from '@/store'
+import { useRoute, useRouter } from 'vue-router';
 
-export default {
-  async mounted() {
-    const list = await getGameList();
-    this.games = list;
-    this.selectedIndex = 0;
-    this.bgImage = this.games[this.selectedIndex].image.url;
-    this.select(0)
-  },
-  data() {
-    return {
-      games: [],
-      selectedIndex: null,
-      bgImage:null,
-      lightsOn:false
-    };
-  },
-  computed: {
-    selected() {
-      return this.selectedIndex != null ? this.games[this.selectedIndex] : null;
+export default defineComponent({
+  setup() {
+    const store = useStore();
+    const router = useRouter();
+    const api = useGameAPI();
+    const games = ref<Partial<Game>[]>([]);
+    const selectedIndex = ref<number|null>(null);
+    const selected = computed<Partial<Game>|null>(()=> {
+      if(games.value && selectedIndex.value != null) return games.value[selectedIndex.value];
+      else return null;
+    });
+
+    const lightsOn = ref<boolean>(false);
+    const bgImage = computed<string|null>(
+      ()=> (games.value && selectedIndex.value != null) ? 'url('+games.value[selectedIndex.value].media!.image.url+')' : null
+    );
+
+    const joinGame = ()=>{
+      if(store.state.token){
+        router.push({path:'/game/area'})
+      }else{
+        router.push({path:`/game/${selected.value?.id}/login`})
+      }
+    }
+    const select = (index:number) => {
+      lightsOn.value = false;
+      setTimeout(()=>{
+        selectedIndex.value = index >= 0 ? index % games.value.length : (games.value.length + index) % games.value.length;
+        lightsOn.value = true;
+        console.log(games.value[selectedIndex.value])
+      },500);
+    }
+    
+    const prev = () => select( (selectedIndex.value ||0) - 1);
+    const next = () => select( (selectedIndex.value ||0) + 1);
+    onMounted( async ()=>{
+      games.value = await api.getGameList();
+      select(0);
+    });
+
+    return{
+      lightsOn,bgImage,games,selected,selectedIndex,
+      prev,next,select,joinGame
     }
   },
-  methods: {
-    select(i) {
-      this.lightsOn = false;
-      setTimeout( () => {
-        this.selectedIndex = i >= 0 ? i % this.games.length : (this.games.length + i) % this.games.length;
-        this.bgImage = 'url('+this.games[this.selectedIndex].image.url+')';
-        this.lightsOn = true;
-      },500);
-    },
-    prev(){ this.select(this.selectedIndex -1); },
-    next(){ this.select(this.selectedIndex + 1); }
-  },
-};
+})
 </script>
 
 <style lang="scss" scoped>
@@ -81,7 +97,8 @@ export default {
   //background-color:black;
   background-blend-mode: multiply;
   background-color:black;
-  transition:background-color 500ms ease-in;
+  transition:background-color 250ms ease-in;
+
 
   &.lightsOn{
     background-color:#a0a0a0;
@@ -95,7 +112,6 @@ h1 {
 }
 
 .responsive-container {
-
   height: 100%;
   display: flex;
   flex-flow: row wrap;

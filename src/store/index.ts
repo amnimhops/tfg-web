@@ -1,7 +1,7 @@
 import { createStore, Store } from 'vuex'
 import { InjectionKey } from 'vue'
 import {  InfopanelTarget } from '@/game/classes/info';
-import {  Stockpile } from '@/shared/monolyth';
+import { User } from '@/shared/monolyth';
 
 /**
  * Nota: Este módulo exporta por un lado store y key, por otro useStore; todos hacen lo mismo.
@@ -20,6 +20,9 @@ export interface GameStore {
   targetHistory:InfopanelTarget[];
   error:string|null;
   gameLoaded:boolean;
+  user?:User;
+  token?:string;
+  gameId?:string;
 }
 
 export const store = createStore<GameStore>({
@@ -49,6 +52,12 @@ export const store = createStore<GameStore>({
     },
     setError(store:GameStore,message:string|null){
       store.error = message;
+    },
+    setToken(store:GameStore,token:string){
+      store.token = token;
+    },
+    setGameId(store:GameStore,id:string){
+      store.gameId = id;
     }
   },
   actions: {

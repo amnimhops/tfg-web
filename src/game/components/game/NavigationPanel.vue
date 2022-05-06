@@ -11,7 +11,7 @@
                 </UIButton>
             </UIFlex>
             <UIFlex class="menu-items" :class="{active:menuActive}">
-                <UIButton v-for="link in sections" :key="link.id" borderless :rounded="false" padding="15" grow :class="{selected:(link.id==(currentSection?.id||'home'))}" @onClick="changeSection(link.id)">
+                <UIButton v-for="link in sections" :key="link.id" borderless :rounded="false" padding="15" grow :class="{selected:(link.id==(currentSection?.id||'area'))}" @onClick="changeSection(link.id)">
                     <UIIcon :src="link.icon" size="icon-custom-size"/>
                     <UILabel class="large">{{link.label}}</UILabel>
                 </UIButton>
@@ -43,7 +43,7 @@ export default defineComponent({
         const router = useRouter();
         const route = useRoute();
         const sections = ref<NavLink[]>([
-            {icon:AssetManager.get(ConstantAssets.ICON_SECTION_AREA).url,label:'Mi zona',id:'home'},
+            {icon:AssetManager.get(ConstantAssets.ICON_SECTION_AREA).url,label:'Mi zona',id:'area'},
             {icon:AssetManager.get(ConstantAssets.ICON_SECTION_RESOURCES).url,label:'Recursos',id:'resource'},
             {icon:AssetManager.get(ConstantAssets.ICON_SECTION_TECHNOLOGY).url,label:'Tecnología',id:'technology'},
             {icon:AssetManager.get(ConstantAssets.ICON_SECTION_WORLD).url,label:'Mapa',id:'world'},
