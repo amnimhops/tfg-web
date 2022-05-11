@@ -112,7 +112,7 @@ export interface ILocalGameAPI{
     sendTradeAgreement(agreement:TradingAgreement):Promise<string>;
     cancelTradeAgreement(id:number):Promise<void>;
     acceptTradeAgreement(id:number):Promise<void>;
-    tradeAgreementActive(id:number):Promise<boolean>;
+    getTradeAgreement(id:number):Promise<TradingAgreement>;
     getMessages(text:string, type: MessageType, page: number): Promise<SearchResult<Message>>;
     sendMessage(dstPlayerId:string,subject:string,message:string):Promise<Message>;
     deleteMessage(id:number):Promise<void>;
@@ -284,8 +284,8 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
     acceptTradeAgreement(id:number):Promise<void>{
         return this.remoteApi.acceptTradeAgreement(id);
     }
-    tradeAgreementActive(id:number):Promise<boolean>{
-        return this.remoteApi.tradeAgreementActive(id);
+    getTradeAgreement(id:number):Promise<TradingAgreement>{
+        return this.remoteApi.getTradeAgreement(id);
     }
     getMessages(text:string, type: MessageType, page: number): Promise<SearchResult<Message>> {
         return this.remoteApi.getMessages(text,type,page);

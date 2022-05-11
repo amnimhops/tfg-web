@@ -60,6 +60,7 @@ export default defineComponent({
         const apiChanged = ref<number>(Date.now());
         const gameData = api.getGameData();
         const {activityConfirmationModel,openActivityConfirmationDialog,closeActivityConfirmationDialog,startActivity} = useActivityConfirmation();
+        // Puedes quitar el dismantle y todo lo relacionado con ActivityConfirmation, ya no se usa
         const dismantle = () => {
             openActivityConfirmationDialog('Comenzar investigación',ActivityType.Dismantle,{
                 cellInstanceId:props.target?.cellInstance.id,

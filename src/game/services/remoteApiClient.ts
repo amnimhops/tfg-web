@@ -83,13 +83,16 @@ export class RemoteApiClient implements IRemoteGameAPI{
         return this.remoteApiCall<string>('/instance/trades',agreement,'POST','text');
     }
     cancelTradeAgreement(id: number): Promise<void> {
-        throw new Error("Method not implemented.");
+        return this.remoteApiCall<void>(`/instance/trades/${id}`,'','DELETE','text')
     }
-    acceptTradeAgreement(id: number): Promise<void> {
-        throw new Error("Method not implemented.");
+    async acceptTradeAgreement(id: number): Promise<void> {
+        // Un poco de magia de cara a las capas superiores
+        // para que sigan en su mundo feliz
+        const trade = await this.getTradeAgreement(id);
+        return await this.remoteApiCall<void>(`/instance/trades/${id}`,{accepted:true},'PATCH','text');
     }
-    tradeAgreementActive(id: number): Promise<boolean> {
-        throw new Error("Method not implemented.");
+    getTradeAgreement(id: number): Promise<TradingAgreement> {
+        return this.remoteApiCall<TradingAgreement>(`/instance/trades/${id}`);
     }
     sendMessage(dstPlayerId: string, subject: string, message: string): Promise<Message> {
         return this.remoteApiCall('/instance/messages',{dstPlayerId,subject,message},'POST');

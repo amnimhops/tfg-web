@@ -23,7 +23,7 @@ export interface IRemoteGameAPI{
     sendTradeAgreement(agreement:TradingAgreement):Promise<string>;
     cancelTradeAgreement(id:number):Promise<void>;
     acceptTradeAgreement(id:number):Promise<void>;
-    tradeAgreementActive(id:number):Promise<boolean>;
+    getTradeAgreement(id:number):Promise<TradingAgreement>;
     sendMessage(dstPlayerId:string,subject:string,message:string):Promise<Message>;
     deleteMessage(id:number):Promise<void>;
 }

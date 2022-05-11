@@ -92,7 +92,13 @@ export default defineComponent({
 
         onMounted(async ()=>{
             api.on(GameEvents.Timer,apiHandler);
-            stillActive.value = await api.tradeAgreementActive(props.report!.id!);
+            try{
+                const agreement = await api.getTradeAgreement(props.report!.id!);
+                stillActive.value = true;
+            }catch(err){
+                console.warn('El trato comercial no existe, se entiende como cancelado');
+                stillActive.value = false;
+            }
         });
         onUnmounted(()=>{
             api.off(GameEvents.Timer,apiHandler);
