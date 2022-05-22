@@ -45,6 +45,7 @@ export default defineComponent({
     (window as any).closeInfoPanel = closeInfoPanel;
     
     onMounted( async () => {
+      console.log(store);
       console.log('Enviando petición join() a juego',store.state.gameId);
 
       const assets = await api.joinGame(store.state.gameId!);

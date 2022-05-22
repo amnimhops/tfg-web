@@ -158,7 +158,7 @@ export class TechTreeController extends ManagedMapController{
                 ctx.fillStyle = this.uiConfig.uiControlBackgroundPrimary;
             }else{
                 if(orb.researched){
-                    ctx.fillStyle = '#005eff';
+                    ctx.fillStyle = this.uiConfig.uiControlBackgroundColorBrilliant;
                 }else{
                     ctx.fillStyle = this.uiConfig.uiControlBackgroundColor;       
                 }

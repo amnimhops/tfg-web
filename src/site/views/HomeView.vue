@@ -74,6 +74,7 @@ export default defineComponent({
     const next = () => select( (selectedIndex.value ||0) + 1);
     onMounted( async ()=>{
       games.value = await api.getGameList();
+      console.log(games);
       select(0);
     });
 

@@ -127,6 +127,7 @@ export class Vector{
 export interface UIConfig{
     uiControlFontFamily:string;
     uiControlBackgroundColor:string;
+    uiControlBackgroundColorBrilliant:string;
     uiControlForegroundColor:string;
     uiControlFontColor:string;
     uiControlFontColorDanger:string;
@@ -134,10 +135,16 @@ export interface UIConfig{
     uiControlTextSize:string;
     uiControlTextHeadingSize:string;
     uiControlShadowColor:string;
+    uiControlPadding:string;
     uiControlBorderColor:string;
     uiControlBorderRadius:string;
     uiControlBackgroundPrimary:string;
     uiControlBackgroundSecondary:string;
+    uiSuccess:string;
+    uiWarning:string;
+    uiDanger:string;
+    uiResourceFlowPositive:string;
+    uiResourceFlowNegative:string;
 }
 
 export interface Asset{

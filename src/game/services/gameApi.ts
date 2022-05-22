@@ -322,11 +322,12 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
     getTechnologyList():Technology[]{
         return this.internalGame?.technologies || [];
     }
-
+   
     getUIConfig(): UIConfig {
         return {
             "uiControlFontFamily":"Verdana",
             "uiControlBackgroundColor":"#0b2e6b",
+            "uiControlBackgroundColorBrilliant":"#005eff",
             "uiControlForegroundColor":"#194898",
             "uiControlFontColor":"white",
             "uiControlFontColorDanger":"#dd0a0a",
@@ -337,7 +338,13 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
             "uiControlBorderRadius":"1px",
             "uiControlShadowColor":"#030e20",
             "uiControlBackgroundPrimary":"#b1a91a",
-            "uiControlBackgroundSecondary":"#8f1323"
+            "uiControlBackgroundSecondary":"#8f1323",
+            "uiResourceFlowNegative":"",
+            "uiResourceFlowPositive":"",
+            "uiDanger":"",
+            "uiWarning":"",
+            "uiSuccess":"",
+            "uiControlPadding":""
         }
     }
     getResearchedTechnologies():Technology[]{

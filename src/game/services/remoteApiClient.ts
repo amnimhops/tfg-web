@@ -41,7 +41,7 @@ export class RemoteApiClient implements IRemoteGameAPI{
         return this.remoteApiCall<Asset[]>(`/games/${id}/join`,{},'POST');
     }
     getGameList(): Promise<Partial<Game>[]> {
-        return this.remoteApiCall<Partial<Game>[]>('/games');
+        return this.remoteApiCall<Partial<Game>[]>('/gamelist');
     }
     getGame():Promise<Game>{
         return this.remoteApiCall<Game>(`/instance/gamedata`);
