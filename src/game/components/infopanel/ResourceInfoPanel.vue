@@ -5,7 +5,7 @@
 <script lang="ts">
 import { ResourceIPTarget } from '@/game/classes/info'
 import { useGameAPI } from '@/game/services/gameApi'
-import { Media } from '@/shared/monolyth'
+import { Media } from 'server/monolyth'
 import { defineComponent, PropType } from 'vue'
 import * as UI from '../ui';
 interface BuildingInQueue{

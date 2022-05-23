@@ -1,7 +1,7 @@
 import { EventEmitter } from '../classes/events';
 import { InputController, MotionEvents, MouseController, MouseEvents, TouchController } from './input';
 import { IGameAPI } from '../services/gameApi';
-import { Vector } from '@/shared/monolyth';
+import { Vector } from 'server/monolyth';
 
 export abstract class AbstractMapController extends EventEmitter{
     protected canvas:HTMLCanvasElement;

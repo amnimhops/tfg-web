@@ -32,7 +32,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from 'vue'
-import {Game} from 'src/shared/monolyth';
+import {Game} from 'server/monolyth';
 import { useGameAPI } from '@/game/services/gameApi';
 import {useStore} from '@/store'
 import { useRoute, useRouter } from 'vue-router';
@@ -56,6 +56,7 @@ export default defineComponent({
 
     const joinGame = ()=>{
       if(store.state.token){
+        store.commit('setGame',selected.value?.id);
         router.push({path:'/game/area'})
       }else{
         router.push({path:`/game/${selected.value?.id}/login`})

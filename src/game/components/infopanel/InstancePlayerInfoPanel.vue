@@ -40,7 +40,7 @@ import EnqueuedActivityInfo from '../game/EnqueuedActivityInfo.vue'
 import ActivityButton from '../game/ActivityButton.vue';
 import { AttackIPTarget, InstancePlayerIPTarget, TradeIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
-import { ActivityType, EnqueuedActivity } from '@/shared/monolyth';
+import { ActivityType, EnqueuedActivity } from 'server/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import * as UI from '../ui';
 import { useMessageWriter } from '@/game/classes/messaging';

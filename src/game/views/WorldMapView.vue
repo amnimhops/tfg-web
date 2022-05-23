@@ -30,11 +30,11 @@ import {
   WorldMapController,
 } from "../controllers/worldMapController";
 import { useGameAPI } from "../services/gameApi";
-import { AssetManager, ConstantAssets } from "../classes/assetManager";
+import { AssetManager, ConstantAssets } from "server/assets";
 import { showInfoPanel2 } from "../controllers/ui";
 import { InstancePlayerIPTarget } from "../classes/info";
 import { useMessageWriter } from "../classes/messaging";
-import { WorldPlayer } from "@/shared/monolyth";
+import { WorldPlayer } from "server/monolyth";
 
 export default defineComponent({
   components: { ...UI, PlayerList, MessageForm },

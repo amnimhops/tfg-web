@@ -28,10 +28,10 @@ import MessageForm, { MessageFormInput, MessageFormOutput } from '../game/Messag
 import SpyReport from './SpyReport.vue';
 import TradeReport from './TradeReport.vue';
 import AttackReport from './AttackReport.vue';
-import { AssetManager, ConstantAssets } from '@/game/classes/assetManager';
+import { AssetManager, ConstantAssets } from 'server/assets';
 import { MessageIPTarget } from '@/game/classes/info'
 import { useGameAPI } from '@/game/services/gameApi'
-import { Media,MessageType,MessageContentType } from '@/shared/monolyth'
+import { Media,MessageType,MessageContentType } from 'server/monolyth'
 import { computed, defineComponent, PropType, ref } from 'vue'
 
 import * as UI from '../ui';

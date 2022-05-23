@@ -22,14 +22,14 @@ import ResourcePanel from "@/game/components/game/ResourcePanel.vue";
 import NavigationPanel from "@/game/components/game/NavigationPanel.vue";
 import NotificationPanel from "@/game/components/game/NotificationPanel.vue";
 import ErrorPanel from "@/game/components/game/ErrorPanel.vue";
-import {AssetManager} from "@/game/classes/assetManager";
+import {AssetManager} from "server/assets";
 import { Loader, Resource } from "resource-loader";
 
 import { useStore } from '@/store';
 import { defineComponent, onMounted, ref } from "@vue/runtime-core";
 import { GameEvents, useGameAPI } from "./services/gameApi";
 import { InfopanelTarget } from "./classes/info";
-import { Stockpile } from "@/shared/monolyth";
+import { Asset, Stockpile } from "server/monolyth";
 import { computed } from "vue";
 import { closeInfoPanel } from "./controllers/ui";
 import UIModal from './components/ui/UIModal.vue'
@@ -45,7 +45,7 @@ export default defineComponent({
     (window as any).closeInfoPanel = closeInfoPanel;
     
     onMounted( async () => {
-      console.log(store);      
+      
       console.log('Enviando petición join() a juego',store.state.gameId);
 
       const assets = await api.joinGame(store.state.gameId!);
@@ -63,6 +63,7 @@ export default defineComponent({
         console.log(resource.url)
       });
         
+      addCss(assets.find( asset => asset.type == "style"));
       loader.load( (loader, resources) => {
           for (let id in resources) {
             // Agregar el contenido a cada definición de asset
@@ -74,6 +75,20 @@ export default defineComponent({
 
         
     });
+
+    const addCss = (file:Asset|undefined)=>{
+      if(file){
+        const fileref = document.createElement("link");
+        fileref.rel = "stylesheet";
+        fileref.type = "text/css";
+        console.log(fileref.type);
+        fileref.href = file.url;
+        
+        document.getElementsByTagName("head")[0].appendChild(fileref)
+      }
+      
+    }
+    
     
     return {resourcesLoaded}
   },

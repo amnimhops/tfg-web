@@ -47,10 +47,10 @@
 import {deleteIcon} from '../ui/icons';
 import { CellIPTarget, ExistingPlaceableIPTarget, PickBuildingIPTarget } from '@/game/classes/info'
 import { useGameAPI } from '@/game/services/gameApi'
-import { GameEvents, ActivityType, Media, PlaceableInstance, EnqueuedActivity, CellInstance } from '@/shared/monolyth'
+import { GameEvents, ActivityType, Media, PlaceableInstance, EnqueuedActivity, CellInstance } from 'server/monolyth'
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import { goBackInfoPanelHistory, showInfoPanel2 } from '@/game/controllers/ui'
-import { AssetManager, ConstantAssets } from '@/game/classes/assetManager'
+import { AssetManager, ConstantAssets } from 'server/assets'
 import { BuildingActivityTarget, ClaimActivityTarget, ExplorationActivityTarget } from '@/game/classes/activities'
 import ActivityButton from '../game/ActivityButton.vue';
 import * as UI from '../ui/';

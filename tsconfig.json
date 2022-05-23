@@ -18,7 +18,8 @@
     "paths": {
       "@/*": [
         "src/*"
-      ]
+      ],
+      "server/*":["../server/src/models/*"]
     },
     "lib": [
       "esnext",

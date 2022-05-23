@@ -20,9 +20,9 @@ module.exports = defineConfig({
   /* Configuración necesaria para que webpack cargue las librerias compartidas con el servidor */
   configureWebpack:{
     resolve:{
-      /*alias:{
-        'shared': path.resolve(__dirname, '../shared/'),
-      }*/
+      alias:{
+        'server': path.resolve(__dirname, '../server/src/models'),
+      }
     },
     plugins: [
       new Dotenv()

@@ -44,7 +44,7 @@ import UISection from '../ui/UISection.vue';
 import UIFlex from '../ui/UIFlex.vue';
 import { ExistingPlaceableIPTarget } from '@/game/classes/info'
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
-import { ActivityType, EnqueuedActivity, ResourceFlow } from '@/shared/monolyth';
+import { ActivityType, EnqueuedActivity, ResourceFlow } from 'server/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import { ActivityInfo, DismantlingActivityTarget, useActivityConfirmation} from '../../classes/activities'
 import { closeInfoPanel, goBackInfoPanelHistory } from '@/game/controllers/ui';

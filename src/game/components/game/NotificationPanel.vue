@@ -23,8 +23,8 @@ import {closeIcon,timeIcon} from "../ui/icons"
 import * as UI from "../ui/";
 import { GameEvents, useGameAPI } from "@/game/services/gameApi";
 import { ref } from "vue";
-import { ActivityType, EnqueuedActivity, Message, MessageType, PlaceableInstance } from "@/shared/monolyth";
-import { AssetManager, ConstantAssets } from "@/game/classes/assetManager";
+import { ActivityType, EnqueuedActivity, Message, MessageType, PlaceableInstance } from "server/monolyth";
+import { AssetManager, ConstantAssets } from "server/assets";
 import { showInfoPanel2 } from "@/game/controllers/ui";
 import { CellIPTarget, ExistingPlaceableIPTarget, MessageIPTarget, TechIPTarget } from "@/game/classes/info";
 import { BuildingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget } from "@/game/classes/activities";

@@ -19,7 +19,7 @@
 
 <script lang="ts">
 
-import { WorldPlayer } from '@/shared/monolyth';
+import { WorldPlayer } from 'server/monolyth';
 import { defineComponent, PropType } from 'vue';
 import * as UI from '../ui/'
 export default defineComponent({

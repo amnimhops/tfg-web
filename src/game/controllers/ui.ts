@@ -1,6 +1,6 @@
 import { useStore } from "@/store";
 import {InfopanelTarget} from '@/game/classes/info'
-import { limit } from "@/shared/functions";
+import { limit } from "server/functions";
 const store = useStore();
 
 export function showInfoPanel2(target:InfopanelTarget|null){

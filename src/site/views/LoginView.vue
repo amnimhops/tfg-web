@@ -27,7 +27,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, PropType, ref } from 'vue'
-import {Game} from 'src/shared/monolyth';
+import {Game} from 'server/monolyth';
 import { useGameAPI } from '@/game/services/gameApi';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '@/store';
@@ -65,8 +65,8 @@ export default defineComponent({
       loggingStatus.value = 'logging-in';
       
       setTimeout(()=>{
-        api.authenticate(email.value,password.value).then( (token)=>{
-          store.commit('setToken',token);
+        api.authenticate(email.value,password.value).then( (sessionData)=>{
+          store.commit('setSession',sessionData);
           store.commit('setGameId',game.value!.id);
         }).catch((err)=>{
           error.value = err;

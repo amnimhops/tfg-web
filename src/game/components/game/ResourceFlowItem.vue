@@ -8,7 +8,7 @@
 <script lang="ts">
 import { useGameAPI } from '@/game/services/gameApi';
 import { computed, defineComponent } from '@vue/runtime-core';
-import { FlowPeriodicity, ResourceAmount, ResourceFlow } from '@/shared/monolyth';
+import { FlowPeriodicity, ResourceAmount, ResourceFlow } from 'server/monolyth';
 import UIIcon from '../ui/UIIcon.vue'
 import UIFlex from '../ui/UIFlex.vue'
 function getAmount(amount:ResourceAmount):string{

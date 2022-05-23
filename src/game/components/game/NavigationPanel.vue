@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { AssetManager, ConstantAssets } from '@/game/classes/assetManager'
+import { AssetManager, ConstantAssets } from 'server/assets'
 import UIFlex from '@/game/components/ui/UIFlex.vue';
 import UIIcon from '@/game/components/ui/UIIcon.vue';
 import UILabel from '@/game/components/ui/UILabel.vue';

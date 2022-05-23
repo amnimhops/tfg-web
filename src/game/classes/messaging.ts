@@ -1,4 +1,4 @@
-import { Message } from "@/shared/monolyth";
+import { Message } from "server/monolyth";
 import { closeInfoPanel } from "../controllers/ui";
 import { useGameAPI } from "../services/gameApi";
 import { MessageFormInput, MessageFormOutput } from "../components/game/MessageForm.vue";

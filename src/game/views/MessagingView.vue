@@ -33,13 +33,13 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, onUnmounted, ref, watch } from 'vue'
-import { AssetManager, ConstantAssets } from '../classes/assetManager';
+import { AssetManager, ConstantAssets } from 'server/assets';
 import * as UI from '../components/ui';
 import { showErrorPanel, showInfoPanel2 } from '../controllers/ui';
 import { GameEvents, useGameAPI } from '../services/gameApi';
-import { Message, MessageType } from '@/shared/monolyth';
+import { Message, MessageType } from 'server/monolyth';
 import { deleteIcon } from '../components/ui/icons'
-import {truncate} from '@/shared/functions'
+import {truncate} from 'server/functions'
 import { InstancePlayerIPTarget, MessageIPTarget } from '../classes/info';
 import { useRouter } from 'vue-router';
 

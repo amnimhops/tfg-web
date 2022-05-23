@@ -29,11 +29,11 @@ import ActivityButton from '../game/ActivityButton.vue';
 import {getHistoryTarget, goBackInfoPanelHistory} from '@/game/controllers/ui'
 import { PickBuildingIPTarget, PlaceableIPTarget } from '@/game/classes/info'
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
-import { ActivityType, Placeable, ResourceAmount } from '@/shared/monolyth';
+import { ActivityType, Placeable, ResourceAmount } from 'server/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import { ActivityCost, BuildingActivityTarget} from '../../classes/activities'
 import * as UI from '@/game/components/ui/';
-import { AssetManager, ConstantAssets } from '@/game/classes/assetManager';
+import { AssetManager, ConstantAssets } from 'server/assets';
 import {timeIcon} from '../ui/icons'
 import { showInfoPanel2 } from '@/game/controllers/ui';
 interface BuildInfo{

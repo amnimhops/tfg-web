@@ -14,7 +14,7 @@ import {
   watch,
 } from "vue";
 import { TechTreeController, TechTreeEvents } from '@/game/controllers/techTreeController';
-import { ActivityType, Technology } from "@/shared/monolyth";
+import { ActivityType, Technology } from "server/monolyth";
 import {acceptIcon,closeIcon} from '../components/ui/icons'
 import { useGameAPI } from "../services/gameApi";
 import { TechIPTarget } from "../classes/info";

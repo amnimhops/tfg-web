@@ -1,5 +1,5 @@
-import { CellInstance, Vector } from '@/shared/monolyth';
-import { AssetManager, ConstantAssets } from '../classes/assetManager';
+import { CellInstance, Vector } from 'server/monolyth';
+import { AssetManager, ConstantAssets } from 'server/assets';
 import { GameEvents, IGameAPI, useGameAPI } from '../services/gameApi';
 import { ManagedMapController } from './canvasController';
 

@@ -1,7 +1,8 @@
 import { createStore, Store } from 'vuex'
 import { InjectionKey } from 'vue'
 import {  InfopanelTarget } from '@/game/classes/info';
-import { User } from '@/shared/monolyth';
+import { User, WithToken } from 'server/monolyth';
+import VuexPersistence from 'vuex-persist'
 
 /**
  * Nota: Este módulo exporta por un lado store y key, por otro useStore; todos hacen lo mismo.
@@ -24,6 +25,13 @@ export interface GameStore {
   token?:string;
   gameId?:string;
 }
+
+/**
+ * Persistencia en el navegador
+ */
+const vuexLocal = new VuexPersistence<GameStore>({
+  storage: window.localStorage
+});
 
 export const store = createStore<GameStore>({
   state: {
@@ -53,8 +61,10 @@ export const store = createStore<GameStore>({
     setError(store:GameStore,message:string|null){
       store.error = message;
     },
-    setToken(store:GameStore,token:string){
-      store.token = token;
+    setSession(store:GameStore,session:WithToken<User>){
+      console.log('Session set to',session)
+      store.token = session.token;
+      store.user = session;
     },
     setGameId(store:GameStore,id:string){
       store.gameId = id;
@@ -63,7 +73,8 @@ export const store = createStore<GameStore>({
   actions: {
   },
   modules: {
-  }
+  },
+  plugins: [vuexLocal.plugin]
 });
 
 export const key: InjectionKey<Store<GameStore>> = Symbol();

@@ -1,5 +1,5 @@
-import { limit, randomInt, range } from "@/shared/functions";
-import { Cell, Vector, WorldMapSector } from "@/shared/monolyth";
+import { limit, randomInt, range } from "server/functions";
+import { Cell, Vector, WorldMapSector } from "server/monolyth";
 import { IGameAPI } from "../services/gameApi";
 import { AbstractMapController } from "./canvasController";
 
@@ -143,8 +143,8 @@ export class WorldMapController extends AbstractMapController{
         this.clear();
         const context = this.getContext();
         context.lineWidth = 1;
-        context.strokeStyle='#0a0a0a';//this.colorMap[cell.cellId]
-        context.fillStyle='#a0a0a0';
+        // context.strokeStyle='#0a0a0a';//this.colorMap[cell.cellId]
+        // context.fillStyle='#a0a0a0';
         const currentPlayer = this.api.getCurrentPlayer();
 
         for(let i = 0; i < this.sector.map.length; i++ ){
@@ -152,6 +152,7 @@ export class WorldMapController extends AbstractMapController{
             const y = Math.floor(i / this.size) * this.cellH +this.pos.y%this.cellH+this.pan.y
             
             const cell = this.sector.map[i];
+            context.strokeStyle = cell.color;
             if(cell.playerId){
                 if(cell.playerId == currentPlayer.playerId){
                     context.fillStyle='blue';

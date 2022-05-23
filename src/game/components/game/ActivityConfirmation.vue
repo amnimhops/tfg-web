@@ -29,7 +29,7 @@ import { ActivityAvailability, ActivityConfirmationModel, ActivityCost, Activity
 import ResourceFlowItem from './ResourceFlowItem.vue';
 import { computed, defineComponent, PropType, ref } from 'vue'
 import { useGameAPI } from '@/game/services/gameApi';
-import { GameEvents } from '@/shared/monolyth';
+import { GameEvents } from 'server/monolyth';
 import {acceptIcon,closeIcon} from '../ui/icons'
 export default defineComponent({
     props:{

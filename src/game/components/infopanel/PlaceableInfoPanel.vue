@@ -17,7 +17,7 @@ import ResourceFlowItem from '../game/ResourceFlowItem.vue';
 import UISection from '../ui/UISection.vue';
 import UIFlex from '../ui/UIFlex.vue';
 import { PlaceableIPTarget } from '@/game/classes/info'
-import { ResourceFlow } from '@/shared/monolyth';
+import { ResourceFlow } from 'server/monolyth';
 import { computed, defineComponent, PropType } from 'vue'
 
 

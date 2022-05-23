@@ -1,14 +1,14 @@
-import { countdown, countdownStr, toMap } from '@/shared/functions';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, flowPeriodRanges, Game, GameEvents, InstancePlayer, Media, Message, MessageType, Placeable, PlaceableInstance, Resource, ResourceFlow, SearchResult, Stockpile, Technology, TradingAgreement, UIConfig, User, WithToken, WorldMapQuery, WorldMapSector } from '@/shared/monolyth';
+import { countdown, countdownStr, toMap } from 'server/functions';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, flowPeriodRanges, Game, GameEvents, InstancePlayer, Media, Message, MessageType, Placeable, PlaceableInstance, Resource, ResourceFlow, SearchResult, Stockpile, Technology, TradingAgreement, UIConfig, User, WithToken, WorldMapQuery, WorldMapSector } from 'server/monolyth';
 import { ActivityAvailability, ActivityCost, AttackActivityTarget, ClaimActivityTarget, DismantlingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget } from '../classes/activities';
-import { AssetManager, ConstantAssets } from '../classes/assetManager';
+import { AssetManager, ConstantAssets } from 'server/assets';
 import { EventEmitter, IEventEmitter } from '../classes/events';
 import { fmtResourceAmount } from '../classes/formatters';
 import { GameData } from '../classes/gameIndex';
 import { RemoteApiClient } from './remoteApiClient';
 import { IRemoteGameAPI } from './remoteApi';
 
-export {GameEvents} from '@/shared/monolyth';
+export {GameEvents} from 'server/monolyth';
 
 export class ResourceStat{
 
@@ -100,6 +100,7 @@ function unknownMedia(text:string):Media{
 export interface ILocalGameAPI{
     authenticate(email:string,pass:string):Promise<WithToken<User>>;
     joinGame(id:string):Promise<Asset[]>;
+    setToken(id:string):void;
     getGameData():GameData;
     getGameList():Promise<Partial<Game>[]>;
     getCells():Promise<CellInstance[]>;
@@ -218,8 +219,13 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
 
     async authenticate(email:string,pass:string):Promise<WithToken<User>>{
         const authorizedUser = await this.remoteApi.authenticate(email,pass);
-        this.connectWS(authorizedUser.token);
+        this.setToken(authorizedUser.token);
         return authorizedUser;
+    }
+
+    setToken(token:string):void{
+        this.remoteApi.setToken(token);
+        this.connectWS(token);
     }
 
     async joinGame(id:string):Promise<Asset[]>{

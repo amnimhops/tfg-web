@@ -13,7 +13,7 @@
 <script lang="ts">
 import { computed, defineComponent, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
-import { AssetManager, ConstantAssets } from '../classes/assetManager';
+import { AssetManager, ConstantAssets } from 'server/assets';
 import { ResourceIPTarget } from '../classes/info';
 import * as UI from '../components/ui/';
 import ResourceSummary from '../components/game/ResourceSummary.vue';
