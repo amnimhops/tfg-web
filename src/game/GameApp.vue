@@ -45,13 +45,11 @@ export default defineComponent({
     (window as any).closeInfoPanel = closeInfoPanel;
     
     onMounted( async () => {
-      console.log(store);
+      console.log(store);      
       console.log('Enviando petición join() a juego',store.state.gameId);
 
       const assets = await api.joinGame(store.state.gameId!);
-      
-      
-      
+      console.log(assets);
       // Agregar el asset al manager, con el contenido inicialmente vacio
       assets.forEach((asset) => AssetManager.add(asset));
       // Instancia del cargador 

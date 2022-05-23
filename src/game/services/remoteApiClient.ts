@@ -1,4 +1,4 @@
-import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector } from "@/shared/monolyth";
+import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector, User, WithToken } from "@/shared/monolyth";
 import { ActivityAvailability } from "../classes/activities";
 
 import { IRemoteGameAPI } from "./remoteApi";
@@ -31,10 +31,10 @@ export class RemoteApiClient implements IRemoteGameAPI{
             }
         }).then( data => data as Expected);
     }
-    authenticate(email: string, pass: string): Promise<string> {
-        return this.remoteApiCall<string>('/sessions/login',{email:email,password:pass},'POST','text').then( (token) => {
-            this.apiToken = token;
-            return token;
+    authenticate(email: string, pass: string): Promise<WithToken<User>> {
+        return this.remoteApiCall<WithToken<User>>('/sessions/login',{email:email,password:pass},'POST').then( authorizedUser => {
+            this.apiToken = authorizedUser.token;
+            return authorizedUser;
         });
     }
     joinGame(id: string): Promise<Asset[]> {

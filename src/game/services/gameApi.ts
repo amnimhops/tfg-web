@@ -1,5 +1,5 @@
 import { countdown, countdownStr, toMap } from '@/shared/functions';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, FlowPeriodicity, flowPeriodRanges, Game, GameEvents, InstancePlayer, Media, Message, MessageType, Placeable, PlaceableInstance, Player, Properties, Resource, ResourceAmount, ResourceFlow, SearchResult, Stockpile, Technology, TradingAgreement, UIConfig, Vector, WorldMapQuery, WorldMapSector } from '@/shared/monolyth';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, flowPeriodRanges, Game, GameEvents, InstancePlayer, Media, Message, MessageType, Placeable, PlaceableInstance, Resource, ResourceFlow, SearchResult, Stockpile, Technology, TradingAgreement, UIConfig, User, WithToken, WorldMapQuery, WorldMapSector } from '@/shared/monolyth';
 import { ActivityAvailability, ActivityCost, AttackActivityTarget, ClaimActivityTarget, DismantlingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget } from '../classes/activities';
 import { AssetManager, ConstantAssets } from '../classes/assetManager';
 import { EventEmitter, IEventEmitter } from '../classes/events';
@@ -98,7 +98,7 @@ function unknownMedia(text:string):Media{
  * en el lado del cliente
  */
 export interface ILocalGameAPI{
-    authenticate(email:string,pass:string):Promise<string>;
+    authenticate(email:string,pass:string):Promise<WithToken<User>>;
     joinGame(id:string):Promise<Asset[]>;
     getGameData():GameData;
     getGameList():Promise<Partial<Game>[]>;
@@ -216,16 +216,18 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
         }
     }
 
-    async authenticate(email:string,pass:string):Promise<string>{
-        const token = await this.remoteApi.authenticate(email,pass);
-        this.connectWS(token);
-        return token;
+    async authenticate(email:string,pass:string):Promise<WithToken<User>>{
+        const authorizedUser = await this.remoteApi.authenticate(email,pass);
+        this.connectWS(authorizedUser.token);
+        return authorizedUser;
     }
 
     async joinGame(id:string):Promise<Asset[]>{
         const assets = await this.remoteApi.joinGame(id);
         this.currentInstancePlayer = await this.remoteApi.getSelfPlayer();
         this.internalGame = await this.remoteApi.getGame();
+        console.log(assets);
+        console.log(this.internalGame);
         this.currentGame = new GameData(this.internalGame); // Esta vista mejora con índices a internalGame
         this.activityQueue = await this.remoteApi.getQueue();
 

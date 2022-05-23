@@ -1,4 +1,4 @@
-import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector } from "@/shared/monolyth";
+import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector, User, WithToken } from "@/shared/monolyth";
 import { ActivityAvailability } from "../classes/activities";
 
 /**
@@ -7,7 +7,7 @@ import { ActivityAvailability } from "../classes/activities";
  * de comunicaciones.
  */
 export interface IRemoteGameAPI{
-    authenticate(email:string,pass:string):Promise<string>;
+    authenticate(email:string,pass:string):Promise<WithToken<User>>;
     joinGame(id:string):Promise<Asset[]>;
     getGameList():Promise<Partial<Game>[]>;
     getGame():Promise<Game>;
