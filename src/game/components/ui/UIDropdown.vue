@@ -72,7 +72,7 @@ export default {
         cursor:pointer;
         @include ui-control-rounded();
         overflow:hidden;
-        background-color:$ui-control-foreground-color;
+        background-color:var(--ui-control-foreground-color);
         .header{
             display:flex;
             flex-flow: row nowrap;
@@ -88,7 +88,7 @@ export default {
             }
         }
         .header:hover{
-            background-color: $ui-control-background-primary;
+            background-color: var(--ui-control-background-primary);
         }
         
         
@@ -117,7 +117,7 @@ export default {
                 display:block;
                 visibility:visible;  
                 &:hover{
-                    background-color: $ui-control-background-primary;
+                    background-color: var(--ui-control-background-primary);
                 }
             }
         }

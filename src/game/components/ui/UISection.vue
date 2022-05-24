@@ -17,7 +17,7 @@ export default {
 <style lang="scss" scoped>
     .ui-section-body{
         padding-left:5px;
-        border-left:1px solid $ui-control-border-color;
+        border-left:1px solid var(--ui-control-border-color);
     }
     .ui-section-title{
         font-weight:bold;

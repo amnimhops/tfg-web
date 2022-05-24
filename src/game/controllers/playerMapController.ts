@@ -3,18 +3,25 @@ import { AssetManager, ConstantAssets } from 'server/assets';
 import { GameEvents, IGameAPI, useGameAPI } from '../services/gameApi';
 import { ManagedMapController } from './canvasController';
 
-const CELL_WIDTH = 101;
-const CELL_HEIGHT = 61;
-const H_DISPLACEMENT = 70;
-const V_DISPLACEMENT = 31;
+//const CELL_WIDTH = 101;
+//const CELL_HEIGHT = 61;
+//const H_DISPLACEMENT = 70;
+//const V_DISPLACEMENT = 31;
+
+const CELL_WIDTH = 200;
+const CELL_HEIGHT = 91;
+const H_DISPLACEMENT = 150;
+const V_DISPLACEMENT = 46;
 
 class HexCell{
     cellInstance:CellInstance;
     pos:Vector;
     drawPos:Vector = new Vector();
+    drawOrder:number;
     constructor(cellInstance:CellInstance){
         this.cellInstance = cellInstance;
         this.pos = cellInstance.position;
+        this.drawOrder = 0;
     }
 }
 
@@ -53,7 +60,7 @@ export class PlayerMapController extends ManagedMapController{
         for(const hex of this.cells) {
             const terrainTexture = this.getTerrainTexture(hex);
             const vDisplace = hex.pos.x % 2 == 1 ? V_DISPLACEMENT : 0;
-            
+            hex.drawOrder =2*hex.pos.y + (vDisplace?1:0);
             hex.drawPos.x = H_DISPLACEMENT * (hex.pos.x)
             /**
              * La coordenada 'y' de dibujo cambia ligeramente para permitir que los hexagonos
@@ -62,6 +69,8 @@ export class PlayerMapController extends ManagedMapController{
              */
             hex.drawPos.y = CELL_HEIGHT * (hex.pos.y) + vDisplace;
         }
+        // Ordenamos según el orden de dibujado
+        this.cells.sort((a,b)=>a.drawOrder-b.drawOrder);
        
         // Notifica a super() que estamos listos para pintar
         this.readyToPaint = true;
@@ -155,11 +164,21 @@ export class PlayerMapController extends ManagedMapController{
             if(screenX >= (-CELL_WIDTH * this.getZoom()) && screenY >=0 && screenX < canvasW / this.getZoom() && screenY < (canvasH + terrainHeightDiff) / this.getZoom()){
             //if(pos.x > -CELL_WIDTH && pos.y > -CELL_HEIGHT && pos.x < canvasW && pos.y < canvasH){
                 // Pintar el terreno
+                const selected = this.selected == hex;
                 ctx.drawImage(
                     terrainTexture,
                     hex.drawPos.x,
                     hex.drawPos.y - terrainHeightDiff
                 );
+                if(selected){
+                    const texture = AssetManager.get(ConstantAssets.HEX_SELECTED).data;
+                    const heightDiff = texture.height - CELL_HEIGHT
+                    ctx.drawImage(
+                        texture,
+                        hex.drawPos.x ,
+                        hex.drawPos.y - heightDiff 
+                    );
+                }
                 // A continuación se pintan los emplazables
                 if(buildingTexture){
                     const buildingHeightDiff = buildingTexture.height - CELL_HEIGHT
@@ -173,21 +192,8 @@ export class PlayerMapController extends ManagedMapController{
                 if(hex.cellInstance.placeables.length  > 1){
                     ctx.fillText(hex.cellInstance.placeables.length+'',hex.drawPos.x+CELL_WIDTH/2,hex.drawPos.y + CELL_HEIGHT / 2);
                 }
+                ctx.fillText(hex.cellInstance.id+'',hex.drawPos.x+CELL_WIDTH/2,hex.drawPos.y + CELL_HEIGHT / 2);
             }
         }
-       
-        if(this.selected){
-            const texture = AssetManager.get(ConstantAssets.HEX_SELECTED).data;
-            const heightDiff = texture.height - CELL_HEIGHT
-            ctx.drawImage(
-                texture,
-                this.selected.drawPos.x ,
-                this.selected.drawPos.y - heightDiff 
-            );
-        }
-
-        
-        
-        
     }
 }

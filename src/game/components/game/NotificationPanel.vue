@@ -172,10 +172,10 @@ export default defineComponent({
   z-index: 1000;
 
   .ui-pane{
-      background-color: $ui-control-foreground-color;
-      border:1px solid $ui-control-border-color;
-      border-radius: $ui-control-border-radius;
-      box-shadow: 3px 3px 3px $ui-control-shadow-color;
+      background-color: var(--ui-control-foreground-color);
+      border:1px solid var(--ui-control-border-color);
+      border-radius: var(--ui-control-border-radius);
+      box-shadow: 3px 3px 3px var(--ui-control-shadow-color);
   }
   .notification-icon{
       @include invisible;

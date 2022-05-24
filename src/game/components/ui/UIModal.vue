@@ -84,7 +84,7 @@ export default {
   .veil{
     .ui-modal-adjust{
       >.ui-pane{
-        border-radius:$ui-control-border-radius;
+        border-radius:var(--ui-control-border-radius);
         /*margin:25px;
         height:calc(100vh - 50px);*/
         max-height:calc(100vh - 100px);

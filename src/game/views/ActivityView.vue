@@ -142,7 +142,7 @@ export default defineComponent({
     
     .activity{
         @include ui-control-rounded;
-        background-color:$ui-control-foreground-color;
+        background-color:var(--ui-control-foreground-color);
         padding:10px;
     }
     /* Este selector emula
@@ -154,11 +154,11 @@ export default defineComponent({
         padding:5px;
     }
     .label-inqueue{
-        color:$ui-danger;
+        color:var(--ui-danger);
         font-weight:bold;
     }
     .label-inprogress{
-        color:$ui-success;
+        color:var(--ui-success);
         font-weight:bold;
     }
     .label-countdown{

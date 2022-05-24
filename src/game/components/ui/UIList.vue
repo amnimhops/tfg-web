@@ -29,10 +29,10 @@ export default {
     .ui-list-item{
         cursor:pointer;
         &:hover{
-            background-color:$ui-control-background-primary;
+            background-color:var(--ui-control-background-primary);
         }
         &.selected,&:active{
-            background-color:$ui-control-background-secondary;
+            background-color:var(--ui-control-background-secondary);
         }    
     }
     

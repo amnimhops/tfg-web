@@ -65,12 +65,12 @@ export default {
         justify-content: left;
         align-items: center;
         gap: 10px;
-        background-color:$ui-control-foreground-color;
-        color:$ui-control-font-color;
+        background-color:var(--ui-control-foreground-color);
+        color:var(--ui-control-font-color);
         
-        font-family:$ui-control-font-family;
+        font-family:var(--ui-control-font-family);
         
-        padding:$ui-control-padding;
+        padding:var(--ui-control-padding);
         user-select: none;
 
         &.center{
@@ -103,11 +103,11 @@ export default {
         }
         
         &:hover{
-            background-color:$ui-control-background-primary;
+            background-color:var(--ui-control-background-primary);
         }
 
         &:active, .active{
-            background-color:$ui-control-background-secondary;
+            background-color:var(--ui-control-background-secondary);
             -webkit-tap-highlight-color:transparent;
             outline: 0 none;
         }

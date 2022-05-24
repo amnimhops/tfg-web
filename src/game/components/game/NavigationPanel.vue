@@ -76,7 +76,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .menu-pane{
-    background-color:$ui-control-foreground-color;
+    background-color:var(--ui-control-foreground-color);
     &>.ui-flex{
         height:100%;
     }
@@ -99,7 +99,7 @@ export default defineComponent({
 }
 
 .selected{
-    background-color:$ui-control-background-secondary;
+    background-color:var(--ui-control-background-secondary);
 }
 @media(min-width:768px){
     .nav-mobile{

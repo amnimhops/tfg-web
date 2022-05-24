@@ -24,7 +24,7 @@ export default{
     }
 
     .progress{
-        background-color: $ui-control-background-secondary;
+        background-color: var(--ui-control-background-secondary);
         height:100%;
         min-height: 2em;
     }

@@ -18,33 +18,33 @@ export default {
 <style lang="scss">
     .ui-pane{
         //border-radius: 15px;
-        background-color: $ui-control-background-color;
-        color: $ui-control-font-color;
-        font-family: $ui-control-font-family;
+        background-color: var(--ui-control-background-color);
+        color: var(--ui-control-font-color);
+        font-family: var(--ui-control-font-family);
         // Tamaño de fuente por defecto para los elementos de ventana
-        font-size: $ui-control-text-size;
+        font-size: var(--ui-control-text-size);
         // Selector para los encabezados
         .ui-heading{
-            font-size:$ui-control-heading-size;
+            font-size:var(--ui-control-heading-size);
         }
         
         a.ui-link:link,a.ui-link:visited{
-            color:$ui-control-font-color;
+            color:var(--ui-control-font-color);
             text-decoration:underline;
             font-weight: bold;
 
         }
         a.ui-link:hover{
-            color:$ui-control-background-primary
+            color:var(--ui-control-background-primary)
         }
 
         &.rounded{
             @include ui-control-rounded;
         }
         input{
-            font-family: $ui-control-font-family;
-            font-size: $ui-control-text-size;
-            border-color: $ui-control-border-color;
+            font-family: var(--ui-control-font-family);
+            font-size: var(--ui-control-text-size);
+            border-color: var(--ui-control-border-color);
         }
     }
 
@@ -60,9 +60,9 @@ export default {
 
     ::-webkit-scrollbar{
         width:8px;
-        background-color:$ui-control-shadow-color;
+        background-color:var(--ui-control-shadow-color);
         }   
     ::-webkit-scrollbar-thumb{
-        background-color:$ui-control-foreground-color;
+        background-color:var(--ui-control-foreground-color);
     }
 </style>

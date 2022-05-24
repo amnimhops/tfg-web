@@ -211,16 +211,16 @@ export default defineComponent({
     flex-grow:1;
   }
   .offer{
-    color:$ui-danger;
+    color:var(--ui-danger);
   }
   .request{
-    color:$ui-success;
+    color:var(--ui-success);
   }
   .ui-flex.disabled{
         opacity:0.5;
 }
     .warn{
-        color:$ui-danger;
+        color:var(--ui-danger);
         font-style:italic;
     }
 </style>

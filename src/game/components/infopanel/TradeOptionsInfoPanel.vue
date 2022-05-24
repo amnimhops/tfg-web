@@ -195,9 +195,9 @@ export default defineComponent({
     flex-grow:1;
   }
   .offer{
-    color:$ui-danger;
+    color:var(--ui-danger);
   }
   .request{
-    color:$ui-success;
+    color:var(--ui-success);
   }
 </style>

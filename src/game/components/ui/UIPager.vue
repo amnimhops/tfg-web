@@ -56,7 +56,7 @@ export default defineComponent({
         align-self: center;
     }
     .page.selected{
-        background-color:$ui-control-background-secondary;
+        background-color:var(--ui-control-background-secondary);
         font-weight:bold;
     }
 

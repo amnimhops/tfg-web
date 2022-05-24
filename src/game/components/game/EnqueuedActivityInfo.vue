@@ -66,6 +66,6 @@ export default defineComponent({
 
 <style lang="scss" scoped>
     .ui-label.disabled{
-        color:$ui-control-font-color-disabled;
+        color:var(--ui-control-font-color-disabled);
     }
 </style>

@@ -158,11 +158,11 @@ export default defineComponent({
     .options-header{
         position:sticky;
         top:-70px;
-        //background-color:$ui-control-background-color;
+        //background-color:var(--ui-control-background-color);
     }
     .button-group{
         overflow:hidden;
-        border-radius:$ui-control-border-radius;
+        border-radius:var(--ui-control-border-radius);
     }
     .options-header .ui-button{
         flex-grow:1;
@@ -170,7 +170,7 @@ export default defineComponent({
     }
     .message{
         @include ui-control-rounded;
-        background-color:$ui-control-foreground-color;
+        background-color:var(--ui-control-foreground-color);
         padding:10px;
         flex-wrap: wrap;
         justify-content: space-between;
@@ -179,7 +179,7 @@ export default defineComponent({
         .from,.date,.subject{ padding-left:15px; padding-bottom:15px}
     }
     .ui-button.selected{
-        background-color:$ui-control-background-secondary;
+        background-color:var(--ui-control-background-secondary);
     }
     
 @media(min-width:1200px){

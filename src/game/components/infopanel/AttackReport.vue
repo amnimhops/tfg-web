@@ -89,11 +89,11 @@ export default defineComponent({
 
 <style lang="scss" scoped>
     .success{
-        color:$ui-success;
+        color:var(--ui-success);
         font-weight:bold;
     }
     .failure{
-        color:$ui-danger;
+        color:var(--ui-danger);
         font-weight:bold;
     }
 </style>

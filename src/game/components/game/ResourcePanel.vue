@@ -95,7 +95,7 @@ export default defineComponent({
   min-width: 75px;
 }
 .resource-panel {
-  background-color: $ui-control-background-color;
+  background-color: var(--ui-control-background-color);
   &.collapsed {
     height: 48px; // 38px de icon-custom-size + 10 de margen
     overflow: hidden;

@@ -52,7 +52,7 @@ export default defineComponent({
         opacity:0.5;
     }
     .warn{
-        color:$ui-danger;
+        color:var(--ui-danger);
         font-style:italic;
     }
 </style>

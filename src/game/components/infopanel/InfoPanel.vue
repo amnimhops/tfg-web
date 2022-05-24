@@ -121,7 +121,7 @@ export default defineComponent({
       overflow-x: hidden;
       overflow-y:auto; // Importante que sea auto, o SIEMPRE se queda la barra, ocultando la imagen!
       scrollbar-width: 5px;
-      scrollbar-color: $ui-control-border-color;
+      scrollbar-color: var(--ui-control-border-color);
    }    
    .info-content{
      height:100%;
@@ -132,7 +132,7 @@ export default defineComponent({
    @media(min-width:768px){
      .ui-pane{
        width:400px;
-       box-shadow: -5px 0px 5px $ui-control-shadow-color;
+       box-shadow: -5px 0px 5px var(--ui-control-shadow-color);
      }
    }
 

@@ -56,9 +56,9 @@ export default defineComponent({
 <style lang="scss" scoped>
    
     .income{
-        color:$ui-resource-flow-positive;
+        color:var(--ui-resource-flow-positive);
     }
     .expense{
-        color:$ui-resource-flow-negative;
+        color:var(--ui-resource-flow-negative);
     }
 </style>

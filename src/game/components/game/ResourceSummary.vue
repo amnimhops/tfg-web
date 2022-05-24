@@ -57,10 +57,10 @@ export default defineComponent({
     }
 }
 .expense{
-    color:$ui-danger;
+    color:var(--ui-danger);
 }
 .income{
-    color:$ui-success;
+    color:var(--ui-success);
 }
 
 </style>

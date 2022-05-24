@@ -524,7 +524,7 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
 
         const stockpiles = toMap(this.currentInstancePlayer.stockpiles, sp => sp.resourceId);
         const builtPlaceables = this.currentInstancePlayer.cells
-            .map( cellId => this.getCellInstance(cellId)!.placeables)
+            .map( cellId => this.getCellInstance(cellId)?.placeables||[])
             .flat()
             .filter( placeable => hasEnoughSuppliesToWork(placeable,stockpiles));
             

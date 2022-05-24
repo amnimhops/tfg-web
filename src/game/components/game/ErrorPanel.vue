@@ -53,10 +53,10 @@ export default defineComponent({
     object-position: center;
   }
   .item-holder{
-    background-color:$ui-control-background-color;
+    background-color:var(--ui-control-background-color);
   }
   .selected{
-    background-color:$ui-control-background-primary;
+    background-color:var(--ui-control-background-primary);
   }
   .title{
       font-weight:bold;
