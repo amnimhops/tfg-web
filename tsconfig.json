@@ -19,7 +19,8 @@
       "@/*": [
         "src/*"
       ],
-      "server/*":["../server/src/models/*"]
+      "server/*":["../server/src/models/*"],
+      "backoffice/*":["../backoffice/src/*"]
     },
     "lib": [
       "esnext",

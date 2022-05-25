@@ -22,6 +22,7 @@ module.exports = defineConfig({
     resolve:{
       alias:{
         'server': path.resolve(__dirname, '../server/src/models'),
+        'backoffice': path.resolve(__dirname, '../backoffice/src')
       }
     },
     plugins: [

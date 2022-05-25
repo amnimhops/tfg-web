@@ -100,6 +100,7 @@ function unknownMedia(text:string):Media{
 export interface ILocalGameAPI{
     authenticate(email:string,pass:string):Promise<WithToken<User>>;
     joinGame(id:string):Promise<Asset[]>;
+    validateUser(user:User):Promise<Record<string,string>>;
     setToken(id:string):void;
     getGameData():GameData;
     getGameList():Promise<Partial<Game>[]>;
@@ -210,7 +211,9 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
             console.log('Websocket cerrando',event)
         }
     }
-
+    validateUser(user:User):Promise<Record<string,string>>{
+        return this.remoteApi.validateUser(user);
+    }
     private ticker():void{
         if(this.hasListener(GameEvents.Timer)){
             this.raise(GameEvents.Timer);

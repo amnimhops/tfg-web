@@ -8,6 +8,7 @@ import { ActivityAvailability } from "../classes/activities";
  */
 export interface IRemoteGameAPI{
     authenticate(email:string,pass:string):Promise<WithToken<User>>;
+    validateUser(user:User):Promise<Record<string,string>>
     setToken(token:string):void;
     joinGame(id:string):Promise<Asset[]>;
     getGameList():Promise<Partial<Game>[]>;

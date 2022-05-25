@@ -37,6 +37,14 @@ export class RemoteApiClient implements IRemoteGameAPI{
             return authorizedUser;
         });
     }
+    /**
+     * Determina si los datos de un usuario son válidos de cara a registrarlo
+     * @param user Datos del usuario
+     * @returns Un diccionario con parse clave/valor con los nombres de los campos que presentan errores
+     */
+    validateUser(user:User):Promise<Record<string,string>>{
+        return this.remoteApiCall<Record<string,string>>('/users/check',user,'POST');
+    }
     setToken(token:string):void{
         this.apiToken = token;
     }

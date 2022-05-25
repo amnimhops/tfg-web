@@ -20,6 +20,9 @@
         <div class="form-control">
           <button type="submit" class="button">Entrar</button>
         </div>
+        <div class="registration-tip">
+          <p><a href="#">Crear una cuenta</a></p>
+        </div>
       </div>
     </form>
   </div>

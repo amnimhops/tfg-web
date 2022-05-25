@@ -9,8 +9,10 @@ import WorldMapView from '@/game/views/WorldMapView.vue';
 import MessagingView from '@/game/views/MessagingView.vue';
 import ActivityView from '@/game/views/ActivityView.vue';
 
+import RegisterView from '@/site/views/RegisterView.vue';
 import LoginView from '@/site/views/LoginView.vue';
 import HomeView from '@/site/views/HomeView.vue';
+
 
 /**
  * Nota mental: no puede haber dos rutas hijas
@@ -35,6 +37,7 @@ const routes = [
         path: '/', component: WebsiteApp,
         children:[
             {path:'',name:'home',component:HomeView},
+            {path:'/register',name:'register',component:RegisterView},
             {path:'game/:id/login',name:'login',component:LoginView}
         ]
     }
