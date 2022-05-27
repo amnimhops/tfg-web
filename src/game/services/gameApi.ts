@@ -1,5 +1,5 @@
 import { countdown, countdownStr, toMap } from 'server/functions';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, flowPeriodRanges, Game, GameEvents, InstancePlayer, Media, Message, MessageType, Placeable, PlaceableInstance, Resource, ResourceFlow, SearchResult, Stockpile, Technology, TradingAgreement, UIConfig, User, WithToken, WorldMapQuery, WorldMapSector } from 'server/monolyth';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, flowPeriodRanges, Game, GameEvents, GameStats, InstancePlayer, Media, Message, MessageType, Placeable, PlaceableInstance, RegistrationRequest, Resource, ResourceFlow, SearchParams, SearchResult, Stockpile, Technology, TradingAgreement, UIConfig, User, WithToken, WorldMapQuery, WorldMapSector } from 'server/monolyth';
 import { ActivityAvailability, ActivityCost, AttackActivityTarget, ClaimActivityTarget, DismantlingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget } from '../classes/activities';
 import { AssetManager, ConstantAssets } from 'server/assets';
 import { EventEmitter, IEventEmitter } from '../classes/events';
@@ -101,6 +101,8 @@ export interface ILocalGameAPI{
     authenticate(email:string,pass:string):Promise<WithToken<User>>;
     joinGame(id:string):Promise<Asset[]>;
     validateUser(user:User):Promise<Record<string,string>>;
+    gameStats(id:string):Promise<GameStats>;
+    register(request:RegistrationRequest):Promise<WithToken<User>>;
     setToken(id:string):void;
     getGameData():GameData;
     getGameList():Promise<Partial<Game>[]>;
@@ -132,6 +134,7 @@ export interface ILocalGameAPI{
     getQueue():EnqueuedActivity[];
     getQueueByType(type:ActivityType):EnqueuedActivity[];
     calculateResourceStats():ResourceStat[];
+    searchGames(params:SearchParams):Promise<SearchResult<Partial<Game>>>;
 }
 
 export interface IGameAPI extends ILocalGameAPI, IEventEmitter{
@@ -226,6 +229,18 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
         return authorizedUser;
     }
 
+    async register(request:RegistrationRequest):Promise<WithToken<User>>{
+        try{
+            console.log('www')
+            const authorizedUser = await this.remoteApi.register(request);
+            this.setToken(authorizedUser.token);
+            return authorizedUser;
+        }catch(err){
+            console.log(err);
+            throw err;
+        }
+    }
+
     setToken(token:string):void{
         this.remoteApi.setToken(token);
         this.connectWS(token);
@@ -251,6 +266,10 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
         this.lastQueueCheck = Date.now();
 
         return assets;
+    }
+
+    gameStats(id:string):Promise<GameStats>{
+        return this.remoteApi.gameStats(id);
     }
 
     getGameData():GameData{
@@ -539,6 +558,10 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
             .map( resource => new ResourceStat(resource,stockpiles[resource.id],builtPlaceables));
 
         return stats;
+    }
+
+    searchGames(params:SearchParams):Promise<SearchResult<Partial<Game>>>{
+        return this.remoteApi.searchGames(params);
     }
 }
 

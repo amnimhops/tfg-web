@@ -4,11 +4,10 @@
     <div class="menu-holder">
       <nav class="header responsive-container">
         <div class="logo">
-          <img :src="logo" />
-          <a href="#" @click="menuVisible = true" class="menu-opener"
-            ><fa icon="bars"
-          /></a>
-          <a href="/" class="brand">vendor<span>.com</span></a>
+          <!--<img :src="logo" />-->
+          <a href="#" @click="menuVisible = true" class="menu-opener"><fa icon="bars"/></a>
+          <LogoComponent class="menu-logo"/>
+          <!--<a href="/" class="brand">vendor<span>.com</span></a>-->
         </div>
         <Transition>
           <div class="side-menu" v-if="menuVisible">
@@ -21,20 +20,20 @@
               </div>
               <div class="menu-links">
                 <template v-for="(item, index) in links" :key="index">
-                  <a :href="item.href"
-                    ><fa :icon="item.icon" />{{ item.title }}</a
-                  >
+                  <a :href="item.href"><fa :icon="item.icon" />{{ item.title }}</a>
                 </template>
+                <a v-if="userIsLogged" href="#" @click="disconnect"><fa icon="sign-out" /> Cerrar sesión</a>
+                <router-link v-else to="/login/" @click="disconnect"><fa icon="sign-in" /> Iniciar sesión</router-link>
               </div>
             </div>
           </div>
         </Transition>
         <div class="menu-large menu-links">
           <template v-for="(item, index) in links" :key="index">
-            <a :class="{ selected: index == 0 }" :href="item.href"
-              ><fa :icon="item.icon" />{{ item.title }}</a
-            >
+            <a :class="{ selected: index == 0 }" :href="item.href"><fa :icon="item.icon" />{{ item.title }}</a>
           </template>
+          <span>{{username}} <a title="Cerrar sesión" v-if="userIsLogged" href="#" @click="disconnect" ><fa icon="sign-out" /></a></span>
+          <router-link v-if="!userIsLogged" to="/login/"><fa icon="sign-in" /> Iniciar sesión</router-link>
         </div>
       </nav>
     </div>
@@ -42,21 +41,36 @@
 </template>
 
 <script lang="ts">
-import logo from "@/assets/site/logo.svg";
+import { useStore } from "@/store";
 import { defineComponent } from "vue";
+import LogoComponent from "@/site/components/LogoComponent.vue";
 
+const store = useStore();
 export default defineComponent({
+  components:{LogoComponent},
   data() {
     return {
-      logo,
       links: [
         { title: "Inicio", href: "/", icon: "home" },
-        { title: "Lista de juegos", href: "/gamelist", icon: "list" },
-        { title: "Login", href: "/login", icon: "sign-in" },
+        { title: "Lista de juegos", href: "/gamelist", icon: "list" }
       ],
       menuVisible: false,
     };
   },
+  computed:{
+    userIsLogged(){
+      return store.state.user != null;
+    },
+    username(){
+      return store.state.user?.nickname;
+    }
+  },
+  methods:{
+    disconnect(){
+      console.log("Usuario desconectado");
+      store.commit('closeSession');
+    }
+  }
 });
 </script>
 
@@ -108,29 +122,8 @@ a:visited {
   justify-content: space-between;
   height: 100%;
   gap: 25px;
-  img {
-    @include invisible;
-    padding: 15px;
-    height: 100%;
-    width: auto;
-  }
-  .brand {
-    display: flex;
-    font-size: 2em;
-    flex-grow: 1;
-    text-align: center;
-    &:link,
-    &:visited {
-      text-decoration: none;
-      color: white;
-      font-family: sans-serif;
-      font-weight: bold;
-    }
-    span {
-      color: #f68c00;
-    }
-  }
-  .menu-opener {
+
+.menu-opener {
     padding: 15px;
     border: 0px none;
     color: white;

@@ -1,7 +1,8 @@
-import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector, User, WithToken } from "server/monolyth";
+import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector, User, WithToken, RegistrationRequest, GameStats, SearchParams } from "server/monolyth";
 import { ActivityAvailability } from "../classes/activities";
 
 import { IRemoteGameAPI } from "./remoteApi";
+import {Base64} from "js-base64";
 
 export class RemoteApiClient implements IRemoteGameAPI{
     private apiToken?:string;
@@ -27,7 +28,9 @@ export class RemoteApiClient implements IRemoteGameAPI{
             if(response.ok){
                 return remoteContentType == 'json' ? response.json() : response.text() 
             }else{
-                throw new Error(response.statusText);
+                return response.text().then( (errText) => {
+                    throw new Error(errText);
+                });
             }
         }).then( data => data as Expected);
     }
@@ -37,6 +40,14 @@ export class RemoteApiClient implements IRemoteGameAPI{
             return authorizedUser;
         });
     }
+    
+    register(request:RegistrationRequest):Promise<WithToken<User>>{
+        return this.remoteApiCall<WithToken<User>>('/users/register',request,'POST').then( authorizedUser => {
+            this.apiToken = authorizedUser.token;
+            return authorizedUser;
+        });
+    }
+    
     /**
      * Determina si los datos de un usuario son válidos de cara a registrarlo
      * @param user Datos del usuario
@@ -110,5 +121,15 @@ export class RemoteApiClient implements IRemoteGameAPI{
     }
     deleteMessage(id: number): Promise<void> {
         return this.remoteApiCall<void>(`/instance/messages/${id}`,'','DELETE','text')
+    }
+
+    gameStats(id:string):Promise<GameStats>{
+        return this.remoteApiCall<GameStats>(`/games/${id}/stats`);
+    }
+
+    searchGames(params:SearchParams):Promise<SearchResult<Partial<Game>>>{
+        // Si tienes problemas de codificacion en algún extremo recuerda el fix de
+        // https://stackoverflow.com/questions/30106476/using-javascripts-atob-to-decode-base64-doesnt-properly-decode-utf-8-strings
+        return this.remoteApiCall<SearchResult<Partial<Game>>>('/games?q='+Base64.encode(JSON.stringify(params)));
     }
 }

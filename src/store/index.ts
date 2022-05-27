@@ -24,6 +24,8 @@ export interface GameStore {
   user?:User;
   token?:string;
   gameId?:string;
+  enableMenuses?:boolean,
+  lights?:boolean;
 }
 
 /**
@@ -38,9 +40,13 @@ export const store = createStore<GameStore>({
     target:null,
     targetHistory:[],
     error:null,
-    gameLoaded:false
+    gameLoaded:false,
+    enableMenuses:true
   },
   mutations: {
+    enableMenuses(store:GameStore,state:boolean){
+      store.enableMenuses = state;
+    },
     setTarget(store:GameStore,selection:InfopanelTarget|null){
       if(selection == null){
         store.targetHistory = [];
@@ -50,6 +56,9 @@ export const store = createStore<GameStore>({
         store.target = selection;
       }
       
+    },
+    setLights(store:GameStore,status:boolean){
+      store.lights = status;
     },
     goBackInfoPanelHistory(store:GameStore){
       if(store.targetHistory.length > 1){
@@ -65,6 +74,11 @@ export const store = createStore<GameStore>({
       console.log('Session set to',session)
       store.token = session.token;
       store.user = session;
+    },
+    closeSession(store:GameStore){
+      store.token = undefined;
+      store.user = undefined;
+      console.log('Session closed');
     },
     setGameId(store:GameStore,id:string){
       store.gameId = id;

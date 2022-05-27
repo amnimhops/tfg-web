@@ -1,9 +1,14 @@
 $site-background-color-dark: #303030;
 $site-background-color-light: #888888;
 $site-danger:rgb(232, 64, 64);
+$site-danger-light:lighten($site-danger,10%);
+$site-success:rgb(64, 232, 95);
 $site-front-color:white;
 $site-primary-color:#ffb300;
-$site-secondary-color:#1ffbb0;
+$site-primary-color-hover:#ffd779;
+$site-secondary-color:#00ffaa;
+$site-secondary-color-hover:#62feca;
+
 $steps: 1 2 3 5 10 15 20 25;
 $paddings: $steps;
 $gaps: $steps;
@@ -108,24 +113,4 @@ $breakpoints: ("xs":320px,"sm":576px,"md":768px,"lg":1024px,"xl":1200px);
     .pr-#{$step} {
         margin-right: #{$step}px;
     }
-}
-
-input,select,textarea{
-    font-family:var(--ui-control-font-family);
-}
-    
-input[type=search],input[type=text],input[type=number],input[type=password]{
-    height:50px;
-    border-radius: var(--ui-control-border-radius);
-    padding-left:15px;
-}
-
-textarea{
-    border-radius: var(--ui-control-border-radius);
-    padding-left:15px;
-    padding-top:10px;
-}
-
-.bold{
-    font-weight:bold;
 }

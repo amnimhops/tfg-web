@@ -1,7 +1,10 @@
 <template>
   <div class="footer">
       <ul class="responsive-container">
-          <li>&copy; 2022, vendor.com</li>
+          <li class="legal">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/es/"><img class="cc" :src="cc" /></a>
+              <router-link to="/license">Algunos derechos reservados</router-link>
+            </li>
           <li v-for="(link,index) in links" :key="index">
               <a :href="link.href">{{link.title}}</a>
           </li>
@@ -10,9 +13,11 @@
 </template>
 
 <script>
+const cc =  require("@/assets/site/by-nc-sa.png");
 export default {
     data(){
         return{
+            cc,
             links:[
                 {href:'/tos',title:'Términos y condiciones'},
                 {href:'/privacity',title:'Privacidad'}
@@ -24,7 +29,6 @@ export default {
 
 <style lang="scss" scoped>
     .footer{
-        padding:10px;
         background-color:black;
         color:white;
         a:link,a:visited{
@@ -40,8 +44,14 @@ export default {
         padding:0;
         gap:10px;
     }
-    li{
-        
+    .legal{
+        display:flex;
+        flex-flow:row nowrap;
+        gap:5px;
+        align-items: center;
+    }
+    .cc{
+        max-height:32px;
     }
 
     @media(min-width:768px){

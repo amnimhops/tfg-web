@@ -11,7 +11,11 @@ import ActivityView from '@/game/views/ActivityView.vue';
 
 import RegisterView from '@/site/views/RegisterView.vue';
 import LoginView from '@/site/views/LoginView.vue';
+import ErrorView from '@/site/views/ErrorView.vue';
+import GameList from '@/site/views/GameList.vue';
+import GameView from '@/site/views/GameView.vue';
 import HomeView from '@/site/views/HomeView.vue';
+
 
 
 /**
@@ -37,8 +41,11 @@ const routes = [
         path: '/', component: WebsiteApp,
         children:[
             {path:'',name:'home',component:HomeView},
-            {path:'/register',name:'register',component:RegisterView},
-            {path:'game/:id/login',name:'login',component:LoginView}
+            {path:'/register/:id?',name:'register',component:RegisterView},
+            {path:'/view/:id',name:'view',component:GameView},
+            {path:'/login/:id?',name:'login',component:LoginView},
+            {path:'/gamelist/',name:'gamelist',component:GameList},
+            {path:'/error',name:'error',component:ErrorView}
         ]
     }
 ]

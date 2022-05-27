@@ -2,26 +2,33 @@
   <div class="login" :style="{ backgroundImage: bgImage }" :class="{lightsOn}">
     <form class="responsive-container" @submit.prevent="login">
       <div class="login-form" v-if="game" :class="loggingStatus">
-        <div class="title">
-          <h1>{{game.media.name}}</h1>
-          <div class="description">Antes de continuar debes iniciar sesión.</div>
-        </div>
-        <div class="form-control">
-          <label for="name">Correo electrónico</label>
-          <input v-model="email" type="text" name="email" placeholder="pepe@perez.com" />
-        </div>
-        <div class="form-control">
-          <label for="name">Contraseña</label>
-          <input v-model="password" type="password" name="password" placeholder="clave" />
-        </div>
-        <div class="form-control error" v-if="error">
-          <p>{{error}}</p>
-        </div>
-        <div class="form-control">
-          <button type="submit" class="button">Entrar</button>
-        </div>
-        <div class="registration-tip">
-          <p><a href="#">Crear una cuenta</a></p>
+        <div class="logo"><LogoComponent /></div>
+        <div class="form">
+          <div class="title">
+            <h1>{{game.media.name}}</h1>
+            <div class="description">Antes de continuar debes iniciar sesión.</div>
+          </div>
+          <div class="controls">
+            <div class="form-control">
+              <label for="name">Correo electrónico</label>
+              <input v-model="email" type="text" name="email" placeholder="pepe@perez.com" />
+            </div>
+            <div class="form-control">
+              <label for="name">Contraseña</label>
+              <input v-model="password" type="password" name="password" placeholder="clave" />
+            </div>
+            <div class="form-control site-error" v-if="error">
+              <p>{{error}}</p>
+            </div>
+             <div class="buttons">
+              <div class="form-control">
+                <button type="submit" class="button primary">Entrar</button>
+              </div>
+              <div class="registration-tip">
+                <router-link to="/register">Crear una cuenta</router-link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </form>
@@ -34,8 +41,10 @@ import {Game} from 'server/monolyth';
 import { useGameAPI } from '@/game/services/gameApi';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '@/store';
-
+import { randomItem } from 'server/functions';
+import LogoComponent from "@/site/components/LogoComponent.vue";
 export default defineComponent({
+  components:{LogoComponent},
   setup(props) {
     const store = useStore();
     const router = useRouter();
@@ -53,12 +62,21 @@ export default defineComponent({
       return game.value != null ? 'url('+game.value.media!.image.url+')' : null
     });
 
+    store.commit("enableMenuses",false);
+    
     onMounted( async ()=>{
+      console.log('mounted')
       const games = await api.getGameList();
       const id = route.params.id;
       const selected = games.find( g => g.id == id) || null;
       game.value = selected;
-      console.log('mounted',game.value)
+      if(game.value){
+        console.log('mounted',game.value)
+      }else{
+        console.log('Login sin juego especificado');
+        game.value = randomItem(games);
+      }
+      
       lightsOn.value = true;
     });
 
@@ -98,7 +116,6 @@ export default defineComponent({
 <style lang="scss" scoped>
 
 .login {
-  padding-top:50px;
   height: 100%;
   //background-image:url('');
   background-position: center center;
@@ -115,19 +132,12 @@ export default defineComponent({
 
 h1 {
   margin: 0 0 10px 0;
-  font-size: 1.5m;
+  font-size: 1.2m;
   font-weight: bold;
 }
-.error{
-  color:$site-danger;
-  background-color:$site-danger;
-  color:$site-front-color;
-  border-radius:5px;
-
-  p{
-    margin:0px;
-    padding:5px;
-  }
+.site-error{
+  text-align: center;
+  font-size:1.2em;
 }
 .responsive-container {
   height: 100%;
@@ -135,21 +145,34 @@ h1 {
   flex-flow: row wrap;
   justify-content: space-around;
   align-items: center;
-  padding: 15px;
 }
 
-.title{
-  @include invisible;
+.logo{
+  width:100%; // EN firefox no se ve correctamente si no se pone
 }
+.registration-tip{
+  text-align: center;
+  margin-top:25px;
+  a:link,a:visited{
+    color:$site-secondary-color;
+  }
+  a:hover{
+    color:$site-secondary-color-hover;
+  }
+}
+
 .login-form{
-  width:75%;
   height:100%;
+  padding:15px;
+  
   margin-left:auto;
   margin-right:auto;
   display:flex;
   flex-flow:column nowrap;
   gap:15px;
   justify-content: center;
+  background-color:rgba(0,0,0,0.4);
+  
   transition: opacity 500ms ease-in;
   &.logging-in{
     opacity:0.2;
@@ -163,11 +186,22 @@ h1 {
   flex-flow: column nowrap;
   gap:5px;
 }
-.form-control a{
-  margin-top:25px;
-  text-align: center;
-}
 
+
+.form{
+  display:flex;
+  flex-flow:column nowrap;
+  justify-content: center;
+  flex-grow:2;
+  gap:50px;
+}
+.controls{
+  display:flex;
+  flex-flow: column nowrap;
+  gap:25px;
+  justify-content: center;
+  align-items: center;
+}
 label{
   font-size:1em;
 }

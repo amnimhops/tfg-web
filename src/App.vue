@@ -21,6 +21,7 @@ onMounted(()=>{
 
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,700;1,700&display=swap');
 
 
 body{
@@ -29,7 +30,6 @@ body{
 }
 
 #app {
-font-family: 'Saira Semi Condensed', sans-serif;  
-
+  font-family: 'Saira Semi Condensed', sans-serif;  
 }
 </style>

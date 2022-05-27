@@ -31,6 +31,7 @@ export function closeInfoPanel(){
     store.commit('setTarget',null)
 }
 export function showErrorPanel(message:string){
+    console.log('Error panel activated');
     store.commit('setError',message);
 }
 export function hideErrorPanel(){

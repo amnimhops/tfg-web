@@ -7,24 +7,26 @@
             <h1>{{ selected.media.name }}</h1>
           </div>
           <div class="description">{{ selected.media.description }}</div>
-          <div class="enter"><a href="#" class="button" @click="joinGame">Entrar</a></div>
+          <div class="enter"><a href="#" class="button primary" @click="viewGame">Entrar</a></div>
         </div>
       </div>
-      <div class="left">
-        <a class="nav" href="#" @click="prev()"><fa icon="angle-left" /></a>
-      </div>
-      <div class="center" v-if="games">
-        <div class="balls">
-          <a class="nav"  href="#" v-for="(game, index) in games" :key="index" :class="{selected:index==selectedIndex}" @click="select(index)">
-            <fa icon="circle" />
-          </a>
+      <div class="game-nav">
+        <div class="left">
+          <a class="nav" href="#" @click="prev()"><fa icon="angle-left" /></a>
         </div>
-        <div class="numbers">
-          <span>{{ selectedIndex + 1 }} / {{ games.length }}</span>
+        <div class="center" v-if="games">
+          <div class="balls">
+            <a class="nav"  href="#" v-for="(game, index) in games" :key="index" :class="{selected:index==selectedIndex}" @click="select(index)">
+              <fa icon="circle" />
+            </a>
+          </div>
+          <div class="numbers">
+            <span>{{ selectedIndex + 1 }} / {{ games.length }}</span>
+          </div>
         </div>
-      </div>
-      <div class="right">
-        <a class="nav" href="#" @click="next()"><fa icon="angle-right" /></a>
+        <div class="right">
+          <a class="nav" href="#" @click="next()"><fa icon="angle-right" /></a>
+        </div>
       </div>
     </div>
   </div>
@@ -32,11 +34,11 @@
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, ref } from 'vue'
-import {Game} from 'server/monolyth';
+import { Game } from 'server/monolyth';
 import { useGameAPI } from '@/game/services/gameApi';
-import {useStore} from '@/store'
-import { useRoute, useRouter } from 'vue-router';
-
+import { useStore} from '@/store'
+import { useRouter } from 'vue-router';
+import {fatalError} from "@/site/classes/utils"
 export default defineComponent({
   setup() {
     const store = useStore();
@@ -54,14 +56,10 @@ export default defineComponent({
       ()=> (games.value && selectedIndex.value != null) ? 'url('+games.value[selectedIndex.value].media!.image.url+')' : null
     );
 
-    const joinGame = ()=>{
-      if(store.state.token){
-        store.commit('setGame',selected.value?.id);
-        router.push({path:'/game/area'})
-      }else{
-        router.push({path:`/game/${selected.value?.id}/login`})
-      }
+    const viewGame = ()=>{
+      router.push({path:'/view/'+selected.value!.id});
     }
+
     const select = (index:number) => {
       lightsOn.value = false;
       setTimeout(()=>{
@@ -74,14 +72,19 @@ export default defineComponent({
     const prev = () => select( (selectedIndex.value ||0) - 1);
     const next = () => select( (selectedIndex.value ||0) + 1);
     onMounted( async ()=>{
-      games.value = await api.getGameList();
-      console.log(games);
-      select(0);
+      try{
+        games.value = await api.getGameList();
+        select(0);
+      }catch(err){
+        fatalError(err);
+      }
+      
     });
 
+    store.commit('enableMenuses',true);
     return{
       lightsOn,bgImage,games,selected,selectedIndex,
-      prev,next,select,joinGame
+      prev,next,select,viewGame
     }
   },
 })
@@ -114,12 +117,13 @@ h1 {
 }
 
 .responsive-container {
-  height: 100%;
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-between;
-  align-items: center;
   padding: 15px;
+}
+.game-nav{
+  display:flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: space-between;
 }
 .left {
   font-size: 4em;
@@ -137,7 +141,9 @@ h1 {
 }
 .enter{
   margin-top:30px;
-  width:100%;
+  width:min(300px,100%);
+  margin-left:auto;
+  margin-right:auto;
   display:flex;
   flex-flow: row nowrap;
 
@@ -154,7 +160,7 @@ h1 {
   font-size:1.5em;
 }
 .nav:link,.nav:visited{
-  color:gray;
+  color:lightgray;
   &:hover{
     color:white;
   }

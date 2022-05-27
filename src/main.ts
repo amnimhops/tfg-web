@@ -6,10 +6,10 @@ import { store, key } from './store'
 import "./styles/styles.scss";
 
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faBars, faHome, faList, faSignIn,faAngleLeft,faAngleRight,faCircle,faUsers,faStar,faHandshake,faFistRaised,faWindowClose } from '@fortawesome/free-solid-svg-icons'
+import { faCheck,faBars, faHome, faList, faSignIn,faSignOut,faAngleLeft,faAngleRight,faCircle,faUsers,faStar,faHandshake,faFistRaised,faWindowClose, faImage } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-library.add(faBars, faHome, faList, faSignIn,faAngleLeft,faAngleRight,faCircle,faUsers,faStar,faHandshake,faFistRaised,faWindowClose);
+library.add(faCheck, faBars, faHome, faList, faSignIn,faSignOut,faAngleLeft,faAngleRight,faCircle,faUsers,faStar,faHandshake,faFistRaised,faWindowClose,faImage);
 
 console.log(library)
 createApp(App)
