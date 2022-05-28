@@ -1,4 +1,4 @@
-import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector, User, WithToken, RegistrationRequest, GameStats, SearchParams } from "server/monolyth";
+import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector, User, WithToken, RegistrationRequest, GameStats, SearchParams, InstancePlayerInfo } from "server/monolyth";
 import { ActivityAvailability } from "../classes/activities";
 
 import { IRemoteGameAPI } from "./remoteApi";
@@ -39,6 +39,10 @@ export class RemoteApiClient implements IRemoteGameAPI{
             this.apiToken = authorizedUser.token;
             return authorizedUser;
         });
+    }
+
+    logout(): Promise<WithToken<User>> {
+        return this.remoteApiCall<WithToken<User>>('/sessions/logout',null,'DELETE','text');
     }
     
     register(request:RegistrationRequest):Promise<WithToken<User>>{
@@ -131,5 +135,8 @@ export class RemoteApiClient implements IRemoteGameAPI{
         // Si tienes problemas de codificacion en algún extremo recuerda el fix de
         // https://stackoverflow.com/questions/30106476/using-javascripts-atob-to-decode-base64-doesnt-properly-decode-utf-8-strings
         return this.remoteApiCall<SearchResult<Partial<Game>>>('/games?q='+Base64.encode(JSON.stringify(params)));
+    }
+    instanceInfo(id:string):Promise<InstancePlayerInfo[]>{
+        return this.remoteApiCall<InstancePlayerInfo[]>(`/users/${id}/games`)
     }
 }

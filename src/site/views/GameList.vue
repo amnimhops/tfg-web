@@ -90,8 +90,6 @@ export default defineComponent({
         
     }
 
-    store.commit("enableMenuses", true);
-
     onMounted(async () => {
       lightsOn.value = false;
 
@@ -103,6 +101,9 @@ export default defineComponent({
       lightsOn.value = true;
     });
 
+    store.commit("enableMenuses", true);
+    store.commit("selectMenu","gamelist");
+    
     return { game,bgImage, lightsOn, search, list, q, page, pages, goPage, searching};
   },
 });

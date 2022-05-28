@@ -20,7 +20,12 @@ export default {
             cc,
             links:[
                 {href:'/tos',title:'Términos y condiciones'},
-                {href:'/privacity',title:'Privacidad'}
+                {href:'/privacity',title:'Privacidad'},
+                /* Este enlace solo funcionará en produccion, en desarrollo el
+                 * servidor de webpack se engancha en puertos variables, de forma
+                 * que no se puede controlar el nombre completo del host.
+                 */
+                {href:'/backoffice',title:'Panel de control'}
             ]
         }
     }

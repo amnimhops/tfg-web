@@ -22,18 +22,21 @@
                 <template v-for="(item, index) in links" :key="index">
                   <a :href="item.href"><fa :icon="item.icon" />{{ item.title }}</a>
                 </template>
-                <a v-if="userIsLogged" href="#" @click="disconnect"><fa icon="sign-out" /> Cerrar sesión</a>
-                <router-link v-else to="/login/" @click="disconnect"><fa icon="sign-in" /> Iniciar sesión</router-link>
+                  <a v-if="userIsLogged" href="#" @click="disconnect"><fa icon="sign-out" /> Cerrar sesión</a>
+                  <router-link v-else to="/login/" @click="disconnect"><fa icon="sign-in" /> Iniciar sesión</router-link>
               </div>
             </div>
           </div>
         </Transition>
         <div class="menu-large menu-links">
           <template v-for="(item, index) in links" :key="index">
-            <a :class="{ selected: index == 0 }" :href="item.href"><fa :icon="item.icon" />{{ item.title }}</a>
+            <a :class="{ selected: item.id == selectedMenu }" :href="item.href"><fa :icon="item.icon" />{{ item.title }}</a>
           </template>
-          <span>{{username}} <a title="Cerrar sesión" v-if="userIsLogged" href="#" @click="disconnect" ><fa icon="sign-out" /></a></span>
-          <router-link v-if="!userIsLogged" to="/login/"><fa icon="sign-in" /> Iniciar sesión</router-link>
+          <div class="user-menu">
+            <span>{{username}}</span>
+            <a title="Cerrar sesión" v-if="userIsLogged" href="#" @click="disconnect" ><fa icon="sign-out" /></a>
+            <router-link v-if="!userIsLogged" to="/login/"><fa icon="sign-in" /> Iniciar sesión</router-link>
+          </div>
         </div>
       </nav>
     </div>
@@ -44,15 +47,19 @@
 import { useStore } from "@/store";
 import { defineComponent } from "vue";
 import LogoComponent from "@/site/components/LogoComponent.vue";
+import { useRoute, useRouter } from "vue-router";
+import { useGameAPI } from "@/game/services/gameApi";
 
 const store = useStore();
+const api = useGameAPI();
+
 export default defineComponent({
   components:{LogoComponent},
   data() {
     return {
       links: [
-        { title: "Inicio", href: "/", icon: "home" },
-        { title: "Lista de juegos", href: "/gamelist", icon: "list" }
+        { id:'home', title: "Inicio", href: "/", icon: "home" },
+        { id:'gamelist', title: "Lista de juegos", href: "/gamelist", icon: "list" }
       ],
       menuVisible: false,
     };
@@ -62,13 +69,19 @@ export default defineComponent({
       return store.state.user != null;
     },
     username(){
-      return store.state.user?.nickname;
+      return store.state.user?.nickname || store.state.user?.email;
+    },
+    selectedMenu(){
+      return store.state.selectedMenu;
     }
   },
   methods:{
     disconnect(){
       console.log("Usuario desconectado");
-      store.commit('closeSession');
+      api.logout().then( () => {
+        store.commit('closeSession');
+        this.$router.push({path:"/"});
+    });
     }
   }
 });
@@ -88,6 +101,11 @@ export default defineComponent({
 .menu{
   width:100%;
   position:absolute;
+  /** Cuando se superponen varios elementos con alfa < 1
+    * ocurren cosas extrañas. Estableciendo el valor de z-index
+    * hace que se comporte de la forma esperada y oculte todo lo
+    * que haya por debajo. */
+  //z-index:1; 
 }
 .menu-background{
   background-color: #303030;
@@ -185,7 +203,7 @@ a:visited {
   display: flex;
   flex-flow: column nowrap;
   gap: 15px;
-  font-size: 1.5em;
+  font-size: 1.2em;
   a:link,
   a:visited {
     display: flex;
@@ -198,7 +216,14 @@ a:visited {
 .menu-large {
   @include invisible;
 }
-
+.user-menu{
+  display:flex;
+  flex-flow: row nowrap;
+  color:white;
+  align-items: center;
+  font-weight: bold;
+  margin-left:50px;
+}
 @media (min-width: 1024px) {
   .menu-opener {
     @include invisible;
@@ -228,7 +253,8 @@ a:visited {
       padding: 15px;
 
       &.selected {
-        background-color: blue;
+        background-color: $site-primary-color;
+        color:black;
       }
     }
   }

@@ -1,4 +1,4 @@
-import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector, User, WithToken, RegistrationRequest, GameStats, SearchParams } from "server/monolyth";
+import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector, User, WithToken, RegistrationRequest, GameStats, SearchParams, InstancePlayerInfo } from "server/monolyth";
 import { ActivityAvailability } from "../classes/activities";
 
 /**
@@ -31,4 +31,6 @@ export interface IRemoteGameAPI{
     sendMessage(dstPlayerId:string,subject:string,message:string):Promise<Message>;
     deleteMessage(id:number):Promise<void>;
     searchGames(params:SearchParams):Promise<SearchResult<Partial<Game>>>;
+    logout(): Promise<WithToken<User>>;
+    instanceInfo(id:string):Promise<InstancePlayerInfo[]>;
 }

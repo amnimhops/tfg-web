@@ -1,5 +1,5 @@
 import { countdown, countdownStr, toMap } from 'server/functions';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, flowPeriodRanges, Game, GameEvents, GameStats, InstancePlayer, Media, Message, MessageType, Placeable, PlaceableInstance, RegistrationRequest, Resource, ResourceFlow, SearchParams, SearchResult, Stockpile, Technology, TradingAgreement, UIConfig, User, WithToken, WorldMapQuery, WorldMapSector } from 'server/monolyth';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, flowPeriodRanges, Game, GameEvents, GameStats, InstancePlayer, InstancePlayerInfo, Media, Message, MessageType, Placeable, PlaceableInstance, RegistrationRequest, Resource, ResourceFlow, SearchParams, SearchResult, Stockpile, Technology, TradingAgreement, UIConfig, User, WithToken, WorldMapQuery, WorldMapSector } from 'server/monolyth';
 import { ActivityAvailability, ActivityCost, AttackActivityTarget, ClaimActivityTarget, DismantlingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget } from '../classes/activities';
 import { AssetManager, ConstantAssets } from 'server/assets';
 import { EventEmitter, IEventEmitter } from '../classes/events';
@@ -135,6 +135,8 @@ export interface ILocalGameAPI{
     getQueueByType(type:ActivityType):EnqueuedActivity[];
     calculateResourceStats():ResourceStat[];
     searchGames(params:SearchParams):Promise<SearchResult<Partial<Game>>>;
+    logout(): Promise<WithToken<User>>;
+    instanceInfo(id:string):Promise<InstancePlayerInfo[]>;
 }
 
 export interface IGameAPI extends ILocalGameAPI, IEventEmitter{
@@ -354,28 +356,7 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
     }
    
     getUIConfig(): UIConfig {
-        return {
-            "uiControlFontFamily":"Verdana",
-            "uiControlBackgroundColor":"#0b2e6b",
-            "uiControlBackgroundColorBrilliant":"#005eff",
-            "uiControlForegroundColor":"#194898",
-            "uiControlFontColor":"white",
-            "uiControlFontColorDanger":"#dd0a0a",
-            "uiControlFontColorDisabled":"#a0a0a0",
-            "uiControlTextSize":"1.0em",
-            "uiControlTextHeadingSize":"1.5em",
-            "uiControlBorderColor":"#293e61",
-            "uiControlBorderRadius":"1px",
-            "uiControlShadowColor":"#030e20",
-            "uiControlBackgroundPrimary":"#b1a91a",
-            "uiControlBackgroundSecondary":"#8f1323",
-            "uiResourceFlowNegative":"",
-            "uiResourceFlowPositive":"",
-            "uiDanger":"",
-            "uiWarning":"",
-            "uiSuccess":"",
-            "uiControlPadding":""
-        }
+        return this.internalGame!.userInterface!.style!; // bang bang!
     }
     getResearchedTechnologies():Technology[]{
         if(!this.currentInstancePlayer) throw new Error('No se ha cargado la información del jugador');
@@ -562,6 +543,14 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
 
     searchGames(params:SearchParams):Promise<SearchResult<Partial<Game>>>{
         return this.remoteApi.searchGames(params);
+    }
+
+    logout(): Promise<WithToken<User>> {
+        return this.remoteApi.logout();
+    }
+
+    instanceInfo(id:string):Promise<InstancePlayerInfo[]>{
+        return this.remoteApi.instanceInfo(id);
     }
 }
 

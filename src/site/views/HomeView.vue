@@ -82,6 +82,7 @@ export default defineComponent({
     });
 
     store.commit('enableMenuses',true);
+    store.commit('selectMenu','home');
     return{
       lightsOn,bgImage,games,selected,selectedIndex,
       prev,next,select,viewGame

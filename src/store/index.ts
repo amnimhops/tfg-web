@@ -1,7 +1,7 @@
 import { createStore, Store } from 'vuex'
 import { InjectionKey } from 'vue'
 import {  InfopanelTarget } from '@/game/classes/info';
-import { User, WithToken } from 'server/monolyth';
+import { Link, User, WithToken } from 'server/monolyth';
 import VuexPersistence from 'vuex-persist'
 
 /**
@@ -25,6 +25,7 @@ export interface GameStore {
   token?:string;
   gameId?:string;
   enableMenuses?:boolean,
+  selectedMenu?:string
   lights?:boolean;
 }
 
@@ -59,6 +60,9 @@ export const store = createStore<GameStore>({
     },
     setLights(store:GameStore,status:boolean){
       store.lights = status;
+    },
+    selectMenu(store:GameStore,menu:string){
+      store.selectedMenu = menu;
     },
     goBackInfoPanelHistory(store:GameStore){
       if(store.targetHistory.length > 1){

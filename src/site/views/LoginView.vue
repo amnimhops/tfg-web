@@ -1,11 +1,11 @@
 <template>
   <div class="login" :style="{ backgroundImage: bgImage }" :class="{lightsOn}">
     <form class="responsive-container" @submit.prevent="login">
-      <div class="login-form" v-if="game" :class="loggingStatus">
+      <div class="login-form" :class="loggingStatus">
         <div class="logo"><LogoComponent /></div>
         <div class="form">
           <div class="title">
-            <h1>{{game.media.name}}</h1>
+            <h1 v-if="game">{{game.media.name}}</h1>
             <div class="description">Antes de continuar debes iniciar sesión.</div>
           </div>
           <div class="controls">
@@ -52,32 +52,34 @@ export default defineComponent({
     const api = useGameAPI();
 
     const lightsOn = ref<boolean>(false);
-    const game = ref<Partial<Game>|null>(null);
     const error = ref<string|null>(null);
     const email = ref<string>('');
     const password = ref<string>('');
     const loggingStatus = ref<string>('');
-
-    const bgImage = computed<string|null>( ()=> {
-      return game.value != null ? 'url('+game.value.media!.image.url+')' : null
-    });
+    const game = ref<Partial<Game>|null>();
+    const bgImage = ref<string|null>();
 
     store.commit("enableMenuses",false);
     
+    /**
+     * Como en el resto de paginas, usaremos un juego
+     * como fondo. SI el login se efectua contr aun juego
+     * se usará este como fondo, de lo contrario se usará
+     * uno random.
+     */
     onMounted( async ()=>{
       console.log('mounted')
       const games = await api.getGameList();
-      const id = route.params.id;
-      const selected = games.find( g => g.id == id) || null;
-      game.value = selected;
-      if(game.value){
-        console.log('mounted',game.value)
-      }else{
-        console.log('Login sin juego especificado');
-        game.value = randomItem(games);
-      }
       
-      lightsOn.value = true;
+      const id = route.params.id as string;
+      if(id){
+        game.value = games.find( g => g.id == id) || null;
+        bgImage.value = 'url('+game.value!.media!.image.url+')';
+      }else{
+        bgImage.value = 'url('+randomItem(games).media!.image.url+')';
+      }
+
+lightsOn.value = true;
     });
 
     const login = () => {
@@ -88,7 +90,7 @@ export default defineComponent({
       setTimeout(()=>{
         api.authenticate(email.value,password.value).then( (sessionData)=>{
           store.commit('setSession',sessionData);
-          store.commit('setGameId',game.value!.id);
+          if(game.value) store.commit('setGameId',game.value.id);
         }).catch((err)=>{
           error.value = err;
         }).finally(()=>{
@@ -107,7 +109,7 @@ export default defineComponent({
     }
 
     return{
-      lightsOn,bgImage,game,login,error,email,password,loggingStatus
+      lightsOn,bgImage,login,error,email,password,loggingStatus,game
     }
   },
 })

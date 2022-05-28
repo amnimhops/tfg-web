@@ -15,6 +15,7 @@ import ErrorView from '@/site/views/ErrorView.vue';
 import GameList from '@/site/views/GameList.vue';
 import GameView from '@/site/views/GameView.vue';
 import HomeView from '@/site/views/HomeView.vue';
+import UserView from '@/site/views/UserView.vue';
 
 
 
@@ -45,6 +46,7 @@ const routes = [
             {path:'/view/:id',name:'view',component:GameView},
             {path:'/login/:id?',name:'login',component:LoginView},
             {path:'/gamelist/',name:'gamelist',component:GameList},
+            {path:'/player/games',name:'playergames',component:UserView},
             {path:'/error',name:'error',component:ErrorView}
         ]
     }

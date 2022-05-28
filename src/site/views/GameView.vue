@@ -98,6 +98,7 @@ export default defineComponent({
 
     const action = () => {
       if (store.state.token) {
+        console.log(game.value!.id);
         store.commit("setGameId", game.value?.id);
         router.push({ path: "/game/area" });
       } else {
