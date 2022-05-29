@@ -33,7 +33,7 @@
             <a :class="{ selected: item.id == selectedMenu }" :href="item.href"><fa :icon="item.icon" />{{ item.title }}</a>
           </template>
           <div class="user-menu">
-            <span>{{username}}</span>
+            <router-link to="/player/games">{{username}}</router-link >
             <a title="Cerrar sesión" v-if="userIsLogged" href="#" @click="disconnect" ><fa icon="sign-out" /></a>
             <router-link v-if="!userIsLogged" to="/login/"><fa icon="sign-in" /> Iniciar sesión</router-link>
           </div>
@@ -69,7 +69,7 @@ export default defineComponent({
       return store.state.user != null;
     },
     username(){
-      return store.state.user?.nickname || store.state.user?.email;
+      return store.state.user?.nickname || store.state.user?.email || store.state.user?.id;
     },
     selectedMenu(){
       return store.state.selectedMenu;
@@ -80,6 +80,7 @@ export default defineComponent({
       console.log("Usuario desconectado");
       api.logout().then( () => {
         store.commit('closeSession');
+        store.commit('setGameId',null); // Importante, o el proximo login se meterá donde quiera!
         this.$router.push({path:"/"});
     });
     }

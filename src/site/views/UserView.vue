@@ -1,7 +1,7 @@
 <template>
   <div
     class="game-list">
-    <div class="responsive-container" v-if="game">
+    <div class="responsive-container">
       <div class="game-info">
         <h1>Mis juegos</h1>
 
@@ -11,7 +11,6 @@
             v-for="item in list"
             :key="item.id"
             :style="{ backgroundImage: `url('${item.media.image.url}')` }"
-            :class="{ searching }"
           >
             <h3>
               <router-link :to="`/view/${item.id}`">{{
@@ -21,30 +20,8 @@
           </div>
         </div>
         <div class="no-results" v-else>
-          <h3>La búsqueda no ha producido ningún resultado</h3>
-        </div>
-        <div class="pagination" v-if="pages.length > 1">
-          <a
-            class="page prev"
-            :class="{ disabled: page == 1 }"
-            @click="goPage(page - 1)"
-            ><fa icon="angle-left"
-          /></a>
-          <span class="pageof">{{ page }} / {{ pages.length }}</span>
-          <a
-            class="page next"
-            :class="{ disabled: page == pages[pages.length - 1] }"
-            @click="goPage(page + 1)"
-            ><fa icon="angle-right"
-          /></a>
-          <a
-            class="page number"
-            :class="{ current: p == page }"
-            v-for="p in pages"
-            :key="p"
-            @click="goPage(p)"
-            >{{ p }}</a
-          >
+          <h3>Actualmente no estás vinculado a ningún juego</h3>
+          <router-link to="/gamelist" class="view-games button primary">Ver juegos disponibles</router-link>
         </div>
       </div>
     </div>
@@ -53,7 +30,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, onMounted, PropType, ref } from "vue";
-import { Game, SearchParams, SearchResult } from "server/monolyth";
+import { Game, InstancePlayerInfo, SearchParams, SearchResult } from "server/monolyth";
 import { useGameAPI } from "@/game/services/gameApi";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "@/store";
@@ -66,11 +43,14 @@ export default defineComponent({
     const store = useStore();
     const router = useRouter();
     const api = useGameAPI();
+    const games = ref<Record<string,Partial<Game>>>({});
     const list = ref<Partial<Game>[]>([]);
     const getUserGames = async (userId:string) => {
       console.log('wis')
       try{
-        list.value = await api.instanceInfo(userId);
+        const all = await api.getGameList();
+        const playing = await api.instanceInfo(userId);
+        list.value = playing.map( g1 => all.find(g2 => g2.id == g1.gameId) );
       }catch(err){
         fatalError(err);
       }
@@ -95,11 +75,8 @@ export default defineComponent({
 <style lang="scss" scoped>
 .game-list {
   height: 100%;
-  //background-image:url('');
-  background-position: center center;
-  background-size: cover;
   color: white;
-  background-color: black;
+  background-color: #101010;
   background-blend-mode: multiply;
   transition: background-color 500ms ease-in-out;
   display: flex;
@@ -211,9 +188,9 @@ a:visited {
 .page.current:hover {
   background-color: $site-primary-color-hover;
 }
-.next,
-.prev,
-.pageof {
+.view-games{
+  color:black;
+  margin-top:25px;
 }
 
 @media (min-width: 1024px) {

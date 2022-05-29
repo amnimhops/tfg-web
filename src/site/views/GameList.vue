@@ -67,7 +67,7 @@ export default defineComponent({
         const params : SearchParams = {
             criteria:{ "media.name" : {"$regex":`.*${q.value}.*` }},
             page:page.value,
-            records:3,
+            records:6,
             sortField:"media.name",
             sortOrder:1
         };
@@ -103,7 +103,7 @@ export default defineComponent({
 
     store.commit("enableMenuses", true);
     store.commit("selectMenu","gamelist");
-    
+
     return { game,bgImage, lightsOn, search, list, q, page, pages, goPage, searching};
   },
 });

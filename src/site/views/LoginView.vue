@@ -100,7 +100,13 @@ lightsOn.value = true;
             lightsOn.value=true;
           }else{
             loggingStatus.value = 'logged';
-            router.push({path:'/game/area'});
+            if(game.value){
+              // Si se había seleccionado un juego, entramos
+              router.push({path:'/game/area'});
+            }else{
+              // De lo contrario, lo llevamos al área d jugador
+              router.push({path:'/player/games'});
+            }
           }
         })
       },500)
