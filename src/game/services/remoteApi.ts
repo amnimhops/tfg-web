@@ -1,5 +1,5 @@
+import { ActivityCost } from "server/activities";
 import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector, User, WithToken, RegistrationRequest, GameStats, SearchParams, InstancePlayerInfo } from "server/monolyth";
-import { ActivityAvailability } from "../classes/activities";
 
 /**
  * Esta interfaz define las operaciones que se llevan a cabo
@@ -33,4 +33,5 @@ export interface IRemoteGameAPI{
     searchGames(params:SearchParams):Promise<SearchResult<Partial<Game>>>;
     logout(): Promise<WithToken<User>>;
     instanceInfo(id:string):Promise<InstancePlayerInfo[]>;
+    getActivityCost(type:ActivityType,target:ActivityTarget):Promise<ActivityCost>;
 }

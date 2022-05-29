@@ -38,10 +38,10 @@
 <script lang="ts">
 import * as UI from '../ui/';
 import ActivityButton from '../game/ActivityButton.vue'
-import { ActivityInfo, ResearchActivityTarget, useActivityConfirmation } from '@/game/classes/activities';
+import { ActivityInfo, ResearchActivityTarget } from 'server/activities';
 import { TechIPTarget } from '@/game/classes/info';
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
-import { Activity, ActivityType, EnqueuedActivity, Technology } from 'server/monolyth';
+import { ActivityType, EnqueuedActivity, Technology } from 'server/monolyth';
 import { computed, defineComponent, onUnmounted, PropType, ref } from 'vue'
 import { useRouter } from 'vue-router';
 import {acceptIcon,closeIcon} from '../ui/icons'

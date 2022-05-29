@@ -19,7 +19,7 @@ import * as UI from '../components/ui/';
 import ResourceSummary from '../components/game/ResourceSummary.vue';
 import { showInfoPanel2 } from '../controllers/ui';
 import { GameEvents, ResourceStat, useGameAPI } from '../services/gameApi';
-import { fmtResourceAmount } from '../classes/formatters';
+import { fmtResourceAmount } from 'server/functions';
 export default defineComponent({
     components:{...UI,ResourceSummary},
     setup() {

@@ -44,7 +44,7 @@ import { ActivityType, EnqueuedActivity } from 'server/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import * as UI from '../ui';
 import { useMessageWriter } from '@/game/classes/messaging';
-import { ActivityInfo, AttackActivityTarget, SpyActivityTarget } from '@/game/classes/activities';
+import { ActivityInfo, AttackActivityTarget, SpyActivityTarget } from 'server/activities';
 import { goBackInfoPanelHistory, showInfoPanel2 } from '@/game/controllers/ui';
 
 export default defineComponent({

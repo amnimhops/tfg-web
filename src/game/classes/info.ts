@@ -1,7 +1,7 @@
 import { CellInstance, Media, Technology, Asset, Resource, InstancePlayer, Message, MessageType, PlaceableInstance, Placeable, ActivityType, ActivityTarget, Activity } from "server/monolyth";
 import { IGameAPI, useGameAPI } from "../services/gameApi";
 import { AssetManager, ASSET_EMPTY, ConstantAssets } from "server/assets";
-import { GameData } from "./gameIndex";
+import { GameData } from "server/gamedata";
 
 export interface IPBreacrumbLink{
     href:string;

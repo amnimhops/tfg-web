@@ -70,17 +70,17 @@
 
 <script lang="ts">
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
-import { ActivityType, Resource, ResourceAmount, TradingAgreement, WithAmount } from 'server/monolyth';
+import { ActivityType, Resource, WithAmount } from 'server/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, Ref, ref } from 'vue'
 import ResourceFlowItem from '../game/ResourceFlowItem.vue';
 import UIDropdown from '../ui/UIDropdown.vue';
 import * as UI from '../ui/';
 import { toMap } from 'server/functions';
-import { fmtResourceAmount } from '@/game/classes/formatters';
+import { fmtResourceAmount } from 'server/functions';
 import {deleteIcon,timeIcon} from '../ui/icons'
-import { AttackIPTarget, TradeIPTarget } from '@/game/classes/info';
-import { closeInfoPanel, goBackInfoPanelHistory, showErrorPanel } from '@/game/controllers/ui';
-import { ActivityAvailability, ActivityCost, AttackActivityTarget } from '@/game/classes/activities';
+import { AttackIPTarget } from '@/game/classes/info';
+import { closeInfoPanel, showErrorPanel } from '@/game/controllers/ui';
+import { ActivityAvailability, ActivityCost, AttackActivityTarget } from 'server/activities';
 
 export default defineComponent({
   components:{...UI,UIDropdown,ResourceFlowItem},

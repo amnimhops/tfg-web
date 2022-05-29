@@ -32,7 +32,7 @@ import ResourceFlowItem from '../game/ResourceFlowItem.vue'
 import {timeIcon} from '../ui/icons'
 
 import * as UI from '../ui/';
-import { ActivityAvailability, ActivityCost } from '@/game/classes/activities';
+import { ActivityAvailability, ActivityCost } from 'server/activities';
 
 
 export default defineComponent({

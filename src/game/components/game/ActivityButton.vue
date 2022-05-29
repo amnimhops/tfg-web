@@ -7,9 +7,10 @@
 
 <script lang="ts">
 import * as UI from '../ui/';
-import { ActivityAvailability } from '@/game/classes/activities'
+
 import { useGameAPI } from '@/game/services/gameApi'
 import { Activity, ActivityTarget, ActivityType } from 'server/monolyth'
+import { ActivityAvailability } from 'server/activities'
 import { computed, defineComponent, PropType } from 'vue'
 import { showInfoPanel2 } from '@/game/controllers/ui';
 import { ActivityIPTarget } from '@/game/classes/info';

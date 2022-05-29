@@ -1,4 +1,4 @@
-import { CellInstance, Vector } from 'server/monolyth';
+import { CellInstance, TileConfig, Vector } from 'server/monolyth';
 import { AssetManager, ConstantAssets } from 'server/assets';
 import { GameEvents, IGameAPI, useGameAPI } from '../services/gameApi';
 import { ManagedMapController } from './canvasController';
@@ -7,11 +7,11 @@ import { ManagedMapController } from './canvasController';
 //const CELL_HEIGHT = 61;
 //const H_DISPLACEMENT = 70;
 //const V_DISPLACEMENT = 31;
-
+/*
 const CELL_WIDTH = 200;
 const CELL_HEIGHT = 91;
 const H_DISPLACEMENT = 150;
-const V_DISPLACEMENT = 46;
+const V_DISPLACEMENT = 46;*/
 
 class HexCell{
     cellInstance:CellInstance;
@@ -32,11 +32,13 @@ export const PlayerMapEvents = {
 export class PlayerMapController extends ManagedMapController{
     private cells:HexCell[]
     private selected:HexCell|null;
-    
+    private tileConfig:TileConfig;
+
     constructor(canvas:HTMLCanvasElement,api:IGameAPI){
         super(canvas,api);
         this.cells = [];
         this.selected = null;
+        this.tileConfig = api.getTileConfig();
         this.api.getCells().then(this.onCellsReceived.bind(this));
     }
 
@@ -59,15 +61,15 @@ export class PlayerMapController extends ManagedMapController{
         
         for(const hex of this.cells) {
             const terrainTexture = this.getTerrainTexture(hex);
-            const vDisplace = hex.pos.x % 2 == 1 ? V_DISPLACEMENT : 0;
+            const vDisplace = hex.pos.x % 2 == 1 ? this.tileConfig.yOffset : 0;
             hex.drawOrder =2*hex.pos.y + (vDisplace?1:0);
-            hex.drawPos.x = H_DISPLACEMENT * (hex.pos.x)
+            hex.drawPos.x = this.tileConfig.xOffset * (hex.pos.x)
             /**
              * La coordenada 'y' de dibujo cambia ligeramente para permitir que los hexagonos
              * tengan sensación de altura. Para esto, a la coordenada normal de dibujado hay
              * que restar la diferencia entre la altura real de la imagen y la esperada
              */
-            hex.drawPos.y = CELL_HEIGHT * (hex.pos.y) + vDisplace;
+            hex.drawPos.y = this.tileConfig.height * (hex.pos.y) + vDisplace;
         }
         // Ordenamos según el orden de dibujado
         this.cells.sort((a,b)=>a.drawOrder-b.drawOrder);
@@ -93,7 +95,7 @@ export class PlayerMapController extends ManagedMapController{
 
     protected onSelect(pos:Vector):void{
         let minDistance = Number.MAX_SAFE_INTEGER; 
-        pos.sub(new Vector(CELL_WIDTH/2,CELL_HEIGHT/2));
+        pos.sub(new Vector(this.tileConfig.width/2,this.tileConfig.height/2));
 
         for(let i = 0; i < this.cells.length; i++){
             const cell = this.cells[i];
@@ -134,7 +136,6 @@ export class PlayerMapController extends ManagedMapController{
         // Propiedades para pintar el texto
         const ctx = this.getContext();
         ctx.font = "20px Arial black";
-        ctx.fill
         ctx.textAlign = "center";
         ctx.fillStyle = 'white';
         for(let i=0;i<this.cells.length;i++){
@@ -150,7 +151,7 @@ export class PlayerMapController extends ManagedMapController{
              * tengan sensación de altura. Para esto, a la coordenada normal de dibujado hay
              * que restar la diferencia entre la altura real de la imagen y la esperada
              */
-            const terrainHeightDiff = terrainTexture.height - CELL_HEIGHT
+            const terrainHeightDiff = terrainTexture.height - this.tileConfig.height
             //hex.drawPos.y = pos.y + CELL_HEIGHT * (hex.pos.y) + vDisplace;
         
             // Coordenadas de dibujo en el espacio de la pantalla
@@ -161,7 +162,7 @@ export class PlayerMapController extends ManagedMapController{
             // para compensar el desplazamiento de los hexágonos.
             // Hay que tener en cuenta también el zoom a la hora de calcular los límites 
             // de la pantalla
-            if(screenX >= (-CELL_WIDTH * this.getZoom()) && screenY >=0 && screenX < canvasW / this.getZoom() && screenY < (canvasH + terrainHeightDiff) / this.getZoom()){
+            if(screenX >= (-this.tileConfig.width * this.getZoom()) && screenY >=0 && screenX < canvasW / this.getZoom() && screenY < (canvasH + terrainHeightDiff) / this.getZoom()){
             //if(pos.x > -CELL_WIDTH && pos.y > -CELL_HEIGHT && pos.x < canvasW && pos.y < canvasH){
                 // Pintar el terreno
                 const selected = this.selected == hex;
@@ -172,7 +173,7 @@ export class PlayerMapController extends ManagedMapController{
                 );
                 if(selected){
                     const texture = AssetManager.get(ConstantAssets.HEX_SELECTED).data;
-                    const heightDiff = texture.height - CELL_HEIGHT
+                    const heightDiff = texture.height - this.tileConfig.height
                     ctx.drawImage(
                         texture,
                         hex.drawPos.x ,
@@ -181,7 +182,7 @@ export class PlayerMapController extends ManagedMapController{
                 }
                 // A continuación se pintan los emplazables
                 if(buildingTexture){
-                    const buildingHeightDiff = buildingTexture.height - CELL_HEIGHT
+                    const buildingHeightDiff = buildingTexture.height - this.tileConfig.height
                     ctx.drawImage(
                         buildingTexture,
                         hex.drawPos.x,
@@ -190,9 +191,9 @@ export class PlayerMapController extends ManagedMapController{
                 }
                 // Pintar el badge con el número de edificios
                 if(hex.cellInstance.placeables.length  > 1){
-                    ctx.fillText(hex.cellInstance.placeables.length+'',hex.drawPos.x+CELL_WIDTH/2,hex.drawPos.y + CELL_HEIGHT / 2);
+                    ctx.fillText(hex.cellInstance.placeables.length+'',hex.drawPos.x+this.tileConfig.width/2,hex.drawPos.y + this.tileConfig.height / 2);
                 }
-                ctx.fillText(hex.cellInstance.id+'',hex.drawPos.x+CELL_WIDTH/2,hex.drawPos.y + CELL_HEIGHT / 2);
+                //ctx.fillText(hex.cellInstance.id+'',hex.drawPos.x+this.tileConfig.width/2,hex.drawPos.y + this.tileConfig.height / 2);
             }
         }
     }

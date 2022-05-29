@@ -31,7 +31,7 @@ import { PickBuildingIPTarget, PlaceableIPTarget } from '@/game/classes/info'
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
 import { ActivityType, Placeable, ResourceAmount } from 'server/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
-import { ActivityCost, BuildingActivityTarget} from '../../classes/activities'
+import { ActivityCost, BuildingActivityTarget} from 'server/activities'
 import * as UI from '@/game/components/ui/';
 import { AssetManager, ConstantAssets } from 'server/assets';
 import {timeIcon} from '../ui/icons'

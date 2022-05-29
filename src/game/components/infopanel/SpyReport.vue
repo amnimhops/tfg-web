@@ -25,7 +25,7 @@
 import { useGameAPI } from '@/game/services/gameApi';
 import { Resource, SpyReport, Technology, WithAmount } from 'server/monolyth';
 import { computed, defineComponent, PropType } from 'vue'
-import {fmtResourceAmount} from '../../classes/formatters';
+import {fmtResourceAmount} from 'server/functions';
 import * as UI from '../ui/';
 import ResourceQuantity from '../game/ResourceQuantity.vue';
 import { showErrorPanel, showInfoPanel2 } from '@/game/controllers/ui';

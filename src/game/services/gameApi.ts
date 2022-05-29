@@ -1,10 +1,10 @@
-import { countdown, countdownStr, toMap } from 'server/functions';
-import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, flowPeriodRanges, Game, GameEvents, GameStats, InstancePlayer, InstancePlayerInfo, Media, Message, MessageType, Placeable, PlaceableInstance, RegistrationRequest, Resource, ResourceFlow, SearchParams, SearchResult, Stockpile, Technology, TradingAgreement, UIConfig, User, WithToken, WorldMapQuery, WorldMapSector } from 'server/monolyth';
-import { ActivityAvailability, ActivityCost, AttackActivityTarget, ClaimActivityTarget, DismantlingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget } from '../classes/activities';
+import { countdown, countdownStr, fmtResourceAmount, toMap } from 'server/functions';
+import { Activity, ActivityTarget, ActivityType, Asset, Cell, CellInstance, EnqueuedActivity, flowPeriodRanges, Game, GameEvents, GameStats, InstancePlayer, InstancePlayerInfo, Media, Message, MessageType, Placeable, PlaceableInstance, RegistrationRequest, Resource, ResourceFlow, SearchParams, SearchResult, Stockpile, Technology, TileConfig, TradingAgreement, UIConfig, User, WithToken, WorldMapQuery, WorldMapSector } from 'server/monolyth';
 import { AssetManager, ConstantAssets } from 'server/assets';
+import { ActivityAvailability, ActivityCost, AttackActivityTarget, ClaimActivityTarget, DismantlingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget } from 'server/activities';
 import { EventEmitter, IEventEmitter } from '../classes/events';
-import { fmtResourceAmount } from '../classes/formatters';
-import { GameData } from '../classes/gameIndex';
+
+import { GameData } from 'server/gamedata';
 import { RemoteApiClient } from './remoteApiClient';
 import { IRemoteGameAPI } from './remoteApi';
 
@@ -127,6 +127,7 @@ export interface ILocalGameAPI{
     getPlaceable(id:string):Placeable;
     getTechnologyList():Technology[];
     getUIConfig(): UIConfig;
+    getTileConfig(): TileConfig;
     getResearchedTechnologies():Technology[];
     getActivity(type:ActivityType):Activity;
     getActivityCost(type:ActivityType,target?:ActivityTarget):ActivityCost;
@@ -357,6 +358,9 @@ class LocalGameAPI extends EventEmitter implements IGameAPI {
    
     getUIConfig(): UIConfig {
         return this.internalGame!.userInterface!.style!; // bang bang!
+    }
+    getTileConfig(): TileConfig {
+        return this.internalGame!.userInterface!.tiles!;
     }
     getResearchedTechnologies():Technology[]{
         if(!this.currentInstancePlayer) throw new Error('No se ha cargado la información del jugador');

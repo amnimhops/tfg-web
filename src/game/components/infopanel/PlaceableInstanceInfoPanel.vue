@@ -46,8 +46,9 @@ import { ExistingPlaceableIPTarget } from '@/game/classes/info'
 import { GameEvents, useGameAPI } from '@/game/services/gameApi'
 import { ActivityType, EnqueuedActivity, ResourceFlow } from 'server/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
-import { ActivityInfo, DismantlingActivityTarget, useActivityConfirmation} from '../../classes/activities'
+//import { ActivityInfo, DismantlingActivityTarget, useActivityConfirmation} from 'server/activities'
 import { closeInfoPanel, goBackInfoPanelHistory } from '@/game/controllers/ui';
+import { ActivityInfo, DismantlingActivityTarget } from 'server/activities';
 
 
 export default defineComponent({
@@ -59,15 +60,15 @@ export default defineComponent({
         const api = useGameAPI();
         const apiChanged = ref<number>(Date.now());
         const gameData = api.getGameData();
-        const {activityConfirmationModel,openActivityConfirmationDialog,closeActivityConfirmationDialog,startActivity} = useActivityConfirmation();
-        // Puedes quitar el dismantle y todo lo relacionado con ActivityConfirmation, ya no se usa
-        const dismantle = () => {
-            openActivityConfirmationDialog('Comenzar investigación',ActivityType.Dismantle,{
-                cellInstanceId:props.target?.cellInstance.id,
-                placeableInstanceId:props.target?.placeableInstance.id,
-                name:props.target?.media?.name
-            } as DismantlingActivityTarget);
-        }
+        // const {activityConfirmationModel,openActivityConfirmationDialog,closeActivityConfirmationDialog,startActivity} = useActivityConfirmation();
+        // // Puedes quitar el dismantle y todo lo relacionado con ActivityConfirmation, ya no se usa
+        // const dismantle = () => {
+        //     openActivityConfirmationDialog('Comenzar investigación',ActivityType.Dismantle,{
+        //         cellInstanceId:props.target?.cellInstance.id,
+        //         placeableInstanceId:props.target?.placeableInstance.id,
+        //         name:props.target?.media?.name
+        //     } as DismantlingActivityTarget);
+        // }
 
         const activities = computed<ActivityInfo[]>( ()=>{
             apiChanged.value;
@@ -80,7 +81,7 @@ export default defineComponent({
 
             // TODO Añadir el resto de actividades (si hubiera)
             return [
-                {type:ActivityType.Dismantle,target:dismantleTarget,callback:dismantle}
+                {type:ActivityType.Dismantle,target:dismantleTarget/*,callback:dismantle*/}
             ];
         });
 
@@ -135,8 +136,7 @@ export default defineComponent({
             expenses,
             activities,
             ongoingDismantling,
-            goBackInfoPanelHistory,
-            activityConfirmationModel,closeActivityConfirmationDialog,startActivity
+            goBackInfoPanelHistory
         }
     },
 })

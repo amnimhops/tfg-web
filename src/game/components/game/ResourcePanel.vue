@@ -46,7 +46,7 @@ import { GameEvents, useGameAPI } from '@/game/services/gameApi';
 import { Stockpile } from 'server/monolyth';
 import { computed, defineComponent, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import {fmtResourceAmount} from '../../classes/formatters'
+import {fmtResourceAmount} from 'server/functions'
 const store = useStore();
 
 

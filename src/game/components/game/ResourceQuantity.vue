@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import {fmtResourceAmount} from '../../classes/formatters'
+import { fmtResourceAmount } from 'server/functions';
 import UIFlex from '../ui/UIFlex.vue'
 import UIIcon from '../ui/UIIcon.vue'
 import UILabel from '../ui/UILabel.vue'

@@ -1,8 +1,8 @@
 import { Asset, Game, CellInstance, InstancePlayer, ActivityType, ActivityTarget, MessageType, SearchResult, Message, TradingAgreement, EnqueuedActivity, WorldMapQuery, WorldMapSector, User, WithToken, RegistrationRequest, GameStats, SearchParams, InstancePlayerInfo } from "server/monolyth";
-import { ActivityAvailability } from "../classes/activities";
 
 import { IRemoteGameAPI } from "./remoteApi";
 import {Base64} from "js-base64";
+import { ActivityCost } from "server/activities";
 
 export class RemoteApiClient implements IRemoteGameAPI{
     private apiToken?:string;
@@ -139,4 +139,9 @@ export class RemoteApiClient implements IRemoteGameAPI{
     instanceInfo(id:string):Promise<InstancePlayerInfo[]>{
         return this.remoteApiCall<InstancePlayerInfo[]>(`/users/${id}/games`)
     }
+    getActivityCost(type:ActivityType,target:ActivityTarget):Promise<ActivityCost>{
+        const encodedTarget = Base64.encode(JSON.stringify(target))
+        return this.remoteApiCall<ActivityCost>(`/activities/${type}/${encodedTarget}`);
+    }
+
 }

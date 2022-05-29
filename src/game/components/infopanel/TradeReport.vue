@@ -1,5 +1,5 @@
 <template>
-    <UIFlex gap="20">xxxxxx
+    <UIFlex gap="20">
         <UISection title="Solicita" v-if="request.length">
             <UIFlex gap="10">
                 <ResourceQuantity v-for="(item,index) in request" :key="index" :item="item"/>
@@ -29,9 +29,9 @@
 <script lang="ts">
 import { GameEvents, useGameAPI } from '@/game/services/gameApi';
 import { toMap } from 'server/functions';
-import { Resource, ResourceAmount, SpyReport, Technology, TradingAgreement, WithAmount, WithMedia } from 'server/monolyth';
+import { ResourceAmount,TradingAgreement, WithMedia } from 'server/monolyth';
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
-import {fmtResourceAmount} from '../../classes/formatters';
+import {fmtResourceAmount} from 'server/functions';
 import * as UI from '../ui';
 import {acceptIcon,closeIcon} from '../ui/icons'
 import ResourceQuantity from '../game/ResourceQuantity.vue'

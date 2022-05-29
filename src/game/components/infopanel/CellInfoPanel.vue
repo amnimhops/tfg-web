@@ -51,7 +51,7 @@ import { GameEvents, ActivityType, Media, PlaceableInstance, EnqueuedActivity, C
 import { computed, defineComponent, onMounted, onUnmounted, PropType, ref } from 'vue'
 import { goBackInfoPanelHistory, showInfoPanel2 } from '@/game/controllers/ui'
 import { AssetManager, ConstantAssets } from 'server/assets'
-import { BuildingActivityTarget, ClaimActivityTarget, ExplorationActivityTarget } from '@/game/classes/activities'
+import { BuildingActivityTarget, ClaimActivityTarget, ExplorationActivityTarget } from 'server/activities'
 import ActivityButton from '../game/ActivityButton.vue';
 import * as UI from '../ui/';
 import EnqueuedActivityInfo from '../game/EnqueuedActivityInfo.vue';

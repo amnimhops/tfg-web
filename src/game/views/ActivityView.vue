@@ -39,8 +39,8 @@ import { GameEvents, useGameAPI } from '../services/gameApi'
 import {countdown,countdownStr} from 'server/functions'
 import { AssetManager, ConstantAssets } from 'server/assets';
 import { showErrorPanel, showInfoPanel2 } from '../controllers/ui';
-import { CellIPTarget, ExistingPlaceableIPTarget, InfopanelTarget, IPActionCallback, TechIPTarget } from '../classes/info';
-import { BuildingActivityTarget, ResearchActivityTarget } from '../classes/activities';
+import { ExistingPlaceableIPTarget, InfopanelTarget, TechIPTarget } from '../classes/info';
+import { BuildingActivityTarget, ResearchActivityTarget } from 'server/activities';
 
 interface ActivitySummary{
     id:number;

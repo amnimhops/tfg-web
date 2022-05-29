@@ -26,12 +26,12 @@
 
 <script lang="ts">
 import { useGameAPI } from '@/game/services/gameApi';
-import { Placeable, Resource, ResourceAmount, SpyReport, Technology, WithAmount } from 'server/monolyth';
+import { Placeable, Resource, ResourceAmount, WithAmount } from 'server/monolyth';
 import { computed, defineComponent, PropType } from 'vue'
-import {fmtResourceAmount} from '../../classes/formatters';
+import {fmtResourceAmount} from 'server/functions';
 import * as UI from '../ui/';
 import ResourceQuantity from '../game/ResourceQuantity.vue';
-import { SimplifiedCombatSummary } from '@/game/classes/combat';
+import { SimplifiedCombatSummary } from 'server/combat';
 export default defineComponent({
     props:{
         report:Object as PropType<SimplifiedCombatSummary>

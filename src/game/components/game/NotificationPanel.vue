@@ -27,7 +27,7 @@ import { ActivityType, EnqueuedActivity, Message, MessageType, PlaceableInstance
 import { AssetManager, ConstantAssets } from "server/assets";
 import { showInfoPanel2 } from "@/game/controllers/ui";
 import { CellIPTarget, ExistingPlaceableIPTarget, MessageIPTarget, TechIPTarget } from "@/game/classes/info";
-import { BuildingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget } from "@/game/classes/activities";
+import { BuildingActivityTarget, ExplorationActivityTarget, ResearchActivityTarget } from "server/activities";
 
 interface SystemNotification{
     id:number;

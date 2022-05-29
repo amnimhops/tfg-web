@@ -59,7 +59,7 @@ import { computed, defineComponent, onMounted, onUnmounted, PropType, Ref, ref }
 import UIDropdown from '../ui/UIDropdown.vue';
 import * as UI from '../ui/';
 import { toMap } from 'server/functions';
-import { fmtResourceAmount } from '@/game/classes/formatters';
+import { fmtResourceAmount } from 'server/functions';
 import {deleteIcon} from '../ui/icons'
 import { TradeIPTarget } from '@/game/classes/info';
 import { goBackInfoPanelHistory, showErrorPanel } from '@/game/controllers/ui';
